@@ -1,6 +1,9 @@
-// Copyright 2023 Google LLC.
-// SPDX-License-Identifier: Apache-2.0
+/** @license 
+  * Copyright 2023 Google LLC.
+  * SPDX-License-Identifier: Apache-2.0 
+  */
 
+// Inspired by https://cargocollective.com/sagejenson/physarum
 class Physarum {
 
     constructor(glsl, gui) {

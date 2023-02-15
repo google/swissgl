@@ -1,6 +1,10 @@
-// Copyright 2023 Google LLC.
-// SPDX-License-Identifier: Apache-2.0
+/** @license 
+  * Copyright 2023 Google LLC.
+  * SPDX-License-Identifier: Apache-2.0 
+  */
 
+// Based on "μNCA: Texture Generation with Ultra-Compact Neural Cellular Automata"
+// https://arxiv.org/abs/2111.13545
 class NeuralCA {
     frame(glsl) {
         const state = glsl(`

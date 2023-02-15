@@ -1,6 +1,9 @@
-// Copyright 2023 Google LLC.
-// SPDX-License-Identifier: Apache-2.0
+/** @license 
+  * Copyright 2023 Google LLC.
+  * SPDX-License-Identifier: Apache-2.0 
+  */
 
+// Inspired by the video https://youtu.be/p4YirERTVF0?t=480
 class ParticleLife {
     constructor(glsl, gui) {
         this.glsl = glsl;

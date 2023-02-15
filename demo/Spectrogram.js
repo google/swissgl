@@ -1,6 +1,9 @@
-// Copyright 2023 Google LLC.
-// SPDX-License-Identifier: Apache-2.0
+/** @license 
+  * Copyright 2023 Google LLC.
+  * SPDX-License-Identifier: Apache-2.0 
+  */
 
+// Example of streaming spectrogram data from WebAudio to WebGL2
 class Spectrogram {
     constructor(glsl, gui) {
         navigator.mediaDevices.getUserMedia({audio: true}).then(stream=>{

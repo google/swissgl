@@ -1,6 +1,11 @@
-// Copyright 2023 Google LLC.
-// SPDX-License-Identifier: Apache-2.0
+/** @license 
+  * Copyright 2023 Google LLC.
+  * SPDX-License-Identifier: Apache-2.0 
+  */
 
+// Model description:
+// https://google-research.github.io/self-organising-systems/particle-lenia/
+// https://observablehq.com/@znah/particle-lenia-from-scratch
 class ParticleLenia {
     constructor(glsl, gui) {
         this.glsl = glsl;

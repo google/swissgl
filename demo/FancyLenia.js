@@ -1,6 +1,9 @@
-// Copyright 2023 Google LLC.
-// SPDX-License-Identifier: Apache-2.0
+/** @license 
+  * Copyright 2023 Google LLC.
+  * SPDX-License-Identifier: Apache-2.0 
+  */
 
+// Visualization of Particle Lenia fields as 3d landscape
 class FancyLenia extends ParticleLenia {
     reset() {
         super.reset();

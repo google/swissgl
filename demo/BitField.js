@@ -1,6 +1,9 @@
-// Copyright 2023 Google LLC.
-// SPDX-License-Identifier: Apache-2.0
+/** @license 
+  * Copyright 2023 Google LLC.
+  * SPDX-License-Identifier: Apache-2.0 
+  */
 
+// Bit Field texture, inspired by the tweet thread:
 // https://twitter.com/aemkei/status/1378106731386040322
 class BitField {
     constructor(glsl, gui) {

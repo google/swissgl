@@ -14,7 +14,7 @@ class SurfaceNormals {
             p *= TAU;
             vec2 c = sin(t+p*vec2(ID));
             float r = 0.2 + 0.05*c.x + 0.08*c.y;
-            vec3 pos = vec3(vec2(cos(p.x),sin(p.x))*r+vec2(0.5,0), 0);
+            vec3 pos = vec3(cos(p.x)*r+0.5, sin(p.x)*r, 0);
             pos.xz *= rot2(p.y);
             pos *= 0.3;
             pos.xz += (vec2(ID)-vec2(Grid-1)*0.5)*0.5;

@@ -63,7 +63,7 @@ glsl({F}, `F(I/20).x*3.0`);
 ```
 ![](images/F.png)
 
-Uniform textures can be accessed with usual GLSL functions, or with a helper macro that has the same name as the texture uniform. Passing `ivec2` as parameter makes it call `texelFetch()` to get a texel using the integer coordinates, passing `vec2` uses `texture()`, with filtering and wrapping. The above line should produce this image when called in the render loop: TODO
+Uniform textures can be accessed with usual GLSL functions, or with a helper macro that has the same name as the texture uniform. Passing `ivec2` as parameter makes it call `texelFetch()` to get a texel using the integer coordinates, passing `vec2` uses `texture()`, with filtering and wrapping.
 
 The next step is to create a list of textures that is going to contain particle positions. Each pixel will contain a single particle position and type.
 ```js
@@ -258,6 +258,10 @@ The following options control the creation of new textures:
 
 * `story`: interger. Create an array of textures of the same format instead of a single one. Rendering to such target rotates the array in place so that the texture last rendered into becomes the element `0`.
 
+* `filter`: `'nearest'` or `'linear'`
+
+* `wrap`: `'repeat'` or `'edge'`
+
 
 ## Links
 
@@ -275,4 +279,5 @@ Libraries
 * [three.js](https://threejs.org/)
 * [MathBox](https://github.com/unconed/mathbox)
 * [twgljs](https://twgljs.org/)
+* [regl](https://github.com/regl-project/regl)
 * [gpu-io](https://github.com/amandaghassaei/gpu-io)

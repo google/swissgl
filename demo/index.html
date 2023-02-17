@@ -83,6 +83,7 @@ button:hover {
 <script src='FancyLenia.js'></script>
 <script src='Spectrogram.js'></script>
 <script src='Physarum.js'></script>
+<script src='SurfaceNormals.js'></script>
 
 <details id="panel" open>
     <summary>SwissGL demos</summary>
@@ -114,7 +115,8 @@ button:hover {
     }
 
     const DEMOS = Object.fromEntries([
-        NeuralCA, BitField, GameOfLife, ParticleLife, ParticleLenia, FancyLenia, Spectrogram, Physarum
+        NeuralCA, BitField, GameOfLife, ParticleLife, ParticleLenia, FancyLenia,
+        Spectrogram, Physarum, SurfaceNormals,
     ].map(c=>[c.name, c]));
     
     const params = {

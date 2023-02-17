@@ -7,15 +7,22 @@
 class Physarum {
 
     constructor(glsl, gui) {
-        this.step_n = 1;
-        gui.add(this, 'step_n', 0, 20, 1);
+        const U = this.U = {};
+        const par = (s, v, ...arg)=>{U[s]=v;gui.add(U,s,...arg)};
+        par('step_n',      1,    0, 20, 1);
+        par('density',     1,    1, 4,  1);
+        par('senseAng',  5.5, -180, 180  );
+        par('senseDist',  18,    1, 50   );
+        par('moveAng',    45,    0, 180  );
+        par('moveDist',    2,    0, 10   );
+        par('viewScale',   1,    1, 3,  1);
     }
 
     frame(glsl) {
-        for (let i=0; i<this.step_n; ++i) {
+        for (let i=0; i<this.U.step_n; ++i) {
             this.step(glsl);
         }
-        glsl({field:this.field[0]}, `field(P).x`);
+        glsl({field:this.field[0], ...this.U}, `field(P*viewScale).x`);
     }
 
     step(glsl) {
@@ -27,7 +34,7 @@ class Physarum {
         out0 = 0.95*(S(x,y)+S(l,y)+S(r,y)+S(x,u)+S(x,d)+S(l,u)+S(r,u)+S(l,d)+S(r,d))/9.0;
         `, {story:2, format:'rgba8'});
 
-        const points = glsl({field:field[0]}, `
+        const points = glsl({field:field[0], ...this.U}, `
         out0 = Src(I);
         vec2 wldSize = vec2(field_size());
         if (out0.w == 0.0 || out0.x>=wldSize.x || out0.y>=wldSize.y) {
@@ -36,11 +43,11 @@ class Physarum {
             return;
         }
         vec2 dir = vec2(cos(out0.z), sin(out0.z));
-        mat2 R = rot2(radians(5.5));
-        vec2 sense = 18.0*dir;
+        mat2 R = rot2(radians(senseAng));
+        vec2 sense = senseDist*dir;
         #define F(p) field((out0.xy+(p))/wldSize).x
         float c=F(sense), r=F(R*sense), l=F(sense*R);
-        float rotAng = radians(45.0);
+        float rotAng = radians(moveAng);
         if (l>c && c>r) {
             out0.z -= rotAng;
         } else if (r>c && c>l) {
@@ -48,9 +55,9 @@ class Physarum {
         } else if (c<=r && c<=l) {
            out0.z += sign(hash(ivec3(out0.xyz*5039.)).x-0.5)*rotAng;
         }
-        out0.xy += dir*2.0;
+        out0.xy += dir*moveDist;
         out0.xy = mod(out0.xy, wldSize);
-        `, {scale:1/16, story:2, format:'rgba32f'});
+        `, {scale:this.U.density/16, story:2, format:'rgba32f'});
         
         glsl({points: points[0], Grid: points[0].size, Blend: 's+d'}, `
         varying vec2 r;

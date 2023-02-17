@@ -54,9 +54,9 @@ body {
 }
 button{
     appearance: none;
-    width:38px; height: 32px;
-    margin: 4px;
-    font-size: 18px;
+    width:48px; height: 40px;
+    margin: 8px;
+    font-size: 24px;
     background-color: rgba(0, 0, 0, .5);
     color: white;
     border: none;
@@ -70,30 +70,33 @@ button:hover {
 #buttons a {
     text-decoration: none;
 }
+a {
+    color: aquamarine;
+}
 </style>
 
-<script src='../swissgl.js'></script>
-<script src="dat.gui.min.js"> </script>
+<script src='swissgl.js'></script>
+<script src="demo/dat.gui.min.js"> </script>
 
-<script src='NeuralCA.js'></script>
-<script src='BitField.js'></script>
-<script src='GameOfLife.js'></script>
-<script src='ParticleLife.js'></script>
-<script src='ParticleLenia.js'></script>
-<script src='FancyLenia.js'></script>
-<script src='Spectrogram.js'></script>
-<script src='Physarum.js'></script>
-<script src='SurfaceNormals.js'></script>
+<script src='demo/NeuralCA.js'></script>
+<script src='demo/BitField.js'></script>
+<script src='demo/GameOfLife.js'></script>
+<script src='demo/ParticleLife.js'></script>
+<script src='demo/ParticleLenia.js'></script>
+<script src='demo/FancyLenia.js'></script>
+<script src='demo/Spectrogram.js'></script>
+<script src='demo/Physarum.js'></script>
+<script src='demo/SurfaceNormals.js'></script>
 
 <details id="panel" open>
-    <summary>SwissGL demos</summary>
+    <summary><a href="https://github.com/google/swissgl">SwissGL</a> demos</summary>
     <div id="cards"></div>
 </details>
 <div id="demo">
   <canvas id="c" width="640" height="360"></canvas>
 </div>
 <div id="buttons">
-    <button title="settings" onclick="toggleGui()" id="settingButton" style="font-size: 22px;">⛯</button>
+    <button title="settings" onclick="toggleGui()" id="settingButton" style="font-size: 180%;">⛯</button>
     <a id='sourceLink' href="" target="_blank"><button title="source code">&lt;&gt;</button></a>
     <button title="fullscreen" onclick="fullscreen()"">⛶</button>
 </div>
@@ -158,7 +161,7 @@ button:hover {
         Object.keys(DEMOS).forEach(name=>{
             const el = document.createElement('div');
             el.classList.add('card');
-            el.innerHTML = `<img src="preview/${name}.jpg">${name}`;
+            el.innerHTML = `<img src="demo/preview/${name}.jpg">${name}`;
             el.addEventListener('click', ()=>runDemo(name));
             panel.appendChild(el);
             

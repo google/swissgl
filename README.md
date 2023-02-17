@@ -1,8 +1,8 @@
 # SwissGL: Swiss Army knife for WebGL2
 
-**[DEMO](demo/)**
+**[DEMO](http://google.github.io/swissgl)**
 
-SwissGL is a minimalistic wrapper on top of WebGL2 JS API. It's designed to reduce the amount of boilerplate code required to manage GLSL shaders, textures and framebuffers when making GPGPU-style procedural visualizations or simulations. See the [demos](demo/) page for examples of using SwissGL. As of now the library consists of a standalone ~500 loc .js file.
+SwissGL is a minimalistic wrapper on top of WebGL2 JS API. It's designed to reduce the amount of boilerplate code required to manage GLSL shaders, textures and framebuffers when making GPGPU-style procedural visualizations or simulations. See the [demos](demo/) for examples of using SwissGL. As of now the library consists of a standalone ~500 loc .js file.
 
 **Disclaimer** This is not an officially supported Google product. SwissGL is an early stage experiment, incomplete and unstable. It's an invitation to discuss compact and expressive graphics library design, which I hope is relevant in light of the upcoming arrival of WebGPU.
 

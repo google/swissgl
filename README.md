@@ -277,6 +277,7 @@ Playgrounds:
 
 Libraries
 * [three.js](https://threejs.org/)
+* [Use.GPU](https://usegpu.live/)
 * [MathBox](https://github.com/unconed/mathbox)
 * [twgljs](https://twgljs.org/)
 * [regl](https://github.com/regl-project/regl)

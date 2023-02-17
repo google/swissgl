@@ -20,12 +20,12 @@ class ParticleLenia {
         const params = this.params = {dt: 0.1,
             mu_k: 4.0, sigma_k: 1.0, w_k: 0.022,
             mu_g: 0.6, sigma_g: 0.15, c_rep: 1.0};
+        gui.add(this, 'step_n',  0, 50, 1);
         gui.add(params, 'mu_k',    0.0, 5.0).onChange(()=>this.updateNormCoef());
         gui.add(params, 'sigma_k', 0.1, 2.0).onChange(()=>this.updateNormCoef());
         gui.add(params, 'mu_g',    0.0, 1.5);
         gui.add(params, 'sigma_g', 0.1, 1.0);
         gui.add(params, 'c_rep',   0.0, 2.0);
-        gui.add(this, 'step_n',  0, 50, 1);
         gui.add(this, 'reset');
 
         this.reset();

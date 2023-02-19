@@ -49,6 +49,7 @@ Please refer to the [API section](#api) below for the detailed explanation of th
 
 Inspired by the [beautiful video](https://youtu.be/p4YirERTVF0?t=481) by Tom Mohr, let's try reproduce the "snake" pattern shown there. Particle Life is made of particles of a few different types. All particles repel when they are closer than some distance $r$, but at around $2r$ the resulting (potentially non-symmetric) force is described by the special force matrix $F_{i,j}$, where $i,j$ are types of two particles. Positive $F$ corresponds to attraction and negative to repulsion. Let's create a texture that stores such a matrix. We can create an array on the JS side and pass it to SwissGL, but it's even easier to populate matrix values right on GPU:
 ```js
+const glsl = SwissGL(canvas.getContext('webgl2', {alpha:false}));
 const K = 6; // number of particle types
 const F = glsl(`
     float(I.x==I.y) + 0.1*float(I.x==I.y+1)`,

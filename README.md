@@ -79,7 +79,7 @@ for (let i=0; i<2; ++i) {
         points);
 }
 ```
-The shader code above uses "multiline" shader `code` format instead of a single expression. The output must be written to a global variable `out0`. Variable `P` has type `vec2` and provides `[0,1]`-range normalized coordinates of the current pixel. It is used to assign one of `K` "colors" to each particle. For convenience SwissGL provides a [simple hash](TODO) function `vec3 hash(ivec3)` that can be used as a deterministic random number generator.
+The shader code above uses "multiline" shader `code` format instead of a single expression. The output must be written to a global variable `out0`. Variable `P` has type `vec2` and provides `[0,1]`-range normalized coordinates of the current pixel. It is used to assign one of `K` "colors" to each particle. For convenience SwissGL provides a [simple hash](https://github.com/google/swissgl/blob/024ff9c26495a9e30b3b361a0ebdf230e89ac6c7/swissgl.js#L153) function `vec3 hash(ivec3)` that can be used as a deterministic random number generator.
 
 Note that we are writing the same particle positions two times, which means that particles have zero velocity at initialization. Now `points[0]` and `points[1]` contain the same values, and `points[2]` is uninitialized and is going to be overwritten at the first simulation step.
 

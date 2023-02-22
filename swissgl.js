@@ -33,6 +33,7 @@
 
 // pain points:
 // - view transform params
+// - fragment only aspect
 
 const Type2Setter = {};
 for (const t of ['FLOAT', 'INT', 'BOOL']) {
@@ -283,7 +284,8 @@ function createTex2D(gl, {size, format='rgba8', filter='linear', wrap='repeat', 
     }[format];
     // TODO: mipmap
     const glfilter = { 'nearest': gl.NEAREST, 'linear': gl.LINEAR}[filter];
-    const glwrap = { 'repeat': gl.REPEAT, 'edge': gl.CLAMP_TO_EDGE}[wrap];
+    const glwrap = {'repeat': gl.REPEAT, 'edge': gl.CLAMP_TO_EDGE,
+                    'mirror': gl.MIRRORED_REPEAT}[wrap];
     const tex = gl.createTexture();
     tex.update = (size, data)=> {
         const [w, h] = size;

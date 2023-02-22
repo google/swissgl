@@ -260,7 +260,7 @@ The following options control the creation of new textures:
 
 * `filter`: `'nearest'` or `'linear'`
 
-* `wrap`: `'repeat'` or `'edge'`
+* `wrap`: `'repeat'`, `'edge'` or `'mirror'`
 
 
 ## Links

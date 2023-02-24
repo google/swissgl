@@ -34,6 +34,7 @@
 // pain points:
 // - view transform params
 // - fragment only aspect
+// - tag already exists
 
 const Type2Setter = {};
 for (const t of ['FLOAT', 'INT', 'BOOL']) {

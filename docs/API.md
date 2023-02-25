@@ -17,7 +17,7 @@ glsl(params, code, target);
 
 `glsl` function returns a reference to the `target`. If the texture specification was given, the actual created texture(s) is returned.
 
-### Special arguments
+## Special arguments
 In addition to uniforms, SwissGL accepts a number of options in the `params` argument. These options control the WebGL state and the number of rendered primitives:
 
 * `Clear`: scalar or `[r,g,b,a]` array. Clears the target buffer with a given color before rendering. Also clears the depth buffer if it's present. (TODO: option to keep depth)
@@ -32,14 +32,13 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 
 * `Mesh`: `[w, h]`, default `[1,1]`. Tessellate the rendered 2d plane primitive. `vec2 uv` argument provides `[0,1]`-range normalized vertex coordinates. Integer vertex index is also provided as `ivec2 VID` variable. Mesh size is available in the shader as `uniform ivec2 Mesh`.
 
-
 * `DepthTest`: enable gl.DEPTH_TEST if `true`.
 
 * `AlphaCoverage`: enable `gl.SAMPLE_ALPHA_TO_COVERAGE` if `true`. See [this article](https://bgolus.medium.com/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f) for the usage example.
 
 * `Perspective`: TODO rework
 
-### Code formats
+## Code formats
 
 SwissGL accepts a `code` string that contains a pair of vertex and fragment shaders together, which we call *full* format. In addition to that, there is a number of shortcuts that are mainly used for full-screen/buffer quad rendering:
 
@@ -50,22 +49,27 @@ SwissGL accepts a `code` string that contains a pair of vertex and fragment shad
 
 * *fragment*: a piece of GLSL code that contains a `void fragment() {...}` function. This format allows defining additional functions or custom uniforms.
 
-* *full*: a concatenated pair of vertex and fragment programs in a special form. *Full* `code` format, combined with `Mesh` and `Grid` arguments, enables rendering much more sophisticated objects than simple full-screen quads. Here is a minimal example:
+* *full*: a concatenated pair of vertex and fragment programs in a special form. *Full* `code` format, combined with `Mesh` and `Grid` arguments, enables rendering much more sophisticated objects than simple full-screen quads. [MeshGrid](https://google.github.io/swissgl/#MeshGrid) demo provides a simple example:
 
 ```glsl
-varying vec2 vUV;
-//VERT
-vec4 vertex(vec2 uv) {
-    vUV = uv;
-    return vec4(uv*2.0-1.0, 0.0, 1.0);
-}
-//FRAG
-void fragment() {
-    out0 = vec4(vUV, 0.0, 1.0);
-}
+    glsl({t, Grid:[5,5], Mesh:[4,4], Aspect:'fit'}, `
+    varying vec3 color;
+    //VERT
+    vec4 vertex() {
+        color = hash(ID.xyx);
+        vec2 pos = (vec2(ID)+0.5+XY*(0.5-0.5/vec2(Mesh+1)));
+        pos += sin(UV*TAU+t).yx*0.1;
+        return vec4(2.0*pos/vec2(Grid)-1.0, 0.0, 1.0);
+    }
+    //FRAG
+    void fragment() {
+        vec2 m = UV*vec2(Mesh);
+        float iso = isoline(m.x)+isoline(m.y);
+        out0 = vec4(mix(color, vec3(1.0), iso), 1.0);
+    }`);
 ```
 
-### Target specification
+## Target specification
 
 The following options control the creation of new textures:
 

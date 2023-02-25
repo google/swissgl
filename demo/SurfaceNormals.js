@@ -7,7 +7,6 @@ class SurfaceNormals {
     frame(glsl, t) {
         glsl({t, Mesh:[64,128], Grid:[5,5],
               Aspect:'fit', Perspective:0.5, DepthTest:1}, `
-        varying vec2 uv;
         varying vec3 normal;
         //VERT
         vec3 pos_f(vec2 p) {
@@ -28,22 +27,18 @@ class SurfaceNormals {
           normal = normalize(cross(v, u));
           return p;
         }
-        vec4 vertex(vec2 p) {
-            uv = p*vec2(Mesh)/4.0;
-            vec4 pos = vec4(surf_f(p, normal), 1.0);
+        vec4 vertex() {
+            vec4 pos = vec4(surf_f(UV, normal), 1.0);
             pos.zx *= rot2(t*0.2);
             pos.z -= 0.3;
             pos.zy *= rot2(PI/5.0);
             return pos;
         }
         //FRAG
-        float isoline(float v) {
-            float distToInt = abs(v-round(v));
-            return smoothstep(max(fwidth(v), 0.0001), 0.0, distToInt);
-        }
         void fragment() {
             out0 = vec4(normal*0.6, 1);
-            out0.rgb += (isoline(uv.x)+isoline(uv.y))*0.2;
+            vec2 m = UV*vec2(Mesh)/4.0;
+            out0.rgb += (isoline(m.x)+isoline(m.y))*0.2;
         }`);
     }
 }

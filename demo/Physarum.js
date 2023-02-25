@@ -22,13 +22,13 @@ class Physarum {
         for (let i=0; i<this.U.step_n; ++i) {
             this.step(glsl);
         }
-        glsl({field:this.field[0], ...this.U}, `field(P*viewScale).x`);
+        glsl({field:this.field[0], ...this.U}, `field(UV*viewScale).x`);
     }
 
     step(glsl) {
         const field = this.field = glsl(`
         vec2 dp = Src_step();
-        float x=P.x, y=P.y;
+        float x=UV.x, y=UV.y;
         float l=x-dp.x, r=x+dp.x, u=y-dp.y, d=y+dp.y;
         #define S(x,y) (Src(vec2(x,y)))
         out0 = 0.95*(S(x,y)+S(l,y)+S(r,y)+S(x,u)+S(x,d)+S(l,u)+S(r,u)+S(l,d)+S(r,d))/9.0;
@@ -60,16 +60,13 @@ class Physarum {
         `, {scale:this.U.density/16, story:2, format:'rgba32f'});
         
         glsl({points: points[0], Grid: points[0].size, Blend: 's+d'}, `
-        varying vec2 r;
-        //VERT
-        vec4 vertex(vec2 uv) {
+        vec4 vertex() {
             vec4 d = points(ID);
-            r = uv*2.0-1.0;
-            return vec4(2.0*(d.xy+r*2.0)/vec2(ViewSize)-1.0, 0.0, 1.0);
+            return vec4(2.0*(d.xy+XY*2.0)/vec2(ViewSize)-1.0, 0.0, 1.0);
         }
         //FRAG
         void fragment() {
-            out0 = vec4(smoothstep(1.0, 0.0, length(r)));
+            out0 = vec4(smoothstep(1.0, 0.0, length(XY)));
         }`, field[0]);
     }
 }

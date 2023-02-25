@@ -24,8 +24,8 @@ class FancyLenia extends ParticleLenia {
         },`
         varying vec2 p;
         //VERT
-        vec4 vertex(vec2 uv) {
-            p = (uv*2.0-1.0)*(mu_k+3.0*sigma_k);
+        vec4 vertex() {
+            p = (UV*2.0-1.0)*(mu_k+3.0*sigma_k);
             vec2 pos = state(ID).xy + p;
             return vec4(pos/viewR, 0, 1);
         }
@@ -47,32 +47,25 @@ class FancyLenia extends ParticleLenia {
         
         glsl({fieldU, trails, ...params, ...viewParams,
               Mesh:[100, 100]}, viewInc+`
-        varying vec2 uv;
-        //VERT
-        vec4 vertex(vec2 p) {
-          vec4 pos = vec4(p*2.0-1.0, 0.0, 1.0);
-          uv = 0.5*pos.xy+0.5;
-          pos.z += fieldU(uv).x*scaleU;
+        vec4 vertex() {
+          vec4 pos = vec4(UV*2.0-1.0, 0.0, 1.0);
+          pos.z += fieldU(UV).x*scaleU;
           return wld2view(pos);
         }
         //FRAG
-        float isoline(float v) {
-          float distToInt = abs(v-round(v));
-          return smoothstep(max(fwidth(v), 0.0001), 0.0, distToInt);
-        }
         void fragment() {
           out0.a = 1.0;
-          float U = fieldU(uv).x;
+          float U = fieldU(UV).x;
           if (U>0.1) {
-              vec2 m = 20.0*mat2(1,0.5,0,sin(TAU/6.))*uv;
+              vec2 m = 20.0*mat2(1,0.5,0,sin(TAU/6.))*UV;
               float iso = isoline(m.x)+isoline(m.y)+isoline(m.x-m.y);
-              iso += isoline(fieldU(uv).x*10.0);
+              iso += isoline(fieldU(UV).x*10.0);
               iso = min(iso/3.0, 0.5)*smoothstep(0.1, 0.5, U);
               out0.rgb += iso;
           }
           float G = peak_f(U, mu_g, sigma_g).x;
           out0.rgb = mix(out0.rgb, vec3(0.6, 0.8, 0.3), G);
-          out0 = mix(out0, vec4(1), trails(uv).x);
+          out0 = mix(out0, vec4(1), trails(UV).x);
         }
         `);
 
@@ -80,11 +73,11 @@ class FancyLenia extends ParticleLenia {
               ...viewParams}, viewInc+`
         varying vec3 normal;
         //VERT
-        vec4 vertex(vec2 uv) {
+        vec4 vertex() {
             vec4 pos = vec4(state(ID).xy, 0.0, 1.0);
             pos.xy /= viewR;
             pos.z = fieldU(pos.xy*0.5+0.5).x*scaleU;
-            normal = uv2sphere(uv);
+            normal = uv2sphere(UV);
             pos.xyz += normal*0.015;
             return wld2view(pos);
         }

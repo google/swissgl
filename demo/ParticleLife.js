@@ -35,7 +35,7 @@ class ParticleLife {
         for (let i=0; i<2; ++i) {
             this.glsl({K:this.K, seed:123}, `
                 vec2 pos = (hash(ivec3(I, seed)).xy-0.5)*10.0;
-                float color = floor(P.x*K);
+                float color = floor(UV.x*K);
                 out0 = vec4(pos, 0.0, color);`,
                 this.points);
         }
@@ -74,18 +74,16 @@ class ParticleLife {
               Grid: points[0].size,
               Aspect:'fit',
               Blend: 'd*(1-sa)+s*sa'}, `
-        varying vec2 r;
         varying vec3 color;
         //VERT
-        vec4 vertex(vec2 uv) {
+        vec4 vertex() {
             vec4 d = points(ID);
             color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
-            r = uv-0.5;
-            return vec4(2.0*(d.xy+r*0.25)/worldExtent, 0.0, 1.0);
+            return vec4(2.0*(d.xy+XY/8.0)/worldExtent, 0.0, 1.0);
         }
         //FRAG
         void fragment() {
-            float alpha = smoothstep(0.5, 0.3, length(r));
+            float alpha = smoothstep(1.0, 0.6, length(XY));
             out0 = vec4(color, alpha);
         }`);
     }

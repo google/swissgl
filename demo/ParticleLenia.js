@@ -81,16 +81,13 @@ class ParticleLenia {
         const {state, viewR} = this;
         this.glsl({state:state[0], Grid: state[0].size, viewR, pointR,
               Blend:'d*(1-sa)+s',Aspect:'mean'},`
-        varying vec2 p;
-        //VERT
-        vec4 vertex(vec2 uv) {
-            p = vec2(uv)*2.0-1.0;
-            vec2 pos = state(ID).xy + p*pointR;
+        vec4 vertex() {
+            vec2 pos = state(ID).xy + XY*pointR;
             return vec4(pos/viewR, 0, 1);
         }
         //FRAG
         void fragment() {
-            out0 = vec4(exp(-dot(p,p)*4.));
+            out0 = vec4(exp(-dot(XY,XY)*4.));
         }`, target);        
     }
 

@@ -175,6 +175,11 @@ vec4 _sample(sampler2D tex, vec2 uv) {return texture(tex, uv);}
 vec4 _sample(sampler2D tex, ivec2 xy) {return texelFetch(tex, xy, 0);}
 `;
 
+const frag_utils = `
+float isoline(float v) {
+    float distToInt = abs(v-round(v));
+    return smoothstep(max(fwidth(v), 0.0001), 0.0, distToInt);
+}`;
 
 function guessUniforms(params) {
     const uni = [];
@@ -211,11 +216,9 @@ function expandCode(code) {
     }
     if (code.indexOf('//FRAG') == -1) {
         code = `
-        varying vec2 P;
         //VERT
-        vec4 vertex(vec2 uv) {
-          P = uv;
-          return vec4(P*2.0-1.0, 0.0, 1.0);
+        vec4 vertex() {
+          return vec4(UV*2.0-1.0, 0.0, 1.0);
         }
         //FRAG
         ${code}`;
@@ -233,6 +236,8 @@ function linkShader(gl, params, code, include) {
     #define ViewSize (View.zw)
     uniform vec2 Aspect;
     uniform float Perspective;
+    varying vec2 UV;
+    #define XY (2.0*UV-1.0)
     // #define VertexID gl_VertexID
     // #define InstanceID gl_InstanceID
     
@@ -255,8 +260,8 @@ function linkShader(gl, params, code, include) {
       int rowVertI = clamp((VertexID%rowVertN)-1, 0, rowVertN-3);
       VID = ivec2(rowVertI>>1, VertexID/rowVertN + (rowVertI&1));
       ID = ivec2(InstanceID%Grid.x, InstanceID/Grid.x);
-      vec2 uv = vec2(VID) / vec2(Mesh);
-      vec4 v = vertex(uv);
+      UV = vec2(VID) / vec2(Mesh);
+      vec4 v = vertex();
       v.xy *= Aspect;
       v.w -= v.z*Perspective;
       v.z *= -0.1; // TODO
@@ -267,7 +272,7 @@ function linkShader(gl, params, code, include) {
     #define varying in
     layout(location = 0) out vec4 out0;
     ivec2 I;
-    ${prefix} ${frag}
+    ${prefix} ${frag_utils} ${frag}
     void main() {
       I = ivec2(gl_FragCoord.xy);
       fragment();

@@ -16,14 +16,14 @@ class NeuralCA {
             mat4(11,10,4,0,4,1,2,7,-26,-33,-15,-3,22,27,20,-34)*abs(p));     
         }
         void fragment() {
-          vec4 s = Src(P);
+          vec4 s = Src(UV);
           if (s == vec4(0)) {
             ivec2 I = ivec2(gl_FragCoord.xy);
             out0 = 0.1+vec4(hash(I.xyy).x)*0.4;
             return;
           }
           vec2 dp = Src_step();
-          float x=P.x, y=P.y;
+          float x=UV.x, y=UV.y;
           float l=x-dp.x, r=x+dp.x, u=y-dp.y, d=y+dp.y;
           #define R(x, y) Src(vec2(x, y))
           // perception
@@ -34,6 +34,6 @@ class NeuralCA {
           out0 = s+ds;
         }
         `, {story:2, scale:1/4, filter:'nearest'});
-        glsl({tex:state[0]}, `tex(P)*2.-0.5`);
+        glsl({tex:state[0]}, `tex(UV)*2.-0.5`);
     }
 }

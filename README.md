@@ -19,7 +19,7 @@ As of now, the library API consists of a single function object that does everyt
 
     function render(t) {
         t /= 1000; // ms to sec
-        glsl({t}, `P,cos(t*TAU),1`);
+        glsl({t}, `UV,cos(t*TAU),1`);
         requestAnimationFrame(render);
     }
     render();
@@ -34,9 +34,9 @@ const glsl = SwissGL(canvas);
 
 Now we can already draw something:
 ```js
-glsl({t}, `P,cos(t*10.0),1`);
+glsl({t}, `UV,cos(t*10.0),1`);
 ```
-This line, called during the animation loop, creates a shader that evaluates the given expression string into RGBA-color for every pixel on the canvas. `vec2 P` variable provides `[0,1]`-range normalized coordinates of the current pixel, and `ivec2 I` can be used to get integer coordinates. The shader is compiled and cached during the first call and reused later.
+This line, called during the animation loop, creates a shader that evaluates the given expression string into RGBA-color for every pixel on the canvas. `vec2 UV` variable provides `[0,1]`-range normalized coordinates of the current pixel, and `ivec2 I` can be used to get integer coordinates. The shader is compiled and cached during the first call and reused later.
 
 
 `glsl` function has at most three arguments, some of which can be omitted:
@@ -74,12 +74,12 @@ We are going to simulate 30*10=300 particles. Textures will have 4 channels (RGB
 for (let i=0; i<2; ++i) {
     glsl({K, seed:123}, `
         vec2 pos = (hash(ivec3(I, seed)).xy-0.5)*10.0;
-        float color = floor(P.x*K);
+        float color = floor(UV.x*K);
         out0 = vec4(pos, 0.0, color);`,
         points);
 }
 ```
-The shader code above uses "multiline" shader `code` format instead of a single expression. The output must be written to a global variable `out0`. Variable `P` has type `vec2` and provides `[0,1]`-range normalized coordinates of the current pixel. It is used to assign one of `K` "colors" to each particle. For convenience SwissGL provides a [simple hash](TODO) function `vec3 hash(ivec3)` that can be used as a deterministic random number generator.
+The shader code above uses "multiline" shader `code` format instead of a single expression. The output must be written to a global variable `out0`. Variable `UV` has type `vec2` and provides `[0,1]`-range normalized coordinates of the current pixel. It is used to assign one of `K` "colors" to each particle. For convenience SwissGL provides a [simple hash](TODO) function `vec3 hash(ivec3)` that can be used as a deterministic random number generator.
 
 Note that we are writing the same particle positions two times, which means that particles have zero velocity at initialization. Now `points[0]` and `points[1]` contain the same values, and `points[2]` is uninitialized and is going to be overwritten at the first simulation step.
 
@@ -98,26 +98,26 @@ glsl({K, worldExtent,  // uniforms
 
 // the code below is available in both
 // vertex and fragment shaders
-varying vec2 r;
 varying vec3 color;
 
 //VERT  start of vertex-only section
 // vertex function is called 
-vec4 vertex(vec2 uv) {
+vec4 vertex() {
     // get current particle data
     vec4 d = points(ID);
     // populate varyings to use in fragment shader
     color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
-    r = uv-0.5;
     // emit normalized on-screen vertex position
-    return vec4(2.0*(d.xy+r*0.25)/worldExtent, 0.0, 1.0);
+    // 'vec2 XY' is contains coordinates of the quad vertex in -1..1 range
+    return vec4(2.0*(d.xy+XY/8.0)/worldExtent, 0.0, 1.0);
 }
 
 //FRAG  start of fragment-only section
 void fragment() {
-    // compute the fragment transparency depending
-    // on the distance from the quad center
-    float alpha = smoothstep(0.5, 0.3, length(r));
+    // Compute the fragment transparency depending
+    // on the distance from the quad center.
+    // Interpolated XY is also available in the fragment shader.
+    float alpha = smoothstep(1.0, 0.6, length(XY));
     // set the fragment color
     out0 = vec4(color, alpha);
 }`); // 'target' is omitted, so rendering to canvas

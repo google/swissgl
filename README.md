@@ -22,7 +22,7 @@ As of now, the library API consists of a single function object that does everyt
         glsl({t}, `UV,cos(t*TAU),1`);
         requestAnimationFrame(render);
     }
-    render();
+    render(0.0);
 </script>
 ```
 ![SwissGL quad gradient](images/quad.png)

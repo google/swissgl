@@ -152,6 +152,8 @@ const glsl_utils = `
 const float PI  = radians(180.0);
 const float TAU = radians(360.0);
 
+// source: https://www.shadertoy.com/view/XlXcW4
+// TODO more complete hash library
 vec3 hash( ivec3 ix ) {
     uvec3 x = uvec3(ix);
     const uint k = 1103515245U;

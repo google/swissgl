@@ -14,7 +14,7 @@ class SurfaceNormals {
             vec2 c = sin(t+p*vec2(ID));
             float r = 0.2 + 0.05*c.x + 0.08*c.y;
             vec3 pos = vec3(cos(p.x)*r+0.5, sin(p.x)*r, 0);
-            pos.xz *= rot2(p.y);
+            pos.zx *= rot2(p.y);
             pos *= 0.3;
             pos.xz += (vec2(ID)-vec2(Grid-1)*0.5)*0.5;
             return pos;
@@ -31,6 +31,8 @@ class SurfaceNormals {
             out0 = vec4(normal*0.6, 1);
             vec2 m = UV*vec2(Mesh)/4.0;
             out0.rgb += (isoline(m.x)+isoline(m.y))*0.2;
+            // useful for debugging incorrect face ordering
+            // out0.r += float(!gl_FrontFacing);
         }`);
     }
 }

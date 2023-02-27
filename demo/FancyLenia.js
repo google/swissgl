@@ -48,7 +48,7 @@ class FancyLenia extends ParticleLenia {
         glsl({fieldU, trails, ...params, ...viewParams,
               Mesh:[100, 100]}, viewInc+`
         vec4 vertex() {
-          vec4 pos = vec4(UV*2.0-1.0, 0.0, 1.0);
+          vec4 pos = vec4(XY, 0.0, 1.0);
           pos.z += fieldU(UV).x*scaleU;
           return wld2view(pos);
         }

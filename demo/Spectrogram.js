@@ -27,10 +27,10 @@ class Spectrogram {
         glsl({history:history[0], Mesh:history[0].size, DepthTest:1, Perspective:0.5, Aspect:'mean'}, `
         varying float z;
         //VERT
-        vec4 vertex(vec2 p) {
-            z = history(p).r;
-            p.x = 1.0-log(0.005+p.x)/log(0.005);
-            vec4 pos = vec4((p.x-0.5)*1.8, p.y*3.0-0.5, (z-0.5)*0.5, 1.0);
+        vec4 vertex() {
+            z = history(UV).r;
+            float x = 1.0-log(0.005+UV.x)/log(0.005);
+            vec4 pos = vec4((x-0.5)*1.8, UV.y*3.0-0.5, (z-0.5)*0.5, 1.0);
             pos.yz *= rot2(PI/3.0);
             return pos;
         }

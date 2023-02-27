@@ -33,6 +33,8 @@
 
 // pain points:
 // - view transform params
+// - fragment only aspect
+// - tag already exists
 
 const Type2Setter = {};
 for (const t of ['FLOAT', 'INT', 'BOOL']) {
@@ -150,6 +152,8 @@ const glsl_utils = `
 const float PI  = radians(180.0);
 const float TAU = radians(360.0);
 
+// source: https://www.shadertoy.com/view/XlXcW4
+// TODO more complete hash library
 vec3 hash( ivec3 ix ) {
     uvec3 x = uvec3(ix);
     const uint k = 1103515245U;
@@ -165,14 +169,35 @@ mat2 rot2(float a) {
 }
 
 vec3 uv2sphere(vec2 uv) {
-  uv *= vec2(TAU, PI);
+  uv *= vec2(-TAU,PI);
   return vec3(vec2(cos(uv.x), sin(uv.x))*sin(uv.y), cos(uv.y));
+}
+
+vec3 _surf_f(vec3 p, vec3 a, vec3 b, out vec3 normal) {
+    normal = normalize(cross(a-p, b-p));
+    return p;
+}
+#define SURF(f, uv, out_normal, eps) _surf_f(f(uv), f(uv+vec2(eps,0)), f(uv+vec2(0,eps)), out_normal)
+
+vec3 cubeVert(vec2 xy, int side) {
+    float x=xy.x, y=xy.y;
+    switch (side) {
+        case 0: return vec3(x,y,1); case 1: return vec3(y,x,-1);
+        case 2: return vec3(y,1,x); case 3: return vec3(x,-1,y);
+        case 4: return vec3(1,x,y); case 5: return vec3(-1,y,x);
+    };
+    return vec3(0.0);
 }
 
 vec4 _sample(sampler2D tex, vec2 uv) {return texture(tex, uv);}
 vec4 _sample(sampler2D tex, ivec2 xy) {return texelFetch(tex, xy, 0);}
 `;
 
+const frag_utils = `
+float isoline(float v) {
+    float distToInt = abs(v-round(v));
+    return smoothstep(max(fwidth(v), 0.0001), 0.0, distToInt);
+}`;
 
 function guessUniforms(params) {
     const uni = [];
@@ -209,12 +234,8 @@ function expandCode(code) {
     }
     if (code.indexOf('//FRAG') == -1) {
         code = `
-        varying vec2 P;
         //VERT
-        vec4 vertex(vec2 uv) {
-          P = uv;
-          return vec4(P*2.0-1.0, 0.0, 1.0);
-        }
+        vec4 vertex() {return vec4(XY, 0.0, 1.0);}
         //FRAG
         ${code}`;
     }
@@ -231,6 +252,8 @@ function linkShader(gl, params, code, include) {
     #define ViewSize (View.zw)
     uniform vec2 Aspect;
     uniform float Perspective;
+    varying vec2 UV;
+    #define XY (2.0*UV-1.0)
     // #define VertexID gl_VertexID
     // #define InstanceID gl_InstanceID
     
@@ -253,8 +276,8 @@ function linkShader(gl, params, code, include) {
       int rowVertI = clamp((VertexID%rowVertN)-1, 0, rowVertN-3);
       VID = ivec2(rowVertI>>1, VertexID/rowVertN + (rowVertI&1));
       ID = ivec2(InstanceID%Grid.x, InstanceID/Grid.x);
-      vec2 uv = vec2(VID) / vec2(Mesh);
-      vec4 v = vertex(uv);
+      UV = vec2(VID) / vec2(Mesh);
+      vec4 v = vertex();
       v.xy *= Aspect;
       v.w -= v.z*Perspective;
       v.z *= -0.1; // TODO
@@ -265,7 +288,7 @@ function linkShader(gl, params, code, include) {
     #define varying in
     layout(location = 0) out vec4 out0;
     ivec2 I;
-    ${prefix} ${frag}
+    ${prefix} ${frag_utils} ${frag}
     void main() {
       I = ivec2(gl_FragCoord.xy);
       fragment();
@@ -283,7 +306,8 @@ function createTex2D(gl, {size, format='rgba8', filter='linear', wrap='repeat', 
     }[format];
     // TODO: mipmap
     const glfilter = { 'nearest': gl.NEAREST, 'linear': gl.LINEAR}[filter];
-    const glwrap = { 'repeat': gl.REPEAT, 'edge': gl.CLAMP_TO_EDGE}[wrap];
+    const glwrap = {'repeat': gl.REPEAT, 'edge': gl.CLAMP_TO_EDGE,
+                    'mirror': gl.MIRRORED_REPEAT}[wrap];
     const tex = gl.createTexture();
     tex.update = (size, data)=> {
         const [w, h] = size;

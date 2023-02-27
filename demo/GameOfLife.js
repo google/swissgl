@@ -22,6 +22,6 @@ class GameOfLife {
         `, {scale:1/4, story:2});
         const fade = glsl({S:state[0], Blend:'d*sa+s'}, `S(I).xxx,0.9`,
             {size:state[0].size, filter:'nearest'})
-        glsl({state:fade}, `state(P).xxxx`);
+        glsl({state:fade}, `state(UV).xxxx`);
     }
 }

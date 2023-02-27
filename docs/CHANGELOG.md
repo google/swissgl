@@ -1,5 +1,10 @@
 # Changelog
 
+### 2023-02-27
+* [CubeDeform](../demo/CubeDeform.js) example
+* `SURF(f)` macro to estimate surface normal
+* `cubeVert` function to simplify cube creation
+
 ### 2023-02-25
 * (breaking) removed `uv` argument from `vertex()`
 * (breaking) **removed** `P`, added `UV` and `XY` special variables

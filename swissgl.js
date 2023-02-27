@@ -171,6 +171,22 @@ vec3 uv2sphere(vec2 uv) {
   return vec3(vec2(cos(uv.x), sin(uv.x))*sin(uv.y), cos(uv.y));
 }
 
+vec3 _surf_f(vec3 p, vec3 a, vec3 b, out vec3 normal) {
+    normal = normalize(cross(b-p, a-p));
+    return p;
+}
+#define SURF(f, uv, out_normal, eps) _surf_f(f(uv), f(uv+vec2(eps,0)), f(uv+vec2(0,eps)), out_normal)
+
+vec3 cubeVert(vec2 p, int side) {
+    float x=p.x, y=p.y;
+    switch (side) {
+        case 0: return vec3(y,x,1); case 1: return vec3(x,y,-1);
+        case 2: return vec3(x,1,y); case 3: return vec3(y,-1,x);
+        case 4: return vec3(1,y,x); case 5: return vec3(-1,x,y);
+    };
+    return vec3(0.0);
+}
+
 vec4 _sample(sampler2D tex, vec2 uv) {return texture(tex, uv);}
 vec4 _sample(sampler2D tex, ivec2 xy) {return texelFetch(tex, xy, 0);}
 `;

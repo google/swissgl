@@ -16,9 +16,7 @@ class MeshGrid {
         }
         //FRAG
         void fragment() {
-            vec2 m = UV*vec2(Mesh);
-            float iso = isoline(m.x)+isoline(m.y);
-            out0 = vec4(mix(color, vec3(1.0), iso), 1.0);
+            out0 = vec4(mix(color, vec3(1.0), wireframe()*0.5), 1.0);
         }`);
     }
 }

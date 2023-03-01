@@ -197,6 +197,12 @@ const frag_utils = `
 float isoline(float v) {
     float distToInt = abs(v-round(v));
     return smoothstep(max(fwidth(v), 0.0001), 0.0, distToInt);
+}
+float wireframe() {
+    vec2 m = UV*vec2(Mesh);
+    float d1 = isoline(m.x+m.y), d2 = isoline(m.x-m.y);
+    float d = mix(d1, d2, float(int(m.y)%2));
+    return isoline(m.x)+isoline(m.y)+d;
 }`;
 
 function guessUniforms(params) {
@@ -272,9 +278,12 @@ function linkShader(gl, params, code, include) {
     #define varying out
     ${prefix} ${vert}
     void main() {
-      int rowVertN = Mesh.x*2+4;
-      int rowVertI = clamp((VertexID%rowVertN)-1, 0, rowVertN-3);
-      VID = ivec2(rowVertI>>1, VertexID/rowVertN + (rowVertI&1));
+      int rowVertN = Mesh.x*2+3;
+      int rowI = VertexID/rowVertN;
+      int rowVertI = max(VertexID%rowVertN-1, 0);
+      int odd = rowI%2;
+      if (odd==1) rowVertI = rowVertN-rowVertI-2;
+      VID = ivec2(rowVertI>>1, rowI + (rowVertI+odd)%2);
       ID = ivec2(InstanceID%Grid.x, InstanceID/Grid.x);
       UV = vec2(VID) / vec2(Mesh);
       vec4 v = vertex();
@@ -522,7 +531,7 @@ function drawQuads(self, params, code, target) {
     // Grid, Mesh
     uniforms.Grid = options.Grid || [1, 1]; // 1d, 3d
     uniforms.Mesh = options.Mesh || [1, 1]; // 3d for cube?
-    const vertN = (uniforms.Mesh[0]*2+4)*uniforms.Mesh[1]-1;
+    const vertN = (uniforms.Mesh[0]*2+3)*uniforms.Mesh[1];
     const instN = uniforms.Grid[0]*uniforms.Grid[1];
     ensureVertexArray(gl, Math.max(vertN, instN));
     gl.bindVertexArray(gl._indexVA);

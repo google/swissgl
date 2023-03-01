@@ -200,7 +200,7 @@ float isoline(float v) {
 }
 float wireframe() {
     vec2 m = UV*vec2(Mesh);
-    float d1 = isoline(m.x+m.y), d2 = isoline(m.x-m.y);
+    float d1 = isoline(m.x-m.y), d2 = isoline(m.x+m.y);
     float d = mix(d1, d2, float(int(m.y)%2));
     return isoline(m.x)+isoline(m.y)+d;
 }`;

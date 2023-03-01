@@ -30,7 +30,7 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 
 * `Grid`: `[w, h]`, default `[1,1]`. [instantiate](https://webglfundamentals.org/webgl/lessons/webgl-instanced-drawing.html) the rendered primitive `w*h` times. Instance ID is available in the vertex shader as `ivec2 ID`. Grid size is available in shader as `uniform ivec2 Grid`.
 
-* `Mesh`: `[w, h]`, default `[1,1]`. Tessellate the rendered 2d plane primitive. `vec2 uv` argument provides `[0,1]`-range normalized vertex coordinates. Integer vertex index is also provided as `ivec2 VID` variable. Mesh size is available in the shader as `uniform ivec2 Mesh`.
+* `Mesh`: `[w, h]`, default `[1,1]`. Tessellate the rendered 2d plane primitive. `vec2 UV` and `XY` globals available in both vertex and fragment shaders provide `[0,1]`-range and `[-1,1]`-range vertex coordinates correspondingly. Integer vertex index is also provided as `ivec2 VID` global (VS only). Mesh size is available in the shader as `uniform ivec2 Mesh`.
 
 * `DepthTest`: enable gl.DEPTH_TEST if `true`.
 

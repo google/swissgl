@@ -1,5 +1,9 @@
 # Changelog
 
+### 2023-03-01
+* Mesh rows alternate diagonal direction (see [MeshGrid](https://google.github.io/swissgl/#MeshGrid) example)
+* [wireframe()](https://github.com/google/swissgl/blob/8cf8cac20c4ec3352fec639c8d22dc5814d5e674/swissgl.js#L201) helper
+
 ### 2023-02-27
 * [CubeDeform](../demo/CubeDeform.js) example
 * `SURF(f)` macro to estimate surface normal

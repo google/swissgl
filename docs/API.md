@@ -77,7 +77,7 @@ The following options control the creation of new textures:
 
 * `scale`: scalar. Coefficient applied to `size` before creating the texture. For example the following specification `{scale:1/4}` will create a target that is four times smaller that the canvas frame buffer in each dimension, and is automatically resized on canvas size changes.
 
-* `format`: string, `rgba8`, `r8`, `rgba16f`, `r16f`, `rgba32f`, `r32f` are currently supported.
+* `format`: string, `rgba8`, `r8`, `rgba16f`, `r16f`, `rgba32f`, `r32f` and `depth` are currently supported.
 
 * `data`: `TypedArray` of size and type matching the texture specification. Allows to set the texture content from JS and update it after the texture creation to stream the new data to GPU. See [Spectrogram demo](../demo/Spectrogram.js) for the example.
 

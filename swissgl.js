@@ -25,7 +25,6 @@
 // - hash (overloads)
 // - 3d prim/helpers
 // - universal geom (mesh)
-// - normals
 // devicePixelRatio
 // cullface
 // depth test modes
@@ -312,12 +311,17 @@ function createTex2D(gl, {size, format='rgba8', filter='linear', wrap='repeat', 
         'rgba16f': [gl.RGBA16F, gl.RGBA, gl.FLOAT],
         'r32f': [gl.R32F, gl.RED, gl.FLOAT],
         'rgba32f': [gl.RGBA32F, gl.RGBA, gl.FLOAT],
+        'depth': [gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT],
     }[format];
     // TODO: mipmap
+    if (format == 'depth') {
+        filter = 'nearest';
+    }
     const glfilter = { 'nearest': gl.NEAREST, 'linear': gl.LINEAR}[filter];
     const glwrap = {'repeat': gl.REPEAT, 'edge': gl.CLAMP_TO_EDGE,
                     'mirror': gl.MIRRORED_REPEAT}[wrap];
     const tex = gl.createTexture();
+    tex.format = format;
     tex.update = (size, data)=> {
         const [w, h] = size;
         gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -437,8 +441,9 @@ function bindTarget(gl, tex) {
         tex.fbo = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, tex.fbo);
         // TODO: array, depth
+        const attachment = tex.format == 'depth' ? gl.DEPTH_ATTACHMENT : gl.COLOR_ATTACHMENT0;
         gl.framebufferTexture2D(
-            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0/*level*/);
+            gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, tex, 0/*level*/);
     } else {
         const fbo = tex ? tex.fbo : null;
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);

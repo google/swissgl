@@ -90,6 +90,7 @@ a {
 <script src='demo/SurfaceNormals.js'></script>
 <script src='demo/MeshGrid.js'></script>
 <script src='demo/CubeDeform.js'></script>
+<script src='demo/main.js'></script>
 
 <details id="panel" open>
     <summary><a href="https://github.com/google/swissgl">SwissGL</a> demos</summary>
@@ -105,120 +106,19 @@ a {
 </div>
 <script>
     'use strict';
-    const $ = s=>document.querySelector(s)
-
-    const canvas = document.getElementById('c');
-    const glslCtx = SwissGL(canvas);
-
-    function fullscreen() {
-        const f = canvas.requestFullscreen || canvas.webkitRequestFullscreen;
-        if (f) f.apply(canvas);
-    }
-    function toggleGui() {
-        if (!demoGui) return;
-        const style = demoGui.domElement.style;
-        style.display = (style.display == 'none')?'':'none'
-    }
-
-    const DEMOS = Object.fromEntries([
+    const app = new DemoApp([
         NeuralCA, BitField, MeshGrid, GameOfLife, ParticleLife, ParticleLenia, FancyLenia,
         Spectrogram, Physarum, SurfaceNormals, CubeDeform,
-    ].map(c=>[c.name, c]));
-    
-    const params = {
-        demo: location.hash.slice(1)||'NeuralCA',
+    ]);
+    function fullscreen() {
+        app.fullscreen();
     }
-    if (!(params.demo in DEMOS)) {
-        params.demo = 'NeuralCA';
+    function toggleGui() {
+        app.toggleGui();
     }
-    let demo=null;
-    let demoGui=null;
-    function runDemo(name) {
-        if (demo) {
-            if (demoGui) demoGui.destroy();
-            if (demo.free) demo.free();
-            glslCtx.reset();
-            demo = demoGui = null;
-            if (window.innerWidth < 500) {
-                // close menu on small screens
-                $('#panel').removeAttribute("open");
-            }
-        }
-        location.hash = name;
-        demoGui = new dat.GUI();
-        demoGui.domElement.id = 'gui'
-        demoGui.hide();
-        demo = new DEMOS[name](glslCtx, demoGui);
-        if (demoGui.__controllers.length == 0) {
-            if (demoGui) demoGui.destroy();
-            demoGui = null;
-        }
-        $('#settingButton').style.display = demoGui?'block':'none';
-        $('#sourceLink').href = `https://github.com/google/swissgl/blob/main/demo/${name}.js`;
-    }
-    runDemo(params.demo);    
-
-
-    function populatePreviews() {
-        const panel = document.getElementById('cards');
-        Object.keys(DEMOS).forEach(name=>{
-            const el = document.createElement('div');
-            el.classList.add('card');
-            el.innerHTML = `<img src="demo/preview/${name}.jpg">${name}`;
-            el.addEventListener('click', ()=>runDemo(name));
-            panel.appendChild(el);
-            
-        });
-
-    }
-    populatePreviews();
-
-    function adjustCanvas() {
-        const dpr = 1;//devicePixelRatio;
-        const w = canvas.clientWidth*dpr, h=canvas.clientHeight*dpr;
-        if (canvas.width != w || canvas.height != h) {
-            canvas.width = w; canvas.height = h;
-        }
-    }
-    
-    
     function render(t) {
-        adjustCanvas();
-        demo.frame(glslCtx, t/1000.0);
+        app.frame(t);
         requestAnimationFrame(render);
     }
     render();
-
-    // helper function to render demo preview images
-    function genPreviews() {
-        const panel = document.getElementById('cards');
-        panel.innerHTML = '';
-        const canvas = document.createElement('canvas');
-        canvas.width=400; canvas.height=300;
-        const glsl = SwissGL(canvas.getContext('webgl2', {alpha:false}));
-        Object.keys(DEMOS).forEach(name=>{
-            if (name == 'Spectrogram') return;
-            glsl.reset();
-            const dummyGui = new dat.GUI();
-            demo = new DEMOS[name](glsl, dummyGui);
-            dummyGui.destroy();
-            for (let i=0; i<60*5; ++i) {
-                glsl({Clear:0}, '')
-                demo.frame(glsl, i/60.0)
-            }
-            const el = document.createElement('div')
-            const data = canvas.toDataURL('image/jpeg', 0.95);
-            el.innerHTML = `
-             <a href="${data}" download="${name}.jpg"><img src="${data}"></a>
-             ${name}
-            `
-            panel.appendChild(el)
-            el.addEventListener('click', ()=>{
-                runDemo(name);
-            })
-        })
-        runDemo(params.demo);
-    }
-
-
 </script>

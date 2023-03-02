@@ -20,7 +20,7 @@ class DemoApp {
 
     frame(t) {
         this.adjustCanvas();
-        this.demo.frame(this.glsl, t/1000.0);
+        this.demo.frame(this.glsl, {time:t/1000.0});
     }
 
     runDemo(name) {

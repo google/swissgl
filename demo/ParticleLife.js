@@ -41,7 +41,7 @@ class ParticleLife {
         }
     }
 
-    frame(glsl, t) {
+    frame(glsl) {
         const {K, F, points, worldExtent, repulsion, inertia, dt} = this;
 
         for (let i=0; i<this.step_n; ++i)

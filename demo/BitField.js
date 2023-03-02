@@ -10,8 +10,8 @@ class BitField {
         this.k = 9;
         gui.add(this, 'k', 2, 50, 1);
     }
-    frame(glsl, t) {
+    frame(glsl, {time}) {
         const {k} = this;
-        glsl({t, k}, `1-((I.x+int(t*40.))/4^(I.y+int(t*20.))/4)%int(k)`);
+        glsl({t:time, k}, `1-((I.x+int(t*40.))/4^(I.y+int(t*20.))/4)%int(k)`);
     }
 }

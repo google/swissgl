@@ -36,8 +36,6 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 
 * `AlphaCoverage`: enable `gl.SAMPLE_ALPHA_TO_COVERAGE` if `true`. See [this article](https://bgolus.medium.com/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f) for the usage example.
 
-* `Perspective`: TODO rework
-
 ## Code formats
 
 SwissGL accepts a `code` string that contains a pair of vertex and fragment shaders together, which we call *full* format. In addition to that, there is a number of shortcuts that are mainly used for full-screen/buffer quad rendering:

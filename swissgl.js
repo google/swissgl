@@ -28,7 +28,6 @@
 // devicePixelRatio
 // cullface
 // depth test modes
-// proper perspective
 
 // pain points:
 // - view transform params
@@ -129,7 +128,9 @@ function compileProgram(gl, vs, fs) {
             gl.uniform1i(loc, program.samplers.length);
             program.samplers.push(info);
         } else {
-            program.setters[info.name] = v=>gl[Type2Setter[info.type]](loc, v);
+            const fname = Type2Setter[info.type];
+            program.setters[info.name] = fname.startsWith('uniformMatrix') ?
+                v=>gl[fname](loc, false, v) : v=>gl[fname](loc, v);
         }
     }
     gl.useProgram(null);
@@ -256,7 +257,6 @@ function linkShader(gl, params, code, include) {
     uniform ivec4 View;
     #define ViewSize (View.zw)
     uniform vec2 Aspect;
-    uniform float Perspective;
     varying vec2 UV;
     #define XY (2.0*UV-1.0)
     // #define VertexID gl_VertexID
@@ -287,8 +287,6 @@ function linkShader(gl, params, code, include) {
       UV = vec2(VID) / vec2(Mesh);
       vec4 v = vertex();
       v.xy *= Aspect;
-      v.w -= v.z*Perspective;
-      v.z *= -0.1; // TODO
       gl_Position = v;
     }`, `
     precision highp float;
@@ -453,7 +451,7 @@ function bindTarget(gl, tex) {
 }
 
 const OptNames = new Set([
-    'Clear', 'Blend', 'View', 'Grid', 'Mesh', 'Aspect', 'Perspective', 'DepthTest', 'AlphaCoverage'
+    'Clear', 'Blend', 'View', 'Grid', 'Mesh', 'Aspect', 'DepthTest', 'AlphaCoverage'
 ]);
 
 function drawQuads(self, params, code, target) {
@@ -522,7 +520,7 @@ function drawQuads(self, params, code, target) {
         gl.enable(gl.SAMPLE_ALPHA_TO_COVERAGE);
     }
 
-    // View, Aspect, Perspective
+    // View, Aspect
     let view = options.View || [0, 0, targetSize[0], targetSize[1]];
     if (view.length == 2) {
         view = [0, 0, view[0], view[1]]
@@ -531,7 +529,6 @@ function drawQuads(self, params, code, target) {
     const width=view[2], height=view[3];
     uniforms.View = view;
     uniforms.Aspect = calcAspect(options.Aspect, width, height);
-    uniforms.Perspective = options.Perspective || 0.0;
 
     // Grid, Mesh
     uniforms.Grid = options.Grid || [1, 1]; // 1d, 3d

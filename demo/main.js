@@ -10,6 +10,9 @@ class DemoApp {
         this.demo = null;
         this.gui = null;
 
+        const P = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,-.1,-.5, 0,0,0,1]);
+        this.viewProjMatrix = P;
+
         let name = location.hash.slice(1);
         if (!(name in this.demos)) {
             name = 'NeuralCA';
@@ -20,7 +23,10 @@ class DemoApp {
 
     frame(t) {
         this.adjustCanvas();
-        this.demo.frame(this.glsl, {time:t/1000.0});
+        this.demo.frame(this.glsl, {
+            time:t/1000.0,
+            viewProjMatrix:this.viewProjMatrix,
+        });
     }
 
     runDemo(name) {
@@ -76,26 +82,22 @@ class DemoApp {
         const glsl = SwissGL(canvas);
         Object.keys(this.demos).forEach(name=>{
             if (name == 'Spectrogram') return;
-            glsl.reset();
             const dummyGui = new dat.GUI();
-            demo = new this.demos[name](glsl, dummyGui);
+            const demo = new this.demos[name](glsl, dummyGui);
             dummyGui.destroy();
             for (let i=0; i<60*5; ++i) {
                 glsl({Clear:0}, '')
-                demo.frame(glsl, i/60.0)
+                demo.frame(glsl, {time:i/60.0, viewProjMatrix:this.viewProjMatrix});
             }
             const el = document.createElement('div')
             const data = canvas.toDataURL('image/jpeg', 0.95);
             el.innerHTML = `
              <a href="${data}" download="${name}.jpg"><img src="${data}"></a>
-             ${name}
-            `
+             ${name}`;
             panel.appendChild(el)
-            el.addEventListener('click', ()=>{
-                runDemo(name);
-            })
+            if (demo.free) demo.free();
+            glsl.reset();
         })
-        runDemo(params.demo);
     }
 
     toggleGui() {

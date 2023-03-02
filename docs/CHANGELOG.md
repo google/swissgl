@@ -2,6 +2,7 @@
 
 ### 2023-03-02
 * `depth` texture format
+* removed `Perspective` option
 
 ### 2023-03-01
 * Mesh rows alternate diagonal direction (see [MeshGrid](https://google.github.io/swissgl/#MeshGrid) example)

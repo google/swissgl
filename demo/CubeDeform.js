@@ -4,9 +4,9 @@
   */
 
 class CubeDeform {
-    frame(glsl, {time}) {
-        glsl({time, Grid:[6,1], Mesh:[20, 20],
-        Aspect:'fit', Perspective:0.5, DepthTest:1}, `
+    frame(glsl, {time, viewProjMatrix}) {
+        glsl({time, viewProjMatrix, Grid:[6,1], Mesh:[20, 20],
+        Aspect:'fit', DepthTest:1}, `
         varying vec3 color;
         varying vec3 normal;
         //VERT
@@ -21,7 +21,7 @@ class CubeDeform {
             vec4 v = vec4(SURF(surface_f, XY, normal, 1e-3), 1.0);
             v.xy *= rot2(PI/4.+time*0.2);
             v.yz *= rot2(PI/3.0);
-            return v;
+            return viewProjMatrix*v;
         }
         //FRAG
         void fragment() {

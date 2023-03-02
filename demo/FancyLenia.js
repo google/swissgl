@@ -14,11 +14,15 @@ class FancyLenia extends ParticleLenia {
         super.step();
         const {glsl, trails} = this;
         glsl({Blend:'d-s'}, `2./255.`, trails);
-        super.render(trails, 0.2);
+        this.renderSpots(trails, 0.2);
     }
 
-    render() {
-        const {params, viewR, glsl, state, trails} = this; 
+    frame(glsl, {viewProjMatrix}) {
+        for (let i=0; i<this.step_n; ++i) {
+            this.step();
+        }
+    
+        const {params, viewR, state, trails} = this; 
         const fieldU = glsl({...params, viewR,
             state:state[0], Grid:state[0].size, Clear:0.0, Blend:'s+d'
         },`
@@ -34,8 +38,8 @@ class FancyLenia extends ParticleLenia {
             out0 = peak_f(length(p), mu_k, sigma_k).xxxx*w_k;
         }`, {size:[256, 256], format:'rgba16f'});
 
-        const viewParams = {viewR, scaleU: 0.25, cameraAngles:[0.0, 0.7],
-            DepthTest: 1, Perspective: 0.5, Aspect:'fit'};
+        const viewParams = {viewR, viewProjMatrix, scaleU: 0.25, cameraAngles:[0.0, 0.7],
+            DepthTest: 1, Aspect:'fit'};
         const viewInc = `
         uniform vec2 cameraAngles;
         vec4 wld2view(vec4 pos) {
@@ -50,7 +54,7 @@ class FancyLenia extends ParticleLenia {
         vec4 vertex() {
           vec4 pos = vec4(XY, 0.0, 1.0);
           pos.z += fieldU(UV).x*scaleU;
-          return wld2view(pos);
+          return viewProjMatrix*wld2view(pos);
         }
         //FRAG
         void fragment() {
@@ -79,7 +83,7 @@ class FancyLenia extends ParticleLenia {
             pos.z = fieldU(pos.xy*0.5+0.5).x*scaleU;
             normal = uv2sphere(UV);
             pos.xyz += normal*0.015;
-            return wld2view(pos);
+            return viewProjMatrix*wld2view(pos);
         }
         //FRAG
         void fragment() {

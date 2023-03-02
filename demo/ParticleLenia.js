@@ -77,7 +77,7 @@ class ParticleLenia {
         `,  this.state); 
     }
 
-    render(target=null, pointR=0.4) {
+    renderSpots(target=null, pointR=0.4) {
         const {state, viewR} = this;
         this.glsl({state:state[0], Grid: state[0].size, viewR, pointR,
               Blend:'d*(1-sa)+s',Aspect:'mean'},`
@@ -91,11 +91,11 @@ class ParticleLenia {
         }`, target);        
     }
 
-    frame() {
+    frame(glsl, params) {
         const {state} = this;
         for (let i=0; i<this.step_n; ++i) {
             this.step();
         }
-        this.render();
+        this.renderSpots();
     }
 }

@@ -4,9 +4,9 @@
   */
 
 class SurfaceNormals {
-    frame(glsl, {time}) {
-        glsl({time, Mesh:[64,128], Grid:[5,5],
-              Aspect:'fit', Perspective:0.5, DepthTest:1}, `
+    frame(glsl, {time, viewProjMatrix}) {
+        glsl({time, viewProjMatrix, Mesh:[64,128], Grid:[5,5],
+              Aspect:'fit', DepthTest:1}, `
         varying vec3 normal;
         //VERT
         vec3 surface_f(vec2 p) {
@@ -24,7 +24,7 @@ class SurfaceNormals {
             pos.zx *= rot2(time*0.2);
             pos.z -= 0.3;
             pos.zy *= rot2(PI/5.0);
-            return pos;
+            return viewProjMatrix*pos;
         }
         //FRAG
         void fragment() {

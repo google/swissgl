@@ -39,11 +39,20 @@ class DemoApp {
             }
         `;
 
+        this.prevPos = [0,0];
+        this.canvas.addEventListener('pointerdown', e=>{
+            if (!e.isPrimary) return;
+            this.prevPos = [e.offsetX, e.offsetY];
+        });
         this.canvas.addEventListener('pointermove', e=>{
-            if (e.buttons != 1) return;
+            if (!e.isPrimary || e.buttons != 1) return;
+            const [px, py] = this.prevPos;
+            const [x, y] = [e.offsetX, e.offsetY];
+            this.prevPos = [x, y];
+            
             let [yaw, pitch, dist] = this.viewParams.cameraYPD;
-            yaw -= e.movementX*0.01;
-            pitch -= e.movementY*0.01;
+            yaw -= (x-px)*0.01;
+            pitch -= (y-py)*0.01;
             pitch = Math.min(Math.max(pitch, 0), Math.PI);
             this.viewParams.cameraYPD.set([yaw, pitch, dist]);
         });

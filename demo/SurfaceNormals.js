@@ -4,8 +4,8 @@
   */
 
 class SurfaceNormals {
-    frame(glsl, {time, viewProjMatrix}) {
-        glsl({time, viewProjMatrix, Mesh:[64,128], Grid:[5,5],
+    frame(glsl, params) {
+        glsl({...params, Mesh:[64,128], Grid:[5,5],
               Aspect:'fit', DepthTest:1}, `
         varying vec3 normal;
         //VERT
@@ -13,18 +13,15 @@ class SurfaceNormals {
             p *= TAU;
             vec2 c = sin(time+p*vec2(ID));
             float r = 0.2 + 0.05*c.x + 0.08*c.y;
-            vec3 pos = vec3(cos(p.x)*r+0.5, sin(p.x)*r, 0);
-            pos.zx *= rot2(p.y);
-            pos *= 0.3;
-            pos.xz += (vec2(ID)-vec2(Grid-1)*0.5)*0.5;
+            vec3 pos = vec3(cos(p.x)*r+0.5, 0, sin(p.x)*r);
+            pos.xy *= rot2(p.y);
+            pos *= 0.25;
+            pos.xy += (vec2(ID)-vec2(Grid-1)*0.5)*0.4;
             return pos;
         }
         vec4 vertex() {
             vec4 pos = vec4(SURF(surface_f, UV, normal, 1e-3), 1.0);
-            pos.zx *= rot2(time*0.2);
-            pos.z -= 0.3;
-            pos.zy *= rot2(PI/5.0);
-            return viewProjMatrix*pos;
+            return wld2proj(pos);
         }
         //FRAG
         void fragment() {

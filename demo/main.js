@@ -1,6 +1,6 @@
 'use strict';
 
-const $ = s=>document.querySelector(s)
+const $ = s=>document.querySelector(s);
 
 class DemoApp {
     constructor(demos) {
@@ -10,8 +10,43 @@ class DemoApp {
         this.demo = null;
         this.gui = null;
 
-        const P = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,-.1,-.5, 0,0,0,1]);
-        this.viewProjMatrix = P;
+        this.viewParams = {
+            cameraYPD: new Float32Array(3),
+        };
+        this.resetCamera();
+
+        this.glsl_include = `
+            uniform vec3 cameraYPD;
+            vec3 cameraPos() {
+                vec3 p = vec3(0, 0, cameraYPD.z);
+                p.yz *= rot2(-cameraYPD.y);
+                p.xy *= rot2(-cameraYPD.x);
+                return p;
+            }
+            vec4 wld2view(vec4 p) {
+                p.xy *= rot2(cameraYPD.x);
+                p.yz *= rot2(cameraYPD.y);
+                p.z -= cameraYPD.z;
+                return p;
+            }
+            vec4 view2proj(vec4 p) {
+                const float near = 0.1, far = 10.0, fov = 1.0;
+                return vec4(p.xy/tan(fov/2.0),
+                    (p.z*(near+far)+2.0*near*far)/(near-far), -p.z);
+            }
+            vec4 wld2proj(vec4 p) {
+                return view2proj(wld2view(p));
+            }
+        `;
+
+        this.canvas.addEventListener('pointermove', e=>{
+            if (e.buttons != 1) return;
+            let [yaw, pitch, dist] = this.viewParams.cameraYPD;
+            yaw -= e.movementX*0.01;
+            pitch -= e.movementY*0.01;
+            pitch = Math.min(Math.max(pitch, 0), Math.PI);
+            this.viewParams.cameraYPD.set([yaw, pitch, dist]);
+        });
 
         let name = location.hash.slice(1);
         if (!(name in this.demos)) {
@@ -21,11 +56,15 @@ class DemoApp {
         this.populatePreviews();
     }
 
+    resetCamera() {
+        this.viewParams.cameraYPD.set([3*Math.PI/4, Math.PI/4, 1.8]);
+    }
+
     frame(t) {
         this.adjustCanvas();
         this.demo.frame(this.glsl, {
             time:t/1000.0,
-            viewProjMatrix:this.viewProjMatrix,
+            ...this.viewParams,
         });
     }
 
@@ -44,6 +83,7 @@ class DemoApp {
         this.gui = new dat.GUI();
         this.gui.domElement.id = 'gui'
         this.gui.hide();
+        this.glsl.includes.push(this.glsl_include);
         this.demo = new this.demos[name](this.glsl, this.gui);
         if (this.gui.__controllers.length == 0) {
             if (this.gui) this.gui.destroy();
@@ -51,6 +91,7 @@ class DemoApp {
         }
         $('#settingButton').style.display = this.gui?'block':'none';
         $('#sourceLink').href = `https://github.com/google/swissgl/blob/main/demo/${name}.js`;
+        this.resetCamera();
     }
 
     populatePreviews() {
@@ -83,11 +124,13 @@ class DemoApp {
         Object.keys(this.demos).forEach(name=>{
             if (name == 'Spectrogram') return;
             const dummyGui = new dat.GUI();
+            glsl.includes.push(this.glsl_include);
             const demo = new this.demos[name](glsl, dummyGui);
             dummyGui.destroy();
+            this.resetCamera();
             for (let i=0; i<60*5; ++i) {
                 glsl({Clear:0}, '')
-                demo.frame(glsl, {time:i/60.0, viewProjMatrix:this.viewProjMatrix});
+                demo.frame(glsl, {time:i/60.0, ...this.viewParams});
             }
             const el = document.createElement('div')
             const data = canvas.toDataURL('image/jpeg', 0.95);

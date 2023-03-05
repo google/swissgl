@@ -500,7 +500,7 @@ function drawQuads(self, params, code, target) {
         return target;
     }
     if (!(code in self.shaders)) {
-        self.shaders[code] = linkShader(gl, uniforms, code, self.include);
+        self.shaders[code] = linkShader(gl, uniforms, code, self.includes.join('\n'));
     }
     const prog = self.shaders[code];
     gl.useProgram(prog);
@@ -564,7 +564,7 @@ function drawQuads(self, params, code, target) {
     return target;
 }
 
-function SwissGL(canvas_gl, {include=''}={}) {
+function SwissGL(canvas_gl) {
     const gl = canvas_gl.getContext ?
         canvas_gl.getContext('webgl2', {alpha:false}) : canvas_gl;
     gl.getExtension("EXT_color_buffer_float");
@@ -576,7 +576,7 @@ function SwissGL(canvas_gl, {include=''}={}) {
     glsl.gl = gl;
     glsl.shaders = {};
     glsl.buffers = {};
-    glsl.include = include;
+    glsl.includes = [];
 
     const releaseTarget = target=>{
         if (target.fbo) gl.deleteFramebuffer(target.fbo);
@@ -592,7 +592,7 @@ function SwissGL(canvas_gl, {include=''}={}) {
                 releaseTarget(target);
             }
         });
-        glsl.include = '';
+        glsl.includes = [];
         glsl.shaders = {};
         glsl.buffers = {};
     };

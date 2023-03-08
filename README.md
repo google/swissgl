@@ -104,7 +104,7 @@ varying vec3 color;
 // vertex function is called 
 vec4 vertex() {
     // get current particle data
-    vec4 d = points(ID);
+    vec4 d = points(ID.xy);
     // populate varyings to use in fragment shader
     color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
     // emit normalized on-screen vertex position

@@ -14,7 +14,6 @@
 
 
 // Repeat/Loop?
-// 1d/3d grid
 // fbo:
 // - multiple render targets (arrays)
 // - depth/stencil
@@ -48,8 +47,8 @@ for (const t of ['FLOAT', 'INT', 'BOOL']) {
 }
 
 // Parse strings like 'min(s,d)', 'max(s,d)', 's*d', 's+d*(1-sa)',
-// 'd*(1-sa) + s*sa', 's*d', 'd*(1-sa) + s*sa', s-d', 'd-s' and
-// so on into gl.blendFunc/gl.blendEquation arguments.
+// 's*d', 'd*(1-sa) + s*sa', s-d', 'd-s' and so on into
+// gl.blendFunc/gl.blendEquation arguments.
 function parseBlend(s0) {
     if (!s0) return;
     if (s0 in parseBlend.cache) {
@@ -252,7 +251,7 @@ function expandCode(code) {
 }
 
 function linkShader(gl, params, code, include) {
-    code = `uniform ivec2 Grid;
+    code = `uniform ivec3 Grid;
     uniform ivec2 Mesh;
     uniform ivec4 View;
     #define ViewSize (View.zw)
@@ -273,7 +272,8 @@ function linkShader(gl, params, code, include) {
     precision highp int;
     layout(location = 0) in int VertexID;
     layout(location = 1) in int InstanceID;
-    ivec2 VID, ID;
+    ivec2 VID;
+    ivec3 ID;
     #define varying out
     ${prefix} ${vert}
     void main() {
@@ -283,7 +283,10 @@ function linkShader(gl, params, code, include) {
       int odd = rowI%2;
       if (odd==0) rowVertI = rowVertN-rowVertI-2;
       VID = ivec2(rowVertI>>1, rowI + (rowVertI+odd+1)%2);
-      ID = ivec2(InstanceID%Grid.x, InstanceID/Grid.x);
+      int ii = InstanceID;
+      ID.x = ii % Grid.x; ii/=Grid.x;
+      ID.y = ii % Grid.y; ii/=Grid.y;
+      ID.z = ii;
       UV = vec2(VID) / vec2(Mesh);
       vec4 v = vertex();
       v.xy *= Aspect;
@@ -412,7 +415,6 @@ function getTargetSize(gl, {size, scale=1}) {
 }
 
 function prepareOwnTarget(self, spec) {
-    spec = {...spec};
     if (!spec.tag) {
         throw 'target must have a tag';
     }
@@ -470,6 +472,7 @@ function drawQuads(self, params, code, target) {
     // setup target
     const useOwnTarget = isTargetSpec(target);
     if (useOwnTarget) {
+        target = {...target};
         target.tag = target.tag || code;
         target = prepareOwnTarget(self, target);
     }
@@ -531,10 +534,11 @@ function drawQuads(self, params, code, target) {
     uniforms.Aspect = calcAspect(options.Aspect, width, height);
 
     // Grid, Mesh
-    uniforms.Grid = options.Grid || [1, 1]; // 1d, 3d
+    const [gx=1, gy=1, gz=1] = options.Grid || [];
+    uniforms.Grid = [gx, gy, gz];
     uniforms.Mesh = options.Mesh || [1, 1]; // 3d for cube?
     const vertN = (uniforms.Mesh[0]*2+3)*uniforms.Mesh[1]-1;
-    const instN = uniforms.Grid[0]*uniforms.Grid[1];
+    const instN = gx*gy*gz;
     ensureVertexArray(gl, Math.max(vertN, instN));
     gl.bindVertexArray(gl._indexVA);
 

@@ -77,7 +77,7 @@ class ParticleLife {
         varying vec3 color;
         //VERT
         vec4 vertex() {
-            vec4 d = points(ID);
+            vec4 d = points(ID.xy);
             color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
             return vec4(2.0*(d.xy+XY/8.0)/worldExtent, 0.0, 1.0);
         }

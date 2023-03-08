@@ -82,7 +82,7 @@ class ParticleLenia {
         this.glsl({state:state[0], Grid: state[0].size, viewR, pointR,
               Blend:'d*(1-sa)+s',Aspect:'mean'},`
         vec4 vertex() {
-            vec2 pos = state(ID).xy + XY*pointR;
+            vec2 pos = state(ID.xy).xy + XY*pointR;
             return vec4(pos/viewR, 0, 1);
         }
         //FRAG

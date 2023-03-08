@@ -28,7 +28,7 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 
 * `Aspect`: string (`fit`, `cover`, `mean`, `x`, `y`). Adjust `xy` coordinates emitted by vertex the program to preserve the scale of viewport axes.
 
-* `Grid`: `[w, h]`, default `[1,1]`. [instantiate](https://webglfundamentals.org/webgl/lessons/webgl-instanced-drawing.html) the rendered primitive `w*h` times. Instance ID is available in the vertex shader as `ivec2 ID`. Grid size is available in shader as `uniform ivec2 Grid`.
+* `Grid`: `[w]`, `[w, h]` or `[w, h, d]`, default `[1,1,1]`. [instantiate](https://webglfundamentals.org/webgl/lessons/webgl-instanced-drawing.html) the rendered primitive `w*h*d` times. Instance ID is available in the vertex shader as `ivec3 ID`. Grid size is available in shader as `uniform ivec3 Grid`.
 
 * `Mesh`: `[w, h]`, default `[1,1]`. Tessellate the rendered 2d plane primitive. `vec2 UV` and `XY` globals available in both vertex and fragment shaders provide `[0,1]`-range and `[-1,1]`-range vertex coordinates correspondingly. Integer vertex index is also provided as `ivec2 VID` global (VS only). Mesh size is available in the shader as `uniform ivec2 Mesh`.
 
@@ -54,7 +54,7 @@ SwissGL accepts a `code` string that contains a pair of vertex and fragment shad
     varying vec3 color;
     //VERT
     vec4 vertex() {
-        color = hash(ID.xyx);
+        color = hash(ID);
         vec2 pos = (vec2(ID)+0.5+XY*(0.5-0.5/vec2(Mesh+1)));
         pos += sin(UV*TAU+t).yx*0.1;
         return vec4(2.0*pos/vec2(Grid)-1.0, 0.0, 1.0);

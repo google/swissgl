@@ -1,5 +1,8 @@
 # Changelog
 
+### 2023-03-08
+* `Grid` can be 3D ([ColorCube](https://google.github.io/swissgl/#ColorCube) example)
+
 ### 2023-03-02
 * `depth` texture format
 * removed `Perspective` option

@@ -30,7 +30,7 @@ class FancyLenia extends ParticleLenia {
         //VERT
         vec4 vertex() {
             p = (UV*2.0-1.0)*(mu_k+3.0*sigma_k);
-            vec2 pos = state(ID).xy + p;
+            vec2 pos = state(ID.xy).xy + p;
             return vec4(pos/viewR, 0, 1);
         }
         //FRAG
@@ -69,7 +69,7 @@ class FancyLenia extends ParticleLenia {
         varying vec3 normal;
         //VERT
         vec4 vertex() {
-            vec4 pos = vec4(state(ID).xy, 0.0, 1.0);
+            vec4 pos = vec4(state(ID.xy).xy, 0.0, 1.0);
             pos.xy /= viewR;
             pos.z = fieldU(pos.xy*0.5+0.5).x*scaleU;
             normal = uv2sphere(UV);

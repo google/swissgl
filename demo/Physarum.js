@@ -61,7 +61,7 @@ class Physarum {
         
         glsl({points: points[0], Grid: points[0].size, Blend: 's+d'}, `
         vec4 vertex() {
-            vec4 d = points(ID);
+            vec4 d = points(ID.xy);
             return vec4(2.0*(d.xy+XY*2.0)/vec2(ViewSize)-1.0, 0.0, 1.0);
         }
         //FRAG

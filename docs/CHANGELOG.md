@@ -1,5 +1,11 @@
 # Changelog
 
+### 2023-03-10
+* `VERT`/`FRAG` defines
+* `torus()` glsl function
+* `Face` option to control face culling
+* [Shadowmap](https://google.github.io/swissgl/#Shadowmap) example
+
 ### 2023-03-08
 * `Grid` can be 3D ([ColorCube](https://google.github.io/swissgl/#ColorCube) example)
 

@@ -199,11 +199,11 @@ vec3 uv2sphere(vec2 uv) {
   return vec3(vec2(cos(uv.x), sin(uv.x))*sin(uv.y), cos(uv.y));
 }
 
-vec3 _surf_f(vec3 p, vec3 a, vec3 b, out vec3 normal) {
-    normal = normalize(cross(a-p, b-p));
-    return p;
+vec3 torus(vec2 uv, float r1, float r2) {
+    uv *= TAU;
+    vec3 p = vec3(r1+cos(uv.x)*r2, 0, sin(uv.x)*r2);
+    return vec3(p.xy * rot2(uv.y), p.z);
 }
-#define SURF(f, uv, out_normal, eps) _surf_f(f(uv), f(uv+vec2(eps,0)), f(uv+vec2(0,eps)), out_normal)
 
 vec3 cubeVert(vec2 xy, int side) {
     float x=xy.x, y=xy.y;
@@ -214,6 +214,12 @@ vec3 cubeVert(vec2 xy, int side) {
     };
     return vec3(0.0);
 }
+
+vec3 _surf_f(vec3 p, vec3 a, vec3 b, out vec3 normal) {
+    normal = normalize(cross(a-p, b-p));
+    return p;
+}
+#define SURF(f, uv, out_normal, eps) _surf_f(f(uv), f(uv+vec2(eps,0)), f(uv+vec2(0,eps)), out_normal)
 
 vec4 _sample(sampler2D tex, vec2 uv) {return texture(tex, uv);}
 vec4 _sample(sampler2D tex, ivec2 xy) {return texelFetch(tex, xy, 0);}
@@ -461,7 +467,7 @@ function bindTarget(gl, tex) {
 }
 
 const OptNames = new Set([
-    'Clear', 'Blend', 'View', 'Grid', 'Mesh', 'Aspect', 'DepthTest', 'AlphaCoverage'
+    'Clear', 'Blend', 'View', 'Grid', 'Mesh', 'Aspect', 'DepthTest', 'AlphaCoverage', 'Face'
 ]);
 
 function drawQuads(self, params, code, target) {
@@ -527,6 +533,11 @@ function drawQuads(self, params, code, target) {
     if (options.DepthTest) {
         gl.enable(gl.DEPTH_TEST);
     }
+    if (options.Face) {
+        gl.enable(gl.CULL_FACE);
+        const mode = {'front':gl.BACK, 'back':gl.FRONT}[options.Face];
+        gl.cullFace(mode);
+    }
     if (options.AlphaCoverage) {
         gl.enable(gl.SAMPLE_ALPHA_TO_COVERAGE);
     }
@@ -570,6 +581,7 @@ function drawQuads(self, params, code, target) {
     // revert gl state
     if (options.Blend) gl.disable(gl.BLEND);
     if (options.DepthTest) gl.disable(gl.DEPTH_TEST);
+    if (options.Face) gl.disable(gl.CULL_FACE);
     if (options.AlphaCoverage) gl.disable(gl.SAMPLE_ALPHA_TO_COVERAGE);
 
     gl.bindVertexArray(null);

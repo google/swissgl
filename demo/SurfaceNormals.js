@@ -10,12 +10,8 @@ class SurfaceNormals {
         varying vec3 normal;
         //VERT
         vec3 surface_f(vec2 p) {
-            p *= TAU;
-            vec2 c = sin(time+p*vec2(ID));
-            float r = 0.2 + 0.05*c.x + 0.08*c.y;
-            vec3 pos = vec3(cos(p.x)*r+0.5, 0, sin(p.x)*r);
-            pos.xy *= rot2(p.y);
-            pos *= 0.25;
+            vec2 c = sin(time+p*vec2(ID)*TAU);
+            vec3 pos = torus(p, 1.0, 0.4 + 0.1*c.x + 0.15*c.y)/8.0;
             pos.xy += (vec2(ID)-vec2(Grid-1)*0.5)*0.4;
             return pos;
         }

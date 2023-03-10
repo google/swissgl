@@ -34,6 +34,8 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 
 * `DepthTest`: enable gl.DEPTH_TEST if `true`.
 
+* `Face`: `'front'` or `'back'`. When provided, sets face culling to render corresponding faces only.
+
 * `AlphaCoverage`: enable `gl.SAMPLE_ALPHA_TO_COVERAGE` if `true`. See [this article](https://bgolus.medium.com/anti-aliased-alpha-test-the-esoteric-alpha-to-coverage-8b177335ae4f) for the usage example.
 
 ## Code formats

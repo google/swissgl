@@ -40,7 +40,7 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 
 SwissGL accepts a `code` string that contains a pair of vertex and fragment shaders together, which we call *full* format. In addition to that, there is a number of shortcuts that are mainly used for full-screen/buffer quad rendering:
 
-* *expression*: a string that becomes correct expression if it's substituted into the `vec4(${code})` template.
+* *expression*: a string that becomes the correct expression if it's substituted into the `vec4(${code})` template.
 
 * *multiline*: a function body that can be substituted into
 `void fragment() { ${code}; }` template. The output must be written into the `out0` variable of type `vec4`.

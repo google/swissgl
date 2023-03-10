@@ -87,7 +87,7 @@ Before we start modeling the particle dynamics it's a good idea to implement vis
 ```glsl
 glsl({K, worldExtent,  // uniforms
       // reading the last state of 'points' texture
-      points: points[0], 
+      points: points[0],
       // render a quad instance for every 'points' texel
       Grid: points[0].size,
       // preserve the scale of xy-axes by fitting
@@ -101,7 +101,7 @@ glsl({K, worldExtent,  // uniforms
 varying vec3 color;
 
 //VERT  start of vertex-only section
-// vertex function is called 
+// vertex function is called
 vec4 vertex() {
     // get current particle data
     vec4 d = points(ID.xy);
@@ -172,7 +172,7 @@ void fragment() {
 
 Soon randomly scattered particles self-assemble into a nice colorful snake! The simulation is happening on the GPU and is quite fast for the quadratic complexity algorithm (that iterates all particle pairs). Even mobile phones can run hundreds of steps per second. Thanks to SwissGL, orchestrating this computation, managing shaders and framebuffers takes minimal amount of boilerplate code.
 
-![Partilce Snake](images/particle_snake.png)
+![Particle Snake](images/particle_snake.png)
 
 ## Links
 

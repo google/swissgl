@@ -147,7 +147,34 @@ function definedUniforms(code) {
 }
 
 
-const glsl_utils = `
+const glsl_template = `
+precision highp float;
+precision highp int;
+#ifdef VERT
+    #define varying out
+    layout(location = 0) in int VertexID;
+    layout(location = 1) in int InstanceID;
+    ivec2 VID;
+    ivec3 ID;
+#else
+    #define varying in
+    layout(location = 0) out vec4 out0;
+    ivec2 I;
+#endif
+
+uniform ivec3 Grid;
+uniform ivec2 Mesh;
+uniform ivec4 View;
+#define ViewSize (View.zw)
+uniform vec2 Aspect;
+varying vec2 UV;
+#define XY (2.0*UV-1.0)
+// #define VertexID gl_VertexID
+// #define InstanceID gl_InstanceID
+
+
+//////// GLSL Utils ////////
+
 const float PI  = radians(180.0);
 const float TAU = radians(360.0);
 
@@ -190,19 +217,20 @@ vec3 cubeVert(vec2 xy, int side) {
 
 vec4 _sample(sampler2D tex, vec2 uv) {return texture(tex, uv);}
 vec4 _sample(sampler2D tex, ivec2 xy) {return texelFetch(tex, xy, 0);}
-`;
 
-const frag_utils = `
-float isoline(float v) {
-    float distToInt = abs(v-round(v));
-    return smoothstep(max(fwidth(v), 0.0001), 0.0, distToInt);
-}
-float wireframe() {
-    vec2 m = UV*vec2(Mesh);
-    float d1 = isoline(m.x-m.y), d2 = isoline(m.x+m.y);
-    float d = mix(d1, d2, float(int(m.y)%2));
-    return isoline(m.x)+isoline(m.y)+d;
-}`;
+#ifdef FRAG
+    float isoline(float v) {
+        float distToInt = abs(v-round(v));
+        return smoothstep(max(fwidth(v), 0.0001), 0.0, distToInt);
+    }
+    float wireframe() {
+        vec2 m = UV*vec2(Mesh);
+        float d1 = isoline(m.x-m.y), d2 = isoline(m.x+m.y);
+        float d = mix(d1, d2, float(int(m.y)%2));
+        return isoline(m.x)+isoline(m.y)+d;
+    }
+#endif
+`;
 
 function guessUniforms(params) {
     const uni = [];
@@ -222,11 +250,10 @@ function guessUniforms(params) {
         }
         if (s) uni.push(s);
     }
-    return uni.join('\n');
+    return uni.join('\n')+'\n';
 }
 
 function expandCode(code) {
-    // TODO more defaults?
     const stripped = stripComments(code).trim();
     if (stripped == '') return null;
     if (stripped.indexOf(';') == -1) {
@@ -250,32 +277,17 @@ function expandCode(code) {
     return code;
 }
 
-function linkShader(gl, params, code, include) {
-    code = `uniform ivec3 Grid;
-    uniform ivec2 Mesh;
-    uniform ivec4 View;
-    #define ViewSize (View.zw)
-    uniform vec2 Aspect;
-    varying vec2 UV;
-    #define XY (2.0*UV-1.0)
-    // #define VertexID gl_VertexID
-    // #define InstanceID gl_InstanceID
-    
-    ${include}
-    \n`+expandCode(code);
-    const defined = definedUniforms(code);
-    const undefined = Object.entries(params).filter(kv=>!(defined.has(kv[0])));
+function linkShader(gl, uniforms, code, include) {
+    code = expandCode(code);
+    code = code.replace('//VERT', '#ifdef VERT //VERT').replace('//FRAG', '#else //FRAG ')+'\n#endif';
+    const prefix = `${glsl_template}\n${include}\n`;
+    const defined = definedUniforms(prefix + code);
+    const undefined = Object.entries(uniforms).filter(kv=>!(defined.has(kv[0])));
     const guessed = guessUniforms(Object.fromEntries(undefined));
-    const [_, common, vert, frag] = code.match(/([\s\S]*)\/\/VERT[^\n]*([\s\S]*)\/\/FRAG[^\n]*([\s\S]*)/);
-    const prefix = `${glsl_utils}\n${guessed}\n${common}\n`;
+    code = `${prefix}${guessed}${code}`;
     return compileProgram(gl, `
-    precision highp int;
-    layout(location = 0) in int VertexID;
-    layout(location = 1) in int InstanceID;
-    ivec2 VID;
-    ivec3 ID;
-    #define varying out
-    ${prefix} ${vert}
+    #define VERT
+    ${code}
     void main() {
       int rowVertN = Mesh.x*2+3;
       int rowI = VertexID/rowVertN;
@@ -292,12 +304,8 @@ function linkShader(gl, params, code, include) {
       v.xy *= Aspect;
       gl_Position = v;
     }`, `
-    precision highp float;
-    precision highp int;
-    #define varying in
-    layout(location = 0) out vec4 out0;
-    ivec2 I;
-    ${prefix} ${frag_utils} ${frag}
+    #define FRAG
+    ${code}
     void main() {
       I = ivec2(gl_FragCoord.xy);
       fragment();

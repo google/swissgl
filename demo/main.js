@@ -49,11 +49,18 @@ class DemoApp {
             const [px, py] = this.prevPos;
             const [x, y] = [e.offsetX, e.offsetY];
             this.prevPos = [x, y];
-            
+
             let [yaw, pitch, dist] = this.viewParams.cameraYPD;
             yaw -= (x-px)*0.01;
             pitch -= (y-py)*0.01;
             pitch = Math.min(Math.max(pitch, 0), Math.PI);
+            this.viewParams.cameraYPD.set([yaw, pitch, dist]);
+        });
+
+        this.canvas.addEventListener('wheel', e=>{
+            let [yaw, pitch, dist] = this.viewParams.cameraYPD;
+            dist -= e.deltaY*0.001;
+            dist = Math.min(Math.max(dist, 0.01), 20);
             this.viewParams.cameraYPD.set([yaw, pitch, dist]);
         });
 

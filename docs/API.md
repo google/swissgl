@@ -5,7 +5,7 @@
 glsl(params, code, target);
 ```
 
-* `params` is a dictionary that is mainly used to pass uniforms to the GLSL program. It may also contain a few *special arguments* (see below) that control the WebGL state, like blending or clear the buffer before the draw call. SwissGL tries to automatically infer uniform types and introduce them to the shader code (it's also possible to override the types by declaring uniforms manually). 
+* `params` is a dictionary that is mainly used to pass uniforms to the GLSL program. It may also contain a few *special arguments* (see below) that control the WebGL state, like blending or clearing the buffer before the draw call. SwissGL tries to automatically infer uniform types and introduce them to the shader code (it's also possible to override the types by declaring uniforms manually).
 
 * `code` is a string that contains GLSL code. Whenever a non-empty string is passed, SwissGL will try to expand it into a pair of vertex and fragment shaders, compile and link them and cache the resulting shader program for future use. Cached shaders are stored in the `glsl.shaders` dictionary. Then the library will execute a WebGL draw call using this program. The type and the number of drawn primitives is controlled by the `Mesh` and `Grid` special arguments in `params` (see below).
 
@@ -24,7 +24,7 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 
 * `Blend`: string. Expression that controls WebGL blending mode (set with `gl.blendFunc` and `gl.blendEquation`). Inputs are: `s` - source color emitted by fragment shader; `d` - destination color already present in the target buffer; `sa` - source alpha; `da` - destination alpha. Examples: `s+d`, `d-s`, `d*(1-sa)+s*sa` (standard transparency), `d*(1-sa)+s` (premultiplied alpha), `max(s,d)`, `min(s,d)`, `d*s`. (TODO formal language definition)
 
-* `View`: array `[w, h]` or `[x, y, w, h]`. Controls WebGL viewport. By default viewport is set to cover the whole target. Value is available in shader as `uniform ivec4 View`. `ViewSize` macro also provides `ivec2` view size.
+* `View`: array `[w, h]` or `[x, y, w, h]`. Controls WebGL viewport. By default, the viewport is set to cover the whole target. Value is available in shader as `uniform ivec4 View`. `ViewSize` macro also provides `ivec2` view size.
 
 * `Aspect`: string (`fit`, `cover`, `mean`, `x`, `y`). Adjust `xy` coordinates emitted by vertex the program to preserve the scale of viewport axes.
 
@@ -42,7 +42,7 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 
 SwissGL accepts a `code` string that contains a pair of vertex and fragment shaders together, which we call *full* format. In addition to that, there is a number of shortcuts that are mainly used for full-screen/buffer quad rendering:
 
-* *expression*: a string that becomes correct expression if it's substituted into `vec4(${code})` template.
+* *expression*: a string that becomes the correct expression if it's substituted into the `vec4(${code})` template.
 
 * *multiline*: a function body that can be substituted into
 `void fragment() { ${code}; }` template. The output must be written into the `out0` variable of type `vec4`.
@@ -75,7 +75,7 @@ The following options control the creation of new textures:
 
 * `size`: `[w,h]` size of the created texture. Also affected by `scale` option. Set to the canvas size by default. Can be modified after the target creation.
 
-* `scale`: scalar. Coefficient applied to `size` before creating the texture. For example the following specification `{scale:1/4}` will create a target that is four times smaller that the canvas frame buffer in each dimension, and is automatically resized on canvas size changes.
+* `scale`: scalar. Coefficient applied to `size` before creating the texture. For example the following specification `{scale:1/4}` will create a target that is four times smaller than the canvas frame buffer in each dimension, and is automatically resized on canvas size changes.
 
 * `format`: string, `rgba8`, `r8`, `rgba16f`, `r16f`, `rgba32f`, `r32f` and `depth` are currently supported.
 
@@ -83,7 +83,7 @@ The following options control the creation of new textures:
 
 * `tag`: string that is used to cache the created texture in `glsl.buffers`. Shader `code` is used if not provided.
 
-* `story`: interger. Create an array of textures of the same format instead of a single one. Rendering to such target rotates the array in place so that the texture last rendered into becomes the element `0`.
+* `story`: integer. Create an array of textures of the same format instead of a single one. Rendering to such a target rotates the array in place so that the texture last rendered into becomes the element `0`.
 
 * `filter`: `'nearest'` or `'linear'`
 

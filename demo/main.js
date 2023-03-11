@@ -59,7 +59,7 @@ class DemoApp {
 
         let name = location.hash.slice(1);
         if (!(name in this.demos)) {
-            name = 'NeuralCA';
+            name = 'FancyLenia';
         }
         this.runDemo(name);
         this.populatePreviews();

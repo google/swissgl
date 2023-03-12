@@ -32,8 +32,7 @@ class Shadowmap {
                 vec3 n = normalize(Normal);
                 float diffuse = max((dot(lightDir, n)), 0.0)*shadow;
                 vec3 eyeDir = normalize(cameraPos()-WldPos);
-                float spec = pow(max(dot(n, normalize(lightDir+eyeDir)), 0.0), 100.0);
-                spec = smoothstep(0.5, 0.7, spec)*shadow;
+                float spec = smoothstep(0.995, 0.997, dot(n, normalize(lightDir+eyeDir)))*shadow;
                 out0 = vec4((diffuse*0.6+0.2)*color + spec*0.3, 1.0);
                 out0.rgb = sqrt(out0.rgb); // gamma
             }

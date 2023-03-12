@@ -43,6 +43,10 @@ class DemoApp {
         this.canvas.addEventListener('pointerdown', e=>{
             if (!e.isPrimary) return;
             this.prevPos = [e.offsetX, e.offsetY];
+            if (window.innerWidth < 500) {
+                // close menu on small screens
+                $('#panel').removeAttribute("open");
+            }
         });
         this.canvas.addEventListener('pointermove', e=>{
             if (!e.isPrimary || e.buttons != 1) return;
@@ -83,10 +87,6 @@ class DemoApp {
             if (this.demo.free) this.demo.free();
             this.glsl.reset();
             this.demo = this.gui = null;
-            if (window.innerWidth < 500) {
-                // close menu on small screens
-                $('#panel').removeAttribute("open");
-            }
         }
         location.hash = name;
         this.gui = new dat.GUI();

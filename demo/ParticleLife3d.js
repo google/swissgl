@@ -35,16 +35,13 @@ class ParticleLife3d extends ParticleLife {
             //FRAG
             void fragment() {
                 float edge = isoline(UV.x*4.0)+isoline(UV.y*4.0);
-
                 emitFragment(vec3(1.0-sqrt(edge)*0.4)*0.7);
             }`);
         }
 
         const { K, points, worldExtent } = this;
-        glsl({...params,
-            K, worldExtent,
-            points: points[0],
-            Grid: points[0].size,
+        glsl({...params, K, worldExtent,
+            points: points[0],Grid: points[0].size,
             Aspect: 'fit'
         }, `
         varying vec3 color;

@@ -20,7 +20,7 @@ class CubeDeform {
         vec4 vertex() {
             color = cubeVert(vec2(0), ID.x)*0.5+0.5;
             vec4 v = vec4(SURF(surface_f, XY, normal, 1e-3), 1.0);
-            eyeDir = normalize(cameraPos()-v.xyz);
+            eyeDir = cameraPos()-v.xyz;
             return wld2proj(v);
         }
         //FRAG
@@ -28,8 +28,8 @@ class CubeDeform {
             vec3 n = normalize(normal);
             vec3 lightDir = normalize(vec3(0,1,1));
             float diffuse = dot(n, lightDir)*0.5+0.5;
-            vec3 halfVec = normalize(lightDir+eyeDir);
-            float spec = pow(max(dot(halfVec, n), 0.0), 1000.0);
+            vec3 halfVec = normalize(lightDir+normalize(eyeDir));
+            float spec = smoothstep(0.998, 0.999, dot(halfVec, n));
             out0.rgb = color*diffuse + 0.3*spec;
             vec2 m = UV*4.0;
             out0.rgb = mix(out0.rgb, vec3(1.0), (isoline(m.x)+isoline(m.y))*0.25);

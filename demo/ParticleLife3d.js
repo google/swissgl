@@ -35,7 +35,9 @@ class ParticleLife3d extends ParticleLife {
             //FRAG
             void fragment() {
                 float edge = isoline(UV.x*4.0)+isoline(UV.y*4.0);
-                emitFragment(vec3(1.0-sqrt(edge)*0.4)*0.7);
+                vec2 c = XY; c*=c; c*=c;
+                float ao = 1.0-(c.x+c.y)*0.4;
+                emitFragment(vec3(1.0-sqrt(edge)*0.4)*ao);
             }`);
         }
 

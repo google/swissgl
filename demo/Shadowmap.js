@@ -11,7 +11,7 @@ class Shadowmap {
             varying vec4 shadowCoord;
             varying vec3 Normal, WldPos;
             float PointSize;
-            const vec3 lightDir = normalize(vec3(0., -1., 1.));
+            const vec3 lightDir = normalize(vec3(0.5, -0.5, 1.));
             const vec3 lightU = normalize(cross(lightDir, vec3(0,0,1)));
             const vec3 lightV = cross(lightDir, lightU);
             #ifdef VERT

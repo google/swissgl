@@ -41,11 +41,11 @@ class ParticleLife {
         }
     }
 
-    frame(glsl) {
+    step() {
         const {K, F, points, worldExtent, repulsion, inertia, dt} = this;
 
         for (let i=0; i<this.step_n; ++i)
-        glsl({F, worldExtent, repulsion, inertia, dt, past:points[1]}, `
+        this.glsl({F, worldExtent, repulsion, inertia, dt, past:points[1]}, `
         vec3 wrap(vec3 p) {
           return (fract(p/worldExtent+0.5)-0.5)*worldExtent;
         }
@@ -68,7 +68,11 @@ class ParticleLife {
             out0.xyz = wrap(out0.xyz+vel+0.5*force*(dt*dt));
         }
         `, points);
+    }
 
+    frame(glsl) {
+        this.step();
+        const {K, points, worldExtent} = this;
         glsl({K, worldExtent,
               points: points[0], 
               Grid: points[0].size,

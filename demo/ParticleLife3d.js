@@ -4,7 +4,7 @@
   */
 
 // Inspired by the video https://youtu.be/p4YirERTVF0?t=480
-class ParticleLife3D extends ParticleLife {
+class ParticleLife3d extends ParticleLife {
     constructor(glsl, gui) {
         super(glsl, gui);
         this.inertia = 0.4;

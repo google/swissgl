@@ -38,6 +38,7 @@ class DemoApp {
                 return view2proj(wld2view(p));
             }
         `;
+        this.withCamera = this.glsl.hook((glsl, p, c, t)=>glsl(p, c&&(this.glsl_include+c), t));
 
         this.prevPos = [0,0];
         this.canvas.addEventListener('pointerdown', e=>{
@@ -75,7 +76,7 @@ class DemoApp {
 
     frame(t) {
         this.adjustCanvas();
-        this.demo.frame(this.glsl, {
+        this.demo.frame(this.withCamera, {
             time:t/1000.0,
             ...this.viewParams,
         });
@@ -92,8 +93,7 @@ class DemoApp {
         this.gui = new dat.GUI();
         this.gui.domElement.id = 'gui'
         this.gui.hide();
-        this.glsl.includes.push(this.glsl_include);
-        this.demo = new this.demos[name](this.glsl, this.gui);
+        this.demo = new this.demos[name](this.withCamera, this.gui);
         if (this.gui.__controllers.length == 0) {
             if (this.gui) this.gui.destroy();
             this.gui = null;
@@ -130,16 +130,16 @@ class DemoApp {
         const canvas = document.createElement('canvas');
         canvas.width = 400; canvas.height = 300;
         const glsl = SwissGL(canvas);
+        const withCamera = glsl.hook((glsl, p, c, t)=>glsl(p, c&&this.glsl_include+c, t));
         Object.keys(this.demos).forEach(name=>{
             if (name == 'Spectrogram') return;
             const dummyGui = new dat.GUI();
-            glsl.includes.push(this.glsl_include);
-            const demo = new this.demos[name](glsl, dummyGui);
+            const demo = new this.demos[name](withCamera, dummyGui);
             dummyGui.destroy();
             this.resetCamera();
             for (let i=0; i<60*5; ++i) {
-                glsl({Clear:0}, '')
-                demo.frame(glsl, {time:i/60.0, ...this.viewParams});
+                withCamera({Clear:0}, '')
+                demo.frame(withCamera, {time:i/60.0, ...this.viewParams});
             }
             const el = document.createElement('div')
             const data = canvas.toDataURL('image/jpeg', 0.95);

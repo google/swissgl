@@ -1,5 +1,9 @@
 # Changelog
 
+### 2023-03-13
+* [ParticleLife3d](https://google.github.io/swissgl/#ParticleLife3d) example
+* replaced `includes` mechanism with hooks
+
 ### 2023-03-10
 * `VERT`/`FRAG` defines
 * `torus()` glsl function

@@ -8,7 +8,7 @@ class ParticleLife3d extends ParticleLife {
     constructor(glsl, gui) {
         super(glsl, gui);
         this.inertia = 0.4;
-        new Shadowmap(glsl, gui);
+        this.shadowmap = new Shadowmap(glsl, gui);
     }
     reset() {
         for (let i=0; i<2; ++i) {
@@ -20,7 +20,8 @@ class ParticleLife3d extends ParticleLife {
         }
     }
 
-    drawScene(glsl, params) {
+    drawScene(params) {
+        const glsl = this.shadowmap.glsl;
         const shadowPass = !params.shadowmap;
         const target = shadowPass ? 
             glsl({Clear:0}, '', {size:[1024, 1024], format:'depth', tag:'shadowmap'}) : null;
@@ -52,7 +53,7 @@ class ParticleLife3d extends ParticleLife {
             vec4 d = points(ID.xy);
             color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
             PointSize = 0.13/worldExtent;
-            Normal = lightDir;
+            Normal = vec3(0,0,1);
             return emitVertex(d.xyz/worldExtent*1.3);
         }
         //FRAG
@@ -65,8 +66,8 @@ class ParticleLife3d extends ParticleLife {
 
     frame(glsl, params) {
         this.step();
-        const shadowmap = this.drawScene(glsl, params);
-        this.drawScene(glsl, {...params, Aspect:'mean', shadowmap});
-        //glsl({tex:shadowmap, View:[20, 20, 256, 256]}, `1.0-tex(UV).x`);
+        const shadowmap = this.drawScene(params);
+        this.drawScene({...params, Aspect:'mean', shadowmap});
+        //glsl({tex:shadowmap, View:[200, 20, 256, 256]}, `1.0-tex(UV).x`);
     }
 }

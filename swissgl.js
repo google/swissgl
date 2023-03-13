@@ -25,7 +25,6 @@
 // - 3d prim/helpers
 // - universal geom (mesh)
 // devicePixelRatio
-// cullface
 // depth test modes
 
 // pain points:
@@ -46,14 +45,18 @@ for (const t of ['FLOAT', 'INT', 'BOOL']) {
     }
 }
 
+function memoize(f) {
+    const cache = {};
+    const wrap = k => k in cache ? cache[k] : cache[k]=f(k);
+    wrap.cache = cache;
+    return wrap;
+}
+
 // Parse strings like 'min(s,d)', 'max(s,d)', 's*d', 's+d*(1-sa)',
 // 's*d', 'd*(1-sa) + s*sa', s-d', 'd-s' and so on into
 // gl.blendFunc/gl.blendEquation arguments.
 function parseBlend(s0) {
     if (!s0) return;
-    if (s0 in parseBlend.cache) {
-        return parseBlend.cache[s0];
-    }
     let s = s0.replace(/\s+/g, '');
     if (!s) return null;
     const GL = WebGL2RenderingContext;
@@ -89,10 +92,9 @@ function parseBlend(s0) {
     } else {
         throw `Unable to parse blend spec: "${s0}"`;
     }
-    parseBlend.cache[s0] = res;
     return res;
 }
-parseBlend.cache = {}
+parseBlend = memoize(parseBlend);
 
 function compileShader(gl, code, type, program) {
     code = '#version 300 es\n'+code;
@@ -260,6 +262,9 @@ function guessUniforms(params) {
 }
 
 function expandCode(code) {
+    if (!code || code.indexOf('//VERT') != -1) {
+        return code;  // fast path
+    }
     const stripped = stripComments(code).trim();
     if (stripped == '') return null;
     if (stripped.indexOf(';') == -1) {
@@ -282,15 +287,14 @@ function expandCode(code) {
     }
     return code;
 }
+expandCode = memoize(expandCode);
 
-function linkShader(gl, uniforms, code, include) {
-    code = expandCode(code);
-    code = code.replace('//VERT', '#ifdef VERT //VERT').replace('//FRAG', '#else //FRAG ')+'\n#endif';
-    const prefix = `${glsl_template}\n${include}\n`;
-    const defined = definedUniforms(prefix + code);
+function linkShader(gl, uniforms, code) {
+    code = code.replace('//VERT', '\n#ifdef VERT //VERT').replace('//FRAG', '\n#else //FRAG ')+'\n#endif';
+    const defined = definedUniforms(glsl_template + code);
     const undefined = Object.entries(uniforms).filter(kv=>!(defined.has(kv[0])));
     const guessed = guessUniforms(Object.fromEntries(undefined));
-    code = `${prefix}${guessed}${code}`;
+    code = `${glsl_template}${guessed}${code}`;
     return compileProgram(gl, `
     #define VERT
     ${code}
@@ -471,12 +475,6 @@ const OptNames = new Set([
 ]);
 
 function drawQuads(self, params, code, target) {
-    // process arguments
-    if (typeof params === 'string') {
-        [params, code, target] = [{}, params, code];
-    } else if (code === undefined) {
-        [params, code, target] = [{}, '', params];
-    }
     const options={}, uniforms={}
     for (const p in params) {
         (OptNames.has(p)?options:uniforms)[p] = params[p];
@@ -517,7 +515,7 @@ function drawQuads(self, params, code, target) {
         return target;
     }
     if (!(code in self.shaders)) {
-        self.shaders[code] = linkShader(gl, uniforms, code, self.includes.join('\n'));
+        self.shaders[code] = linkShader(gl, uniforms, code);
     }
     const prog = self.shaders[code];
     gl.useProgram(prog);
@@ -588,19 +586,34 @@ function drawQuads(self, params, code, target) {
     return target;
 }
 
+function prepareArgs(params, code, target) {
+    if (typeof params === 'string') {
+        [params, code, target] = [{}, params, code];
+    } else if (code === undefined) {
+        [params, code, target] = [{}, '', params];
+    }
+    return [params, expandCode(code), target];
+}
+
+function wrapSwissGL(hook) {
+    const glsl = this;
+    const f = (...args)=>hook(glsl, ...prepareArgs(...args));
+    f.hook = wrapSwissGL;
+    return f;
+}
+
 function SwissGL(canvas_gl) {
     const gl = canvas_gl.getContext ?
         canvas_gl.getContext('webgl2', {alpha:false}) : canvas_gl;
     gl.getExtension("EXT_color_buffer_float");
     gl.getExtension("OES_texture_float_linear");
     ensureVertexArray(gl, 1024);
-    function glsl(params, code, target) {
-        return drawQuads(glsl, params, code, target)
-    };
+    const glsl = (...args)=>drawQuads(glsl, ...prepareArgs(...args));
+    glsl.hook = wrapSwissGL;
+    
     glsl.gl = gl;
     glsl.shaders = {};
     glsl.buffers = {};
-    glsl.includes = [];
 
     const releaseTarget = target=>{
         if (target.fbo) gl.deleteFramebuffer(target.fbo);
@@ -616,7 +629,6 @@ function SwissGL(canvas_gl) {
                 releaseTarget(target);
             }
         });
-        glsl.includes = [];
         glsl.shaders = {};
         glsl.buffers = {};
     };

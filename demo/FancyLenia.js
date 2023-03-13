@@ -17,12 +17,12 @@ class FancyLenia extends ParticleLenia {
         this.renderSpots(trails, 0.2);
     }
 
-    frame(glsl, cameraParams) {
+    frame(_, cameraParams) {
         for (let i=0; i<this.step_n; ++i) {
             this.step();
         }
     
-        const {params, viewR, state, trails} = this; 
+        const {params, viewR, state, trails, glsl} = this; 
         const fieldU = glsl({...params, viewR,
             state:state[0], Grid:state[0].size, Clear:0.0, Blend:'s+d'
         },`

@@ -194,3 +194,4 @@ Libraries
 * [regl](https://github.com/regl-project/regl)
 * [gpu-io](https://github.com/amandaghassaei/gpu-io)
 * [luma.gl](https://luma.gl/)
+* [CindyJS](https://cindyjs.org/)

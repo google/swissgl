@@ -64,7 +64,7 @@ class DemoApp {
 
         let name = location.hash.slice(1);
         if (!(name in this.demos)) {
-            name = 'FancyLenia';
+            name = 'ParticleLife3d';
         }
         this.runDemo(name);
         this.populatePreviews();

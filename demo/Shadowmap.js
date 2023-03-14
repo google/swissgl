@@ -22,23 +22,25 @@ class Shadowmap {
             return shadowPass ? s : view2proj(viewPos);
         }
         #else
+        vec3 getLightDir() {
+            return normalize(vec3(0,0,lightZ)-WldPos);;
+        }
+        vec3 getEyeDir() {
+            return normalize(cameraPos()-WldPos);
+        }
         void emitFragment(vec3 color) {
             if (shadowPass) return;
-            vec3 lightDir = normalize(vec3(0,0,lightZ)-WldPos);
+            vec3 lightDir = getLightDir();
             float diff = textureProj(shadowmap, shadowCoord).x*shadowCoord.w - shadowCoord.z;
             float shadow = smoothstep(-0.02, -0.01, diff); // bias
             vec3 n = normalize(Normal);
             float diffuse = max((dot(lightDir, n)), 0.0)*shadow;
-            vec3 eyeDir = normalize(cameraPos()-WldPos);
+            vec3 eyeDir = getEyeDir();
             float spec = smoothstep(0.997, 1.0, dot(n, normalize(lightDir+eyeDir)))*shadow;
             out0 = vec4((diffuse*0.6+0.2)*color + spec*0.3, 1.0);
             out0.rgb = sqrt(out0.rgb); // gamma
         }
         #endif
-
-        vec3 erot(vec3 p, vec3 ax, float ro) {
-            return mix(dot(ax, p)*ax, p, cos(ro)) + cross(ax,p)*sin(ro);
-        }
         `+c, t));
     }
 

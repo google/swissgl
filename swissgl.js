@@ -196,6 +196,11 @@ mat2 rot2(float a) {
   return mat2(c, s, -s, c);
 }
 
+// https://suricrasia.online/demoscene/functions/
+vec3 erot(vec3 p, vec3 ax, float ro) {
+    return mix(dot(ax, p)*ax, p, cos(ro)) + cross(ax,p)*sin(ro);
+}
+
 vec3 uv2sphere(vec2 uv) {
   uv *= vec2(-TAU,PI);
   return vec3(vec2(cos(uv.x), sin(uv.x))*sin(uv.y), cos(uv.y));

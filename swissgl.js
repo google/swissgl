@@ -428,8 +428,8 @@ function ensureVertexArray(gl, neededSize) {
 }
 
 function isTargetSpec(target) {
-    return !((!target) ||  // canvas
-        (target instanceof WebGLTexture) || Array.isArray(target));
+    return !(!target ||  // canvas
+        (target instanceof WebGLTexture) || Array.isArray(target) || (target.fbo !== undefined));
 }
 
 function getTargetSize(gl, {size, scale=1}) {
@@ -460,7 +460,7 @@ function prepareOwnTarget(self, spec) {
 }
 
 function bindTarget(gl, tex) {
-    if (tex && !tex.fbo) {
+    if (tex && (tex.fbo===undefined)) {
         tex.fbo = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, tex.fbo);
         // TODO: array, depth
@@ -506,13 +506,20 @@ function drawQuads(self, params, code, target) {
     }
     const gl = self.gl;
     const targetSize = bindTarget(gl, targetTexture);
+    let view = options.View || [0, 0, targetSize[0], targetSize[1]];
+    if (view.length == 2) {
+        view = [0, 0, view[0], view[1]]
+    }
     if (options.Clear !== undefined) {  // can be 0.0
         let clear = options.Clear;
         if (typeof clear === 'number') {
             clear = [clear, clear, clear, clear];
         }
         gl.clearColor(...clear);
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(...view)
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.disable(gl.SCISSOR_TEST);
     }
 
     // setup program
@@ -546,10 +553,6 @@ function drawQuads(self, params, code, target) {
     }
 
     // View, Aspect
-    let view = options.View || [0, 0, targetSize[0], targetSize[1]];
-    if (view.length == 2) {
-        view = [0, 0, view[0], view[1]]
-    }
     gl.viewport(...view)
     const width=view[2], height=view[3];
     uniforms.View = view;

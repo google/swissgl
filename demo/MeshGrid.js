@@ -4,6 +4,7 @@
   */
 
 class MeshGrid {
+    static Tags = ['2d'];
     frame(glsl, {time}) {
         glsl({time, Grid:[5,5], Mesh:[4,4], Aspect:'fit'}, `
         varying vec3 color;

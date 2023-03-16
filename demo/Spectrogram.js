@@ -5,6 +5,8 @@
 
 // Example of streaming spectrogram data from WebAudio to WebGL2
 class Spectrogram {
+    static Tags = ['3d'];
+    
     constructor(glsl, gui) {
         navigator.mediaDevices.getUserMedia({audio: true}).then(stream=>{
             this.audioCtx = new AudioContext();
@@ -30,15 +32,14 @@ class Spectrogram {
         vec4 vertex() {
             z = history(UV).r;
             float x = 1.0-log(0.005+UV.x)/log(0.005);
-            vec4 pos = vec4((x-0.5)*1.8, UV.y*3.0-0.5, (z-0.5)*0.5, 1.0);
-            pos.yz *= rot2(PI/3.0);
-            pos.z -= 1.5;
-            return view2proj(pos);
+            vec4 pos = vec4(-XY.y, (x-0.5)*1.8, z*0.5, 1.0);
+            return wld2proj(pos);
         }
         //FRAG
         void fragment() {
             vec3 c = mix(vec3(0.0, 0.0, 0.1), vec3(0.9, 0.8, 0.5), z*2.0);
             out0 = vec4(c, 1.0);
+            c.r += float(!gl_FrontFacing);
         }`);
     }
 

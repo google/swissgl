@@ -7,6 +7,8 @@
 // https://google-research.github.io/self-organising-systems/particle-lenia/
 // https://observablehq.com/@znah/particle-lenia-from-scratch
 class ParticleLenia {
+    static Tags = ['2d', 'simulation'];
+
     constructor(glsl, gui) {
         this.glsl = glsl.hook((glsl, p, c, t)=>glsl(p, c&&`
         vec2 peak_f(float x, float mu, float sigma) {

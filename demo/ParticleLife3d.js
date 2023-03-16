@@ -5,6 +5,8 @@
 
 // Inspired by the video https://youtu.be/p4YirERTVF0?t=480
 class ParticleLife3d extends ParticleLife {
+    static Tags = ['3d', 'simulation', 'shadows'];
+    
     constructor(glsl, gui) {
         super(glsl, gui);
         this.inertia = 0.4;

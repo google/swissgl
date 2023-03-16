@@ -1,5 +1,8 @@
 # Changelog
 
+### 2023-03-16
+* WebXR support in the demo
+
 ### 2023-03-13
 * [ParticleLife3d](https://google.github.io/swissgl/#ParticleLife3d) example
 * replaced `includes` mechanism with hooks

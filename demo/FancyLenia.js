@@ -5,6 +5,8 @@
 
 // Visualization of Particle Lenia fields as 3d landscape
 class FancyLenia extends ParticleLenia {
+    static Tags = ['3d', 'simulation'];
+
     reset() {
         super.reset();
         this.trails = this.glsl(`0`, {size:[1024, 1024], format:'r8'});
@@ -44,7 +46,7 @@ class FancyLenia extends ParticleLenia {
               Mesh:[100, 100]}, `
         vec4 vertex() {
           vec4 pos = vec4(XY, 0.0, 1.0);
-          pos.z += fieldU(UV).x*scaleU;
+          pos.z += fieldU(UV).x*scaleU-0.25;
           return wld2proj(pos);
         }
         //FRAG
@@ -71,7 +73,7 @@ class FancyLenia extends ParticleLenia {
         vec4 vertex() {
             vec4 pos = vec4(state(ID.xy).xy, 0.0, 1.0);
             pos.xy /= viewR;
-            pos.z = fieldU(pos.xy*0.5+0.5).x*scaleU;
+            pos.z = fieldU(pos.xy*0.5+0.5).x*scaleU-0.25;
             normal = uv2sphere(UV);
             pos.xyz += normal*0.015;
             return wld2proj(pos);

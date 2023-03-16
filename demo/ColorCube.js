@@ -4,6 +4,8 @@
   */
 
 class ColorCube {
+    static Tags = ['3d'];
+    
     frame(glsl, params) {
         glsl({...params, Grid:[10,10,10], Clear:[0.2, 0.2, 0.3, 1],
               Aspect:'fit', DepthTest:1, AlphaCoverage:1}, `

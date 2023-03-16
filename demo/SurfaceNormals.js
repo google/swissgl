@@ -4,6 +4,8 @@
   */
 
 class SurfaceNormals {
+    static Tags = ['3d'];
+    
     frame(glsl, params) {
         glsl({...params, Mesh:[64,128], Grid:[5,5],
               Aspect:'fit', DepthTest:1}, `

@@ -4,6 +4,8 @@
   */
 
 class CubeDeform {
+    static Tags = ['3d'];
+
     frame(glsl, params) {
         glsl({...params, Grid:[6,1], Mesh:[20, 20],
         Aspect:'fit', DepthTest:1}, `

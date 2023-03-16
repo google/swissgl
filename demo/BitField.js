@@ -6,6 +6,7 @@
 // Bit Field texture, inspired by the tweet thread:
 // https://twitter.com/aemkei/status/1378106731386040322
 class BitField {
+    static Tags = ['2d'];
     constructor(glsl, gui) {
         this.k = 9;
         gui.add(this, 'k', 2, 50, 1);

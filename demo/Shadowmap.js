@@ -4,6 +4,8 @@
   */
 
 class Shadowmap {
+    static Tags = ['3d', 'shadows'];
+    
     constructor(glsl, gui) {
         this.glsl = glsl.hook((glsl, p, c, t)=>glsl(p, c&&`
         uniform sampler2D shadowmap;

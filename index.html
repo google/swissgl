@@ -104,6 +104,8 @@ a {
   <canvas id="c" width="640" height="360"></canvas>
 </div>
 <div id="buttons">
+    <button title="settings" onclick="toggleVR()" id="vrButton">VR</button>
+    <button title="settings" onclick="toggleAR()" id="arButton">AR</button>
     <button title="settings" onclick="toggleGui()" id="settingButton" style="font-size: 180%;">⛯</button>
     <a id='sourceLink' href="" target="_blank"><button title="source code">&lt;&gt;</button></a>
     <button title="fullscreen" onclick="fullscreen()"">⛶</button>
@@ -121,9 +123,10 @@ a {
     function toggleGui() {
         app.toggleGui();
     }
-    function render(t) {
-        app.frame(t);
-        requestAnimationFrame(render);
+    function toggleVR() {
+        app.toggleXR('vr');
     }
-    render();
+    function toggleAR() {
+        app.toggleXR('ar');
+    }
 </script>

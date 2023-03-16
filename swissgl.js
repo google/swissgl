@@ -589,7 +589,7 @@ function wrapSwissGL(hook) {
     return f;
 }
 
-function SwissGL(canvas_gl) {
+export default function SwissGL(canvas_gl) {
     const gl = canvas_gl.getContext ?
         canvas_gl.getContext('webgl2', {alpha:false}) : canvas_gl;
     gl.getExtension("EXT_color_buffer_float");

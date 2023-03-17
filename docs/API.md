@@ -32,7 +32,7 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 
 * `Mesh`: `[w, h]`, default `[1,1]`. Tessellate the rendered 2d plane primitive. `vec2 UV` and `XY` globals available in both vertex and fragment shaders provide `[0,1]`-range and `[-1,1]`-range vertex coordinates correspondingly. Integer vertex index is also provided as `ivec2 VID` global (VS only). Mesh size is available in the shader as `uniform ivec2 Mesh`.
 
-* `DepthTest`: enable gl.DEPTH_TEST if `true`.
+* `DepthTest`: `false`, `true` or `"keep"`, default is `false`. Enables depth testing. Passing `"keep"` sets read-only depth testing mode, when test is being performed, but the depth buffer is not updated with new depth values.
 
 * `Face`: `'front'` or `'back'`. When provided, sets face culling to render corresponding faces only.
 

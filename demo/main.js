@@ -222,7 +222,8 @@ class DemoApp {
     updateVRButtons() {
         $('#vrButton').style.display = 'none';
         $('#arButton').style.display = 'none';
-        if (this.demo && this.demo.constructor.Tags.includes('3d')) {
+        const tags = this.demo && this.demo.constructor.Tags;
+        if (tags && tags.includes('3d')) {
             if (this.haveVR) $('#vrButton').style.display = 'block';
             if (this.haveAR) $('#arButton').style.display = 'block';
         }

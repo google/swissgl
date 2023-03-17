@@ -51,7 +51,8 @@ class ParticleLife3d extends ParticleLife {
 
         if (!shadowPass) {
             for (const face of ['back', 'front'])
-            glsl({...params, Grid:[6,1], Face:face, Blend:'d*(1-sa)+s'}, `
+            glsl({...params, Grid:[6,1], Blend:'d*(1-sa)+s',
+                Face:face, DepthTest:face=='front'?'keep':1}, `
             varying vec3 portalPos;
             //VERT
             vec4 vertex() {

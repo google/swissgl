@@ -510,6 +510,7 @@ function drawQuads(self, params, code, target) {
     if (view.length == 2) {
         view = [0, 0, view[0], view[1]]
     }
+    gl.depthMask(!(options.DepthTest == 'keep'));
     if (options.Clear !== undefined) {  // can be 0.0
         let clear = options.Clear;
         if (typeof clear === 'number') {
@@ -517,7 +518,7 @@ function drawQuads(self, params, code, target) {
         }
         gl.clearColor(...clear);
         gl.enable(gl.SCISSOR_TEST);
-        gl.scissor(...view)
+        gl.scissor(...view);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.SCISSOR_TEST);
     }

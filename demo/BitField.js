@@ -13,6 +13,6 @@ class BitField {
     }
     frame(glsl, {time}) {
         const {k} = this;
-        glsl({t:time, k}, `1-((I.x+int(t*40.))/4^(I.y+int(t*20.))/4)%int(k)`);
+        glsl({t:time, k, FP:`1-((I.x+int(t*40.))/4^(I.y+int(t*20.))/4)%int(k)`});
     }
 }

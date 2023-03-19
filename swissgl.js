@@ -139,28 +139,19 @@ function compileProgram(gl, vs, fs) {
     return program;
 }
 
-const stripComments = code=>code.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g,'');
-
-// TODO better parser (use '\b')
-function definedUniforms(code) {
-    code = stripComments(code);
-    const lines = Array.from(code.matchAll(/uniform\s+\w+\s+([^;]+)\s*;/g));
-    return new Set(lines.map(m=>m[1].split(/[^\w]+/)).flat());
-}
-
-
 const glsl_template = `
 precision highp float;
 precision highp int;
 #ifdef VERT
     #define varying out
+    #define VOut gl_Position
     layout(location = 0) in int VertexID;
     layout(location = 1) in int InstanceID;
     ivec2 VID;
     ivec3 ID;
 #else
     #define varying in
-    layout(location = 0) out vec4 out0;
+    layout(location = 0) out vec4 FOut;
     ivec2 I;
 #endif
 
@@ -266,43 +257,38 @@ function guessUniforms(params) {
     return uni.join('\n')+'\n';
 }
 
-function expandCode(code) {
-    if (!code || code.indexOf('//VERT') != -1) {
-        return code;  // fast path
-    }
+const stripComments = code=>code.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g,'');
+
+// TODO better parser (use '\b')
+function definedUniforms(code) {
+    code = stripComments(code);
+    const lines = Array.from(code.matchAll(/uniform\s+\w+\s+([^;]+)\s*;/g));
+    return new Set(lines.map(m=>m[1].split(/[^\w]+/)).flat());
+}
+
+function expandCode(code, mainFunc, outVar) {
     const stripped = stripComments(code).trim();
-    if (stripped == '') return null;
-    if (stripped.indexOf(';') == -1) {
-        code = `out0 = vec4(${stripped});`
+    if (stripped != '' && stripped.indexOf(';') == -1) {
+        code = `${outVar} = vec4(${stripped});`
     }
-    if (!stripped.match(/\bfragment\s*\(/)) {
-        code = `void fragment() {
+    if (!stripped.match(new RegExp(`\\b${mainFunc}\s*\\(`))) {
+        code = `void ${mainFunc}() {
           ${code};
         }`
     }
-    if (code.indexOf('//FRAG') == -1) {
-        code = `
-        //VERT
-        vec4 vertex() {return vec4(XY, 0.0, 1.0);}
-        //FRAG
-        ${code}`;
-    }
-    if (code.indexOf('//VERT') == -1) {
-     code = '//VERT\n'+code;   
-    }
     return code;
 }
-expandCode = memoize(expandCode);
+expandVP = memoize(code=>expandCode(code, 'vertex', 'VOut'));
+expandFP = memoize(code=>expandCode(code, 'fragment', 'FOut'));
 
-function linkShader(gl, uniforms, code) {
-    code = code.replace('//VERT', '\n#ifdef VERT //VERT').replace('//FRAG', '\n#else //FRAG ')+'\n#endif';
-    const defined = definedUniforms(glsl_template + code);
+function linkShader(gl, uniforms, Inc, VP, FP) {
+    const defined = definedUniforms([glsl_template, Inc, VP, FP].join('\n'));
     const undefined = Object.entries(uniforms).filter(kv=>!(defined.has(kv[0])));
     const guessed = guessUniforms(Object.fromEntries(undefined));
-    code = `${glsl_template}${guessed}${code}`;
+    const prefix = `${glsl_template}\n${Inc}\n${guessed}`;
     return compileProgram(gl, `
     #define VERT
-    ${code}
+    ${prefix}\n${expandVP(VP)}
     void main() {
       int rowVertN = Mesh.x*2+3;
       int rowI = VertexID/rowVertN;
@@ -315,12 +301,12 @@ function linkShader(gl, uniforms, code) {
       ID.y = ii % Grid.y; ii/=Grid.y;
       ID.z = ii;
       UV = vec2(VID) / vec2(Mesh);
-      vec4 v = vertex();
-      v.xy *= Aspect;
-      gl_Position = v;
+      VOut = vec4(XY,0,1);
+      vertex();
+      VOut.xy *= Aspect;
     }`, `
     #define FRAG
-    ${code}
+    ${prefix}\n${expandFP(FP)}
     void main() {
       I = ivec2(gl_FragCoord.xy);
       fragment();
@@ -476,21 +462,22 @@ function bindTarget(gl, tex) {
 }
 
 const OptNames = new Set([
+    'Inc', 'VP', 'FP',
     'Clear', 'Blend', 'View', 'Grid', 'Mesh', 'Aspect', 'DepthTest', 'AlphaCoverage', 'Face'
 ]);
 
-function drawQuads(self, params, code, target) {
+function drawQuads(self, params, target) {
     const options={}, uniforms={}
     for (const p in params) {
         (OptNames.has(p)?options:uniforms)[p] = params[p];
     }
-    const emptyShader = !code;
+    const [Inc, VP, FP] = [options.Inc||'', options.VP||'', options.FP||''];
+    const emptyShader = !VP && !FP;
+    const shaderID = Inc+VP+FP;
 
     // setup target
     const useOwnTarget = isTargetSpec(target);
     if (useOwnTarget) {
-        target = {...target};
-        target.tag = target.tag || code;
         target = prepareOwnTarget(self, target);
     }
     let targetTexture = target;
@@ -527,10 +514,10 @@ function drawQuads(self, params, code, target) {
     if (emptyShader) {
         return target;
     }
-    if (!(code in self.shaders)) {
-        self.shaders[code] = linkShader(gl, uniforms, code);
+    if (!(shaderID in self.shaders)) {
+        self.shaders[shaderID] = linkShader(gl, uniforms, Inc, VP, FP);
     }
-    const prog = self.shaders[code];
+    const prog = self.shaders[shaderID];
     gl.useProgram(prog);
     
     // process options
@@ -595,18 +582,9 @@ function drawQuads(self, params, code, target) {
     return target;
 }
 
-function prepareArgs(params, code, target) {
-    if (typeof params === 'string') {
-        [params, code, target] = [{}, params, code];
-    } else if (code === undefined) {
-        [params, code, target] = [{}, '', params];
-    }
-    return [params, expandCode(code), target];
-}
-
 function wrapSwissGL(hook) {
     const glsl = this;
-    const f = (...args)=>hook(glsl, ...prepareArgs(...args));
+    const f = (params, target)=>hook(glsl, params, target);
     f.hook = wrapSwissGL;
     return f;
 }
@@ -617,7 +595,7 @@ function SwissGL(canvas_gl) {
     gl.getExtension("EXT_color_buffer_float");
     gl.getExtension("OES_texture_float_linear");
     ensureVertexArray(gl, 1024);
-    const glsl = (...args)=>drawQuads(glsl, ...prepareArgs(...args));
+    const glsl = (params, target)=>drawQuads(glsl, params, target);
     glsl.hook = wrapSwissGL;
     
     glsl.gl = gl;

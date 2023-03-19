@@ -5,7 +5,7 @@
 
 // Example of streaming spectrogram data from WebAudio to WebGL2
 class Spectrogram {
-    static Tags = ['3d'];
+    static Tags = ['3d', 'data'];
     
     constructor(glsl, gui) {
         navigator.mediaDevices.getUserMedia({audio: true}).then(stream=>{
@@ -23,24 +23,15 @@ class Spectrogram {
         if (!this.analyser) return;
         this.analyser.getByteFrequencyData(this.frequencyArray);
         const n = this.frequencyArray.length;
-        const spectro = glsl({size:[n, 1], format:'r8', data:this.frequencyArray, tag:'spectro'});
-        const history = glsl({spectro}, 'I.y>0 ? Src(I-ivec2(0,1)) : spectro(ivec2(I.x,0))',
-                             {size:[n,256], story:2, wrap:'edge'});
-        glsl({...params, history:history[0], Mesh:history[0].size, DepthTest:1, Aspect:'fit'}, `
-        varying float z;
-        //VERT
-        vec4 vertex() {
-            z = history(UV).r;
-            float x = 1.0-log(0.005+UV.x)/log(0.005);
-            vec4 pos = vec4(-XY.y, (x-0.5)*1.8, z*0.5, 1.0);
-            return wld2proj(pos);
-        }
-        //FRAG
-        void fragment() {
-            vec3 c = mix(vec3(0.0, 0.0, 0.1), vec3(0.9, 0.8, 0.5), z*2.0);
-            out0 = vec4(c, 1.0);
-            c.r += float(!gl_FrontFacing);
-        }`);
+        const spectro = glsl({}, {size:[n, 1], format:'r8', data:this.frequencyArray, tag:'spectro'});
+        const history = glsl({spectro, FP:'I.y>0 ? Src(I-ivec2(0,1)) : spectro(ivec2(I.x,0))'},
+                             {size:[n,256], story:2, wrap:'edge', tag:'history'});
+        glsl({...params, history:history[0], Mesh:history[0].size, DepthTest:1, Aspect:'fit', Inc:`
+        varying float z;`, VP:`
+        z = history(UV).r;
+        float x = 1.0-log(0.005+UV.x)/log(0.005);
+        VOut = wld2proj(vec4(-XY.y, (x-0.5)*1.8, z*0.5, 1.0));`, FP:`
+        mix(vec3(0.0, 0.0, 0.1), vec3(0.9, 0.8, 0.5), z*2.0),1`});
     }
 
     free() {

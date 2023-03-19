@@ -10,12 +10,12 @@ class ParticleLenia {
     static Tags = ['2d', 'simulation'];
 
     constructor(glsl, gui) {
-        this.glsl = glsl.hook((glsl, p, c, t)=>glsl(p, c&&`
+        this.glsl = glsl.hook((glsl, p, t)=>glsl({...p, Inc:`
         vec2 peak_f(float x, float mu, float sigma) {
           float t = (x-mu)/sigma;
           float y = exp(-t*t);
           return vec2(y, -2.0*t*y/sigma);
-        }`+c, t));
+        }\n`+(p.Inc||'')}, t));
         this.step_n = 5;
         this.viewR = 15.0;
         const params = this.params = {dt: 0.1,
@@ -47,13 +47,13 @@ class ParticleLenia {
     }
     
     reset() {
-        this.state = this.glsl({seed:Math.random()*1234567},
-            `(hash(ivec3(I, int(seed))).xy-0.5)*12.0,0,0`,
-            {size:[20, 10], story:2, format:'rgba32f'});
+        this.state = this.glsl({seed:Math.random()*1234567,
+            FP:`(hash(ivec3(I, int(seed))).xy-0.5)*12.0,0,0`},
+            {size:[20, 10], story:2, format:'rgba32f', tag:'state'});
     }
 
     step() {
-        this.glsl(this.params,`
+        this.glsl({...this.params, FP:`
         vec3 pos = Src(I).xyz;
         float mu = mu_k*sigma_k;
         vec3 R_grad=vec3(0), U_grad=vec3(0);
@@ -74,22 +74,16 @@ class ParticleLenia {
         } 
         vec2 G = peak_f(U, mu_g, sigma_g);
         pos -= dt*(R_grad*c_rep - G.g*U_grad);
-        out0 = vec4(pos,0.0);
-        `,  this.state); 
+        FOut = vec4(pos,0.0);
+        `},  this.state); 
     }
 
     renderSpots(target=null, pointR=0.4) {
         const {state, viewR} = this;
         this.glsl({state:state[0], Grid: state[0].size, viewR, pointR,
-              Blend:'d*(1-sa)+s',Aspect:'mean'},`
-        vec4 vertex() {
-            vec2 pos = state(ID.xy).xy + XY*pointR;
-            return vec4(pos/viewR, 0, 1);
-        }
-        //FRAG
-        void fragment() {
-            out0 = vec4(exp(-dot(XY,XY)*4.));
-        }`, target);        
+            Blend:'d*(1-sa)+s', Aspect:'mean',
+            VP:`(state(ID.xy).xy + XY*pointR)/viewR,0,1`,
+            FP:`exp(-dot(XY,XY)*4.)`}, target);        
     }
 
     frame(_, params) {

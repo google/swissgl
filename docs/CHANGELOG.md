@@ -1,5 +1,10 @@
 # Changelog
 
+### 2023-03-19
+* **(breaking)** removed `code` argument. Shader is passed through `VP`, `FP` and `Inc` parameters. Shortcut syntax can be used in `VP` and `FP` independently.
+* **(breaking)** `vertex()` function now returns `void`,  output should be written into `vec4 VOut` variable. `fragment()` output now should be stored in `vec4 FOut`.
+* **(breaking)** `tag` attribute it now obligatory for newly created render targets.
+
 ### 2023-03-16
 * WebXR support in the demo
 

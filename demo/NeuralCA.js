@@ -6,8 +6,9 @@
 // Based on "μNCA: Texture Generation with Ultra-Compact Neural Cellular Automata"
 // https://arxiv.org/abs/2111.13545
 class NeuralCA {
+    static Tags = ['2d', 'ca'];
     frame(glsl) {
-        const state = glsl(`
+        const state = glsl({FP:`
         vec4 rule2(vec4 s, vec4 p) {
           return 1e-3*(vec4(4,-10,-27,18)/2.+
             mat4(-67,1,2,44,-13,-59,4,30,-1,16,-57,9,-10,-4,-2,-41)*s+
@@ -19,7 +20,7 @@ class NeuralCA {
           vec4 s = Src(UV);
           if (s == vec4(0)) {
             ivec2 I = ivec2(gl_FragCoord.xy);
-            out0 = 0.1+vec4(hash(I.xyy).x)*0.4;
+            FOut = 0.1+vec4(hash(I.xyy).x)*0.4;
             return;
           }
           vec2 dp = Src_step();
@@ -31,9 +32,8 @@ class NeuralCA {
                  + R(l,y)*vec4(2,2,-2, 0) +  s*vec4(-12,-12,0, 0) + R(r,y)*vec4(2,2,2, 0)
                  + R(l,d)*vec4(1,1,-1,-1) + R(x,d)*vec4(2,2,0,-2) + R(r,d)*vec4(1,1,1,-1);
           vec4 ds = rule2(s-0.5, p);  // NCA rule application
-          out0 = s+ds;
-        }
-        `, {story:2, scale:1/4, filter:'nearest'});
-        glsl({tex:state[0]}, `tex(UV)*2.-0.5`);
+          FOut = s+ds;
+        }`}, {story:2, scale:1/4, filter:'nearest', tag:'state'});
+        glsl({tex:state[0], FP:`tex(UV)*2.-.5`});
     }
 }

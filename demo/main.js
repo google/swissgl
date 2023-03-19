@@ -65,12 +65,11 @@ class DemoApp {
                 return view2proj(wld2view(p));
             }
         `;
-        this.withCamera = this.glsl.hook((glsl, params, code, target)=>{
-            code = code&&(this.glsl_include+code);
+        this.withCamera = this.glsl.hook((glsl, params, target)=>{
+            params = {...params, Inc:this.glsl_include+(params.Inc||'')};
             if (target || !params.xrMode) {
-                return glsl(params, code, target);
+                return glsl(params, target);
             }
-            params = {...params};
             delete params.Aspect;
             let glLayer = this.xrSession.renderState.baseLayer;
             target = {size: [glLayer.framebufferWidth, glLayer.framebufferHeight],
@@ -82,7 +81,7 @@ class DemoApp {
                 params.xrViewMatrix = view.transform.inverse.matrix;
                 let {x,y,z} = view.transform.position;
                 params.xrPosition = [x, y, z];
-                glsl(params, code, target);
+                glsl(params, target);
             }
         });
 
@@ -145,16 +144,11 @@ class DemoApp {
             const gripPose = xrFrame.getPose(inputSource.gripSpace, this.xrRefSpace);
             if (!gripPose) continue;
             this.withCamera({...params, Mesh: [20,20],
-                gripMtx:gripPose.transform.matrix, DepthTest:true}, `
-            varying vec3 p;
-            //VERT
-            vec4 vertex() {
-                p = uv2sphere(UV);
-                return wld2proj(gripMtx*vec4(p*vec3(0.02, 0.02, 0.1),1));
-            }
-            //FRAG
-            void fragment() {out0 = vec4(p*0.5+0.5, 1.0);}
-            `);
+                gripMtx:gripPose.transform.matrix, DepthTest:1, Inc:`
+            varying vec3 p;`, VP:`
+            p = uv2sphere(UV);
+            VOut = wld2proj(gripMtx*vec4(p*vec3(0.02, 0.02, 0.1),1));`, FP:`
+            p*0.5+0.5,1`});
         }
         const lookUpCoef = -this.xrPose.transform.matrix[10];
         if (lookUpCoef>0.5) {
@@ -165,13 +159,9 @@ class DemoApp {
                 i = (i+1)%this.xrDemos.length;
                 this.runDemo(this.xrDemos[i].name);
             } else {
-                this.withCamera({...params, Mesh: [20,20], dt, DepthTest:true}, `
-                vec4 vertex() {
-                    vec3 p = uv2sphere(UV)*0.6*clamp(1.0-dt, 0.0, 0.8) + vec3(-2.0, 0.0, 3.0);
-                    return wld2proj(vec4(p,1));
-                }
-                //FRAG
-                void fragment() {out0 = vec4(UV,0.5,1);}`);
+                this.withCamera({...params, Mesh: [20,20], dt, DepthTest:1, VP:`
+                vec3 p = uv2sphere(UV)*0.6*clamp(1.0-dt, 0.0, 0.8) + vec3(-2.0, 0.0, 3.0);
+                VOut = wld2proj(vec4(p,1));`, FP:`UV,0.5,1`});
             }
         } else {
             this.lookUpStartTime = t;
@@ -256,7 +246,8 @@ class DemoApp {
         const canvas = document.createElement('canvas');
         canvas.width = 400; canvas.height = 300;
         const glsl = SwissGL(canvas);
-        const withCamera = glsl.hook((glsl, p, c, t)=>glsl(p, c&&this.glsl_include+c, t));
+        const withCamera = glsl.hook((glsl, p, t)=>glsl(
+            {...p, Inc:this.glsl_include+(p.Inc||'')}, t));
         Object.keys(this.demos).forEach(name=>{
             if (name == 'Spectrogram') return;
             const dummyGui = new dat.GUI();

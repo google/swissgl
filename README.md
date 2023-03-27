@@ -183,3 +183,5 @@ Libraries
 * [gpu-io](https://github.com/amandaghassaei/gpu-io)
 * [luma.gl](https://luma.gl/)
 * [CindyJS](https://cindyjs.org/)
+* [PicoGL.js](https://github.com/tsherif/picogl.js)
+* [pex-context](https://github.com/pex-gl/pex-context)

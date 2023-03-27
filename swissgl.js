@@ -621,3 +621,5 @@ function SwissGL(canvas_gl) {
     };
     return glsl;
 }
+
+self._SwissGL = SwissGL;

@@ -1,0 +1,23 @@
+{
+  "name": "swissgl",
+  "version": "0.0.1",
+  "description": "SwissGL is a minimalistic wrapper on top of WebGL2 JS API. It's designed to reduce the amount of boilerplate code required to manage GLSL shaders, textures and framebuffers when making procedural visualizations or simulations.",
+  "main": "swissgl.js",
+  "module": "swissgl.mjs",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/google/swissgl.git"
+  },
+  "author": "Alexander Mordvintsev",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/google/swissgl/issues"
+  },
+  "homepage": "https://github.com/google/swissgl#readme"
+}

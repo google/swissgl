@@ -278,8 +278,8 @@ function expandCode(code, mainFunc, outVar) {
     }
     return code;
 }
-expandVP = memoize(code=>expandCode(code, 'vertex', 'VOut'));
-expandFP = memoize(code=>expandCode(code, 'fragment', 'FOut'));
+const expandVP = memoize(code=>expandCode(code, 'vertex', 'VOut'));
+const expandFP = memoize(code=>expandCode(code, 'fragment', 'FOut'));
 
 function linkShader(gl, uniforms, Inc, VP, FP) {
     const defined = definedUniforms([glsl_template, Inc, VP, FP].join('\n'));
@@ -586,6 +586,7 @@ function wrapSwissGL(hook) {
     const glsl = this;
     const f = (params, target)=>hook(glsl, params, target);
     f.hook = wrapSwissGL;
+    f.gl = glsl.gl;
     return f;
 }
 

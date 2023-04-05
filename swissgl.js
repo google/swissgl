@@ -592,7 +592,7 @@ function wrapSwissGL(hook) {
 
 function SwissGL(canvas_gl) {
     const gl = canvas_gl.getContext ?
-        canvas_gl.getContext('webgl2', {alpha:false}) : canvas_gl;
+        canvas_gl.getContext('webgl2', {alpha:false, antialias:true}) : canvas_gl;
     gl.getExtension("EXT_color_buffer_float");
     gl.getExtension("OES_texture_float_linear");
     ensureVertexArray(gl, 1024);

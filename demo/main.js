@@ -8,7 +8,8 @@ class DemoApp {
         this.demos = Object.fromEntries(demos.map(c=>[c.name, c]));
 
         this.canvas = document.getElementById('c');
-        const gl = this.canvas.getContext('webgl2', {alpha:false, xrCompatible:true});
+        const gl = this.canvas.getContext('webgl2', {alpha:false, antialias:true,
+            xrCompatible:true});
         this.glsl = SwissGL(gl);
         this.demo = null;
         this.gui = null;

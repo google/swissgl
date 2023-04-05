@@ -1,5 +1,5 @@
 import './swissgl.js'
 
-const SwissGL = self._SwissGL
+const SwissGL = self._SwissGL;
 
-export default SwissGL
+export default SwissGL;

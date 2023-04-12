@@ -32,6 +32,8 @@ class DemoApp {
         }
 
         this.viewParams = {
+            canvasSize: new Float32Array(2),
+            pointer: new Float32Array(3),
             cameraYPD: new Float32Array(3),
         };
         this.resetCamera();
@@ -86,24 +88,29 @@ class DemoApp {
             }
         });
 
-        this.prevPos = [0,0];
+        const setPointer = (e, buttons)=>{
+            const [w, h] = this.viewParams.canvasSize;
+            const [x, y] = [e.offsetX-w/2, h/2-e.offsetY];
+            this.viewParams.pointer.set([x, y, buttons]);
+            return [x, y];
+        };
         this.canvas.addEventListener('pointerdown', e=>{
             if (!e.isPrimary) return;
-            this.prevPos = [e.offsetX, e.offsetY];
+            setPointer(e, e.buttons);
             if (window.innerWidth < 500) {
                 // close menu on small screens
                 $('#panel').removeAttribute("open");
             }
         });
+        this.canvas.addEventListener('pointerout', e=>setPointer(e, 0));
+        this.canvas.addEventListener('pointerup', e=>setPointer(e, 0));
         this.canvas.addEventListener('pointermove', e=>{
+            const [px, py, _] = this.viewParams.pointer;
+            const [x, y] = setPointer(e, e.buttons);
             if (!e.isPrimary || e.buttons != 1) return;
-            const [px, py] = this.prevPos;
-            const [x, y] = [e.offsetX, e.offsetY];
-            this.prevPos = [x, y];
-            
             let [yaw, pitch, dist] = this.viewParams.cameraYPD;
             yaw -= (x-px)*0.01;
-            pitch -= (y-py)*0.01;
+            pitch += (y-py)*0.01;
             pitch = Math.min(Math.max(pitch, 0), Math.PI);
             this.viewParams.cameraYPD.set([yaw, pitch, dist]);
         });
@@ -234,6 +241,7 @@ class DemoApp {
     adjustCanvas() {
         const {canvas} = this;
         const dpr = 1;//devicePixelRatio;
+        this.viewParams.canvasSize.set([canvas.clientWidth, canvas.clientHeight]);
         const w = canvas.clientWidth*dpr, h=canvas.clientHeight*dpr;
         if (canvas.width != w || canvas.height != h) {
             canvas.width = w; canvas.height = h;

@@ -40,10 +40,11 @@ class ParticleLife {
         }
     }
 
-    step() {
+    step(touchPos) {
+        touchPos = touchPos || [-1000, 0, 0];
         const {K, F, points, worldExtent, repulsion, inertia, dt} = this;
         for (let i=0; i<this.step_n; ++i)
-        this.glsl({F, worldExtent, repulsion, inertia, dt, past:points[1], FP:`
+        this.glsl({F, touchPos, worldExtent, repulsion, inertia, dt, past:points[1], FP:`
         vec3 wrap(vec3 p) {
           return (fract(p/worldExtent+0.5)-0.5)*worldExtent;
         }
@@ -62,14 +63,22 @@ class ParticleLife {
               float att = f*max(1.0-abs(r-2.0), 0.0);
               force += dpos*(att-rep);
             }
+            vec3 touchVec = (touchPos-FOut.xyz);
+            force += touchVec*exp(-dot(touchVec, touchVec))*50.0;
             vec3 vel = wrap(FOut.xyz-past(I).xyz)*pow(inertia, dt);
             FOut.xyz = wrap(FOut.xyz+vel+0.5*force*(dt*dt));
         }`}, points);
     }
 
-    frame(glsl) {
-        this.step();
+    frame(glsl, params) {
         const {K, points, worldExtent} = this;
+        let touchPos;
+        if (params.pointer[2]) {
+            const [x, y, _] = params.pointer;
+            const s = worldExtent/Math.min(...params.canvasSize);
+            touchPos = [x*s, y*s, 0];
+        }
+        this.step(touchPos);
         glsl({K, worldExtent, points: points[0], Grid: points[0].size,
               Aspect:'fit', Blend: 'd*(1-sa)+s*sa', Inc:`
         varying vec3 color;`, VP:`

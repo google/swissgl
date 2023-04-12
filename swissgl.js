@@ -476,8 +476,7 @@ function drawQuads(self, params, target) {
     const shaderID = Inc+VP+FP;
 
     // setup target
-    const useOwnTarget = isTargetSpec(target);
-    if (useOwnTarget) {
+    if (isTargetSpec(target)) {
         target = prepareOwnTarget(self, target);
     }
     let targetTexture = target;

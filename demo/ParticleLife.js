@@ -19,14 +19,11 @@ class ParticleLife {
         gui.add(this, 'repulsion', 0.0, 10.0);
         gui.add(this, 'inertia', 0.0, 1.0);
         gui.add(this, 'reset');
-        const K = 6;
-        const F = glsl({K, FP:`float(I.x==I.y) + 0.1*float(I.x==(I.y+1)%int(K))`},
+        const K = this.K = 6;
+        this.F = glsl({K, FP:`float(I.x==I.y) + 0.1*float(I.x==(I.y+1)%int(K))`},
             {size:[K,K], format:'r16f', tag:'F'});
-        const points = glsl({}, {size:[30,10], story:3,
+        this.points = glsl({}, {size:[30,10], story:3,
                              format:'rgba32f', tag:'points'});
-        this.K = K;
-        this.F = F;
-        this.points = points;
         this.reset();
     }
 
@@ -79,12 +76,23 @@ class ParticleLife {
             touchPos = [x*s, y*s, 0];
         }
         this.step(touchPos);
+
+        const field = glsl({K, worldExtent, points: points[0], Grid: [...points[0].size, 4],
+              Blend: 's+d', Clear:0.0, Inc:`varying vec3 color;`, VP:`
+            vec4 d = points(ID.xy);
+            color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
+            VOut.xy = 2.0*(d.xy+XY*1.5)/worldExtent;
+            VOut.xy -= 2.0*vec2(ID.z%2, ID.z/2)*sign(d.xy);`,
+            FP:`color*smoothstep(1.0, 0.8, length(XY)),1`},
+            {size:[256, 256], format:'rgba16f', tag:'field'});
+        glsl({field, Aspect:'fit', FP:`sqrt(field(UV))*0.07`});
+
         glsl({K, worldExtent, points: points[0], Grid: points[0].size,
-              Aspect:'fit', Blend: 'd*(1-sa)+s*sa', Inc:`
-        varying vec3 color;`, VP:`
-        vec4 d = points(ID.xy);
-        color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
-        VOut.xy = 2.0*(d.xy+XY/8.0)/worldExtent;`, 
-        FP:`color, smoothstep(1.0, 0.6, length(XY))`});
+                Aspect:'fit', Blend: 'd*(1-sa)+s*sa', Inc:`
+            varying vec3 color;`, VP:`
+            vec4 d = points(ID.xy);
+            color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
+            VOut.xy = 2.0*(d.xy+XY/8.0)/worldExtent;`, 
+            FP:`color, smoothstep(1.0, 0.6, length(XY))`});
     }
 }

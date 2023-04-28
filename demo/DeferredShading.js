@@ -44,6 +44,7 @@ class DeferredShading {
         const light = glsl({...lightArgs, lightR:0.3, 
             Mesh:[32,64], Clear:0, gbuf, FP:`
         vec4 color  = gbuf(ivec3(I,0));
+        if (color.a == 0.0) discard;
         vec3 normal = gbuf(ivec3(I,1)).xyz;
         vec3 wldPos = gbuf(ivec3(I,2)).xyz;
         vec3 lightDir = lightPos-wldPos;

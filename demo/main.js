@@ -67,6 +67,9 @@ class DemoApp {
             vec4 wld2proj(vec4 p) {
                 return view2proj(wld2view(p));
             }
+            vec4 wld2proj(vec3 p) {
+                return wld2proj(vec4(p,1.0));
+            }
         `;
         this.withCamera = this.glsl.hook((glsl, params, target)=>{
             params = {...params, Inc:this.glsl_include+(params.Inc||'')};

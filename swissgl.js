@@ -15,8 +15,8 @@
 
 // Repeat/Loop?
 // fbo:
-// - multiple render targets (arrays)
-// - depth/stencil
+// - multiple named render targets (Out...?)
+// - stencil?
 // - mipmaps?
 // samplers/filter?
 // data texture subimage?
@@ -142,6 +142,7 @@ function compileProgram(gl, vs, fs) {
 const glsl_template = `
 precision highp float;
 precision highp int;
+precision lowp sampler2DArray;
 #ifdef VERT
     #define varying out
     #define VOut gl_Position
@@ -152,6 +153,13 @@ precision highp int;
 #else
     #define varying in
     layout(location = 0) out vec4 FOut;
+    layout(location = 1) out vec4 FOut1;
+    layout(location = 2) out vec4 FOut2;
+    layout(location = 3) out vec4 FOut3;
+    layout(location = 4) out vec4 FOut4;
+    layout(location = 5) out vec4 FOut5;
+    layout(location = 6) out vec4 FOut6;
+    layout(location = 7) out vec4 FOut7;
     ivec2 I;
 #endif
 
@@ -221,6 +229,8 @@ vec3 _surf_f(vec3 p, vec3 a, vec3 b, out vec3 normal) {
 
 vec4 _sample(sampler2D tex, vec2 uv) {return texture(tex, uv);}
 vec4 _sample(sampler2D tex, ivec2 xy) {return texelFetch(tex, xy, 0);}
+vec4 _sample(sampler2DArray tex, vec3 uv) {return texture(tex, uv);}
+vec4 _sample(sampler2DArray tex, ivec3 xy) {return texelFetch(tex, xy, 0);}
 
 #ifdef FRAG
     float isoline(float v) {
@@ -243,10 +253,11 @@ function guessUniforms(params) {
         const v = params[name];
         let s = null;
         if (v instanceof WebGLTexture) {
-            s = `uniform sampler2D ${name};
+            const [type, D] = v.layern?['sampler2DArray', '3']:['sampler2D', '2'];
+            s = `uniform ${type} ${name};
             #define ${name}(p) (_sample(${name}, (p)))
-            ivec2 ${name}_size() {return textureSize(${name}, 0);}
-            vec2  ${name}_step() {return 1.0/vec2(${name}_size());}`;
+            ivec${D} ${name}_size() {return textureSize(${name}, 0);}
+            vec${D}  ${name}_step() {return 1.0/vec${D}(${name}_size());}`;
         } else if (typeof v === 'number') {
             s=`uniform float ${name};`
         } else  if (v.length in len2type) {
@@ -313,7 +324,15 @@ function linkShader(gl, uniforms, Inc, VP, FP) {
     }`);
 }
 
-function createTex2D(gl, {size, format='rgba8', filter='linear', wrap='repeat', data=null}) {
+function createTex2D(gl, params) {
+    let {size, format='rgba8', filter='linear', wrap='repeat', layern=null, data=null, depth=null} = params;
+    if (format.includes('+')) {
+        const [mainFormat, depthFormat] = format.split('+');
+        const tex = createTex2D(gl, {...params, format:mainFormat});
+        tex.depth = createTex2D(gl, {...params, format:depthFormat, layern:null, depth:null});
+        return tex;
+    }
+    const gltarget = layern ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D;
     const [internalFormat, glformat, type] = {
         'r8': [gl.R8, gl.RED, gl.UNSIGNED_BYTE],
         'rgba8': [gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE],
@@ -332,30 +351,39 @@ function createTex2D(gl, {size, format='rgba8', filter='linear', wrap='repeat', 
                     'mirror': gl.MIRRORED_REPEAT}[wrap];
     const tex = gl.createTexture();
     tex.format = format;
+    tex.layern = layern;
+    tex.gltarget = gltarget;
+    if (depth) {tex.depth = depth;}
     tex.update = (size, data)=> {
         const [w, h] = size;
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texImage2D(gl.TEXTURE_2D, 0/*mip level*/,
-            internalFormat, w, h, 0/*border*/,
-            glformat, type, data/*data*/);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gltarget, tex);
+        if (!layern) {
+            gl.texImage2D(gltarget, 0/*mip level*/,
+                internalFormat, w, h, 0/*border*/,
+                glformat, type, data/*data*/);
+        } else {
+            gl.texImage3D(gltarget, 0/*mip level*/,
+                internalFormat, w, h, layern, 0/*border*/,
+                glformat, type, data/*data*/);
+        }
+        gl.bindTexture(gltarget, null);
         tex.size = size;
+        if (tex.depth) {tex.depth.update(size, data);}
     }
     tex.update(size, data);
 
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-    // TODO: gl.generateMipmap(gl.TEXTURE_2D); ?
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, glfilter);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, glfilter);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, glwrap);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, glwrap);
-    gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.bindTexture(gltarget, tex);
+    // TODO: gl.generateMipmap(gltarget); ?
+    gl.texParameteri(gltarget, gl.TEXTURE_MIN_FILTER, glfilter);
+    gl.texParameteri(gltarget, gl.TEXTURE_MAG_FILTER, glfilter);
+    gl.texParameteri(gltarget, gl.TEXTURE_WRAP_S, glwrap);
+    gl.texParameteri(gltarget, gl.TEXTURE_WRAP_T, glwrap);
+    gl.bindTexture(gltarget, null);
     return tex;
 }
 
 function createTex(gl, params) {
     const story = params.story || 1;
-    // TODO array
     const textures = [];
     for (let i=0; i<story; ++i){
         textures.push(createTex2D(gl, params));
@@ -445,14 +473,29 @@ function prepareOwnTarget(self, spec) {
     return buffers[spec.tag];
 }
 
+function attachTex(gl, tex) {
+    if (!tex.layern) {
+        const attachment = tex.format == 'depth' ? gl.DEPTH_ATTACHMENT : gl.COLOR_ATTACHMENT0;
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, tex, 0/*level*/);
+    } else {
+        const drawBuffers = [];
+        for (let i=0; i<tex.layern; ++i) {
+            const attachment = gl.COLOR_ATTACHMENT0+i;
+            drawBuffers.push(attachment);
+            gl.framebufferTextureLayer(
+                gl.FRAMEBUFFER, attachment, tex, 0/*level*/, i);
+        }
+        gl.drawBuffers(drawBuffers);
+    }
+}
+
 function bindTarget(gl, tex) {
     if (tex && (tex.fbo===undefined)) {
         tex.fbo = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, tex.fbo);
-        // TODO: array, depth
-        const attachment = tex.format == 'depth' ? gl.DEPTH_ATTACHMENT : gl.COLOR_ATTACHMENT0;
-        gl.framebufferTexture2D(
-            gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, tex, 0/*level*/);
+        attachTex(gl, tex);
+        if (tex.depth) attachTex(gl, tex.depth);
     } else {
         const fbo = tex ? tex.fbo : null;
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
@@ -564,7 +607,7 @@ function drawQuads(self, params, target) {
     for (let i=0; i<prog.samplers.length; ++i) {
         const tex = uniforms[prog.samplers[i].name];
         gl.activeTexture(gl.TEXTURE0+i);
-        gl.bindTexture(gl.TEXTURE_2D, tex);  //TODO: array
+        gl.bindTexture(tex?tex.gltarget:gl.TEXTURE_2D, tex);
         //gl.bindSampler(i, null); //TODO: sampler
     }
     

@@ -72,7 +72,11 @@ The following options control the creation of new textures:
 
 * `scale`: scalar. Coefficient applied to `size` before creating the texture. For example the following specification `{scale:1/4}` will create a target that is four times smaller than the canvas frame buffer in each dimension, and is automatically resized on canvas size changes.
 
-* `format`: string, `rgba8`, `r8`, `rgba16f`, `r16f`, `rgba32f`, `r32f` and `depth` are currently supported.
+* `format`: string, `rgba8`, `r8`, `rgba16f`, `r16f`, `rgba32f`, `r32f` and `depth` are currently supported. Adding `+depth` suffix (e.g. `rgba16f+depth`) creates an additional depth texture stored in `.depth` attribute of the created target.
+
+* `depth`: Texture target. Allows to attach a previously created depth buffer for the new target.
+
+* `layern`: integer. Creates a Texture2DArray with the given number of layers.
 
 * `data`: `TypedArray` of size and type matching the texture specification. Allows to set the texture content from JS and update it after the texture creation to stream the new data to GPU. See [Spectrogram demo](../demo/Spectrogram.js) for the example.
 

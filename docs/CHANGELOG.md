@@ -1,5 +1,11 @@
 # Changelog
 
+### 2023-04-28
+* Depth attachments (`depth` texture format and target parameter)
+* Texture arrays (`layern` target parameter)
+* [DeferredShading](https://google.github.io/swissgl/#DeferredShading) example
+
+
 ### 2023-03-19
 * **(breaking)** removed `code` argument. Shader is passed through `VP`, `FP` and `Inc` parameters. Shortcut syntax can be used in `VP` and `FP` independently.
 * **(breaking)** `vertex()` function now returns `void`,  output should be written into `vec4 VOut` variable. `fragment()` output now should be stored in `vec4 FOut`.

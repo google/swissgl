@@ -137,7 +137,7 @@ function compileProgram(gl, vs, fs) {
         }
     }
     gl.useProgram(null);
-    console.log('created', program, program.setters);
+    console.log('created', program);
     return program;
 }
 

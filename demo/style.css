@@ -1,0 +1,73 @@
+body {
+    box-sizing: border-box;
+    background:black; margin: 0px;
+    color: white;
+    overflow: hidden;
+    font-family: 'Roboto Mono', monospace;
+    user-select: none;
+}
+
+#panel {
+    width: 200px;
+    position: fixed;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+#panel summary {
+    padding: 8px;
+}
+
+#cards {
+    overflow: auto;
+    height: 95vh;
+}
+
+.card {
+    padding: 4px;
+    margin: 8px;
+    border: 1px solid grey;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+#panel img {
+    max-width: 100%;
+}
+
+#demo {
+  width: 100%; height:100vh    
+}
+
+#c {
+    width: 100%; height:100%;
+    background:black;
+    touch-action: none;
+}
+
+#gui { 
+    position: fixed; bottom:0px; right:50px
+}
+#buttons {
+    position:fixed; bottom:10px; right:10px;
+}
+button{
+    appearance: none;
+    width:48px; height: 40px;
+    margin: 8px;
+    font-size: 24px;
+    background-color: rgba(0, 0, 0, .5);
+    color: white;
+    border: none;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+}
+button:hover {
+    background-color: rgba(80, 80, 80, 0.8);
+}
+#buttons a {
+    text-decoration: none;
+}
+a {
+    color: aquamarine;
+}

@@ -1,5 +1,8 @@
 # Changelog
 
+### 2023-04-30
+* Array uniforms support (https://github.com/google/swissgl/issues/4), see [NeuralCA.js](https://github.com/google/swissgl/blob/main/demo/NeuralCA.js) for the usage example
+
 ### 2023-04-28
 * Depth attachments (`depth` texture format and target parameter)
 * Texture arrays (`layern` target parameter)

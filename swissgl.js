@@ -130,12 +130,14 @@ function compileProgram(gl, vs, fs) {
             program.samplers.push(info);
         } else {
             const fname = Type2Setter[info.type];
-            program.setters[info.name] = fname.startsWith('uniformMatrix') ?
+            const setter = fname.startsWith('uniformMatrix') ?
                 v=>gl[fname](loc, false, v) : v=>gl[fname](loc, v);
+            program.setters[info.name.match(/^\w+/)[0]] = setter;
+
         }
     }
     gl.useProgram(null);
-    console.log('created', program);
+    console.log('created', program, program.setters);
     return program;
 }
 
@@ -294,7 +296,9 @@ const expandFP = memoize(code=>expandCode(code, 'fragment', 'FOut'));
 
 function linkShader(gl, uniforms, Inc, VP, FP) {
     const defined = definedUniforms([glsl_template, Inc, VP, FP].join('\n'));
-    const undefined = Object.entries(uniforms).filter(kv=>!(defined.has(kv[0])));
+    const undefined = Object.entries(uniforms)
+        .filter(kv=>kv[0].match(/^\w+$/))
+        .filter(kv=>!(defined.has(kv[0])));
     const guessed = guessUniforms(Object.fromEntries(undefined));
     const prefix = `${glsl_template}\n${Inc}\n${guessed}`;
     return compileProgram(gl, `

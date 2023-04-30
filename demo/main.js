@@ -1,10 +1,15 @@
 'use strict';
 
 const $ = s=>document.querySelector(s);
+const setDisplay = (el, val)=>{if ($(el)) $(el).style.display = val};
 
 
 class DemoApp {
-    constructor(demos) {
+    constructor(demos, defaultDemo='ParticleLife3d') {
+        this.singleMode = demos.length == 1;
+        if (this.singleMode) {
+            defaultDemo = demos[0].name;
+        }
         this.demos = Object.fromEntries(demos.map(c=>[c.name, c]));
 
         this.canvas = document.getElementById('c');
@@ -125,7 +130,7 @@ class DemoApp {
 
         let name = location.hash.slice(1);
         if (!(name in this.demos)) {
-            name = 'ParticleLife3d';
+            name = defaultDemo;
         }
         this.runDemo(name);
         this.populatePreviews();
@@ -181,7 +186,7 @@ class DemoApp {
             if (b<4.0 && buttons[int(b)]>fract(b)) FOut += 0.5;`});
 
         const lookUpCoef = -this.xrPose.transform.matrix[10];
-        if (lookUpCoef>0.5) {
+        if (!this.singleMode && (lookUpCoef>0.5)) {
             const dt = (t-this.lookUpStartTime) / 1000;
             if (dt > 1) {
                 this.lookUpStartTime = t;
@@ -224,33 +229,38 @@ class DemoApp {
             this.glsl.reset();
             this.demo = this.gui = null;
         }
-        location.hash = name;
-        this.gui = new dat.GUI();
-        this.gui.domElement.id = 'gui'
-        this.gui.hide();
+        if (!this.singleMode) location.hash = name;
+        if (self.dat) {
+            this.gui = new dat.GUI();
+            this.gui.domElement.id = 'gui'
+            this.gui.hide();
+        }
         this.demo = new this.demos[name](this.withCamera, this.gui);
-        if (this.gui.__controllers.length == 0) {
+        if (this.gui?.__controllers.length == 0) {
             if (this.gui) this.gui.destroy();
             this.gui = null;
         }
-        $('#settingButton').style.display = this.gui?'block':'none';
-        $('#sourceLink').href = `https://github.com/google/swissgl/blob/main/demo/${name}.js`;
+        setDisplay('#settingButton', this.gui?'block':'none');
+        if ($('#sourceLink')) {
+            $('#sourceLink').href = `https://github.com/google/swissgl/blob/main/demo/${name}.js`;
+        }
         this.updateVRButtons();
         this.resetCamera();
     }
 
     updateVRButtons() {
-        $('#vrButton').style.display = 'none';
-        $('#arButton').style.display = 'none';
+        setDisplay('#vrButton', 'none');
+        setDisplay('#arButton', 'none');
         const tags = this.demo && this.demo.constructor.Tags;
         if (tags && tags.includes('3d')) {
-            if (this.haveVR) $('#vrButton').style.display = 'block';
-            if (this.haveAR) $('#arButton').style.display = 'block';
+            if (this.haveVR ) setDisplay('#vrButton', 'block');
+            if (this.haveAR ) setDisplay('#arButton', 'block');
         }
     }
 
     populatePreviews() {
         const panel = document.getElementById('cards');
+        if (!panel) return;
         Object.keys(this.demos).forEach(name=>{
             const el = document.createElement('div');
             el.classList.add('card');

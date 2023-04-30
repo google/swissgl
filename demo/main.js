@@ -35,12 +35,17 @@ class DemoApp {
             canvasSize: new Float32Array(2),
             pointer: new Float32Array(3),
             cameraYPD: new Float32Array(3),
+            xrRay: new Float32Array(16*2),
+            xrRayInv: new Float32Array(16*2),
+            xrButton: new Float32Array(4*2),
         };
         this.resetCamera();
 
         this.glsl_include = `
             uniform bool xrMode;
             uniform mat4 xrProjectionMatrix, xrViewMatrix;
+            uniform mat4 xrRay[2], xrRayInv[2];
+            uniform vec4 xrButton[2];
             uniform vec3 xrPosition;
             
             uniform vec3 cameraYPD;
@@ -147,20 +152,34 @@ class DemoApp {
         this.xrSession.requestAnimationFrame(this.xrFrame.bind(this));
         this.xrPose = xrFrame.getViewerPose(this.xrRefSpace);
         if (!this.xrPose) return;
+        this.viewParams.xrRay.fill(0.0);
+        this.viewParams.xrRayInv.fill(0.0);
+        this.viewParams.xrButton.fill(0.0);
         const params = {time:t/1000.0, xrMode: true, ...this.viewParams};
-        this.demo.frame(this.withCamera, params);
-
-        for (let inputSource of this.xrSession.inputSources) {
-            if (!inputSource.gripSpace) continue;
-            const gripPose = xrFrame.getPose(inputSource.gripSpace, this.xrRefSpace);
-            if (!gripPose) continue;
-            this.withCamera({...params, Mesh: [20,20],
-                gripMtx:gripPose.transform.matrix, DepthTest:1, Inc:`
-            varying vec3 p;`, VP:`
-            p = uv2sphere(UV);
-            VOut = wld2proj(gripMtx*vec4(p*vec3(0.02, 0.02, 0.1),1));`, FP:`
-            p*0.5+0.5,1`});
+        for (let i=0; i<2; ++i) {
+            const inputSource = this.xrSession.inputSources[i];
+            inputSource?.gamepad?.buttons?.forEach((btn, btnIdx)=>{
+                if (btnIdx<4) this.viewParams.xrButton[i*4+btnIdx] = btn.value || btn.pressed;
+            });
+            if (!inputSource?.targetRaySpace) continue;
+            const pose = xrFrame.getPose(inputSource.targetRaySpace, this.xrRefSpace);
+            if (!pose) continue;
+            this.viewParams.xrRay.set(pose.transform.matrix, i*16);
+            this.viewParams.xrRayInv.set(pose.transform.inverse.matrix, i*16);
         }
+        
+        this.demo.frame(this.withCamera, params);
+        this.withCamera({...params, Mesh: [20,20], Grid:[2], DepthTest:1, Inc:`
+            varying vec3 p;
+            varying vec4 buttons;`, VP:`
+            p = uv2sphere(UV);
+            buttons = xrButton[ID.x];
+            VOut = wld2proj(xrRay[ID.x]*vec4(p*vec3(0.02, 0.02, 0.1),1));`, FP:`
+            vec3 c = p*0.5+0.5;
+            FOut = vec4(c*0.5,1);
+            float b = c.z*4.0;
+            if (b<4.0 && buttons[int(b)]>fract(b)) FOut += 0.5;`});
+
         const lookUpCoef = -this.xrPose.transform.matrix[10];
         if (lookUpCoef>0.5) {
             const dt = (t-this.lookUpStartTime) / 1000;

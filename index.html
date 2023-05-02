@@ -23,6 +23,7 @@
 <script src='demo/ParticleLife3d.js'></script>
 <script src='demo/Torus4d.js'></script>
 <script src='demo/DeferredShading.js'></script>
+<script src='demo/Springs.js'></script>
 <script src='demo/main.js'></script>
 
 <details id="panel" open>
@@ -33,8 +34,8 @@
   <canvas id="c" width="640" height="360"></canvas>
 </div>
 <div id="buttons">
-    <button title="settings" onclick="toggleVR()" id="vrButton">VR</button>
-    <button title="settings" onclick="toggleAR()" id="arButton">AR</button>
+    <button title="VR" onclick="toggleVR()" id="vrButton">VR</button>
+    <button title="AR" onclick="toggleAR()" id="arButton">AR</button>
     <button title="settings" onclick="toggleGui()" id="settingButton" style="font-size: 180%;">⛯</button>
     <a id='sourceLink' href="" target="_blank"><button title="source code">&lt;&gt;</button></a>
     <button title="fullscreen" onclick="fullscreen()"">⛶</button>
@@ -44,7 +45,7 @@
     const app = new DemoApp([
         NeuralCA, BitField, MeshGrid, GameOfLife, ParticleLife, ParticleLife3d, 
         ParticleLenia, FancyLenia, Spectrogram, Physarum, SurfaceNormals, CubeDeform,
-        ColorCube, Shadowmap, Torus4d, DeferredShading,
+        ColorCube, Shadowmap, Torus4d, DeferredShading, Springs,
     ]);
     function fullscreen() {
         app.fullscreen();

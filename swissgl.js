@@ -452,7 +452,7 @@ function isTargetSpec(target) {
 
 function getTargetSize(gl, {size, scale=1}) {
     size = size || [gl.canvas.width, gl.canvas.height];
-    return [Math.round(size[0]*scale), Math.round(size[1]*scale)];
+    return [Math.ceil(size[0]*scale), Math.ceil(size[1]*scale)];
 }
 
 function prepareOwnTarget(self, spec) {

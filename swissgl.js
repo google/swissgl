@@ -337,14 +337,14 @@ function createTex2D(gl, params) {
         return tex;
     }
     const gltarget = layern ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D;
-    const [internalFormat, glformat, type] = {
-        'r8': [gl.R8, gl.RED, gl.UNSIGNED_BYTE],
-        'rgba8': [gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE],
-        'r16f': [gl.R16F, gl.RED, gl.FLOAT],
-        'rgba16f': [gl.RGBA16F, gl.RGBA, gl.FLOAT],
-        'r32f': [gl.R32F, gl.RED, gl.FLOAT],
-        'rgba32f': [gl.RGBA32F, gl.RGBA, gl.FLOAT],
-        'depth': [gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT],
+    const [internalFormat, glformat, type, CpuArray] = {
+        'r8': [gl.R8, gl.RED, gl.UNSIGNED_BYTE, Uint8Array],
+        'rgba8': [gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, Uint8Array],
+        'r16f': [gl.R16F, gl.RED, gl.FLOAT, Uint16Array],
+        'rgba16f': [gl.RGBA16F, gl.RGBA, gl.FLOAT, Uint16Array],
+        'r32f': [gl.R32F, gl.RED, gl.FLOAT, Float32Array],
+        'rgba32f': [gl.RGBA32F, gl.RGBA, gl.FLOAT, Float32Array],
+        'depth': [gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, Uint32Array],
     }[format];
     // TODO: mipmap
     if (format == 'depth') {
@@ -375,6 +375,17 @@ function createTex2D(gl, params) {
         if (tex.depth) {tex.depth.update(size, data);}
     }
     tex.update(size, data);
+    tex.readSync = (...arg)=>{
+        const [x, y, w, h] = arg.length ? arg : [0, 0, ...tex.size];
+        const ch = (glformat == gl.RGBA) ? 4 : 1;
+        const n = w*h*ch;
+        if (!tex.cpu || tex.cpu.length < n) {
+            tex.cpu = new CpuArray(n);
+        }
+        bindTarget(gl, tex);
+        gl.readPixels(x, y, w, h, glformat, type, tex.cpu);
+        return (tex.cpu.length == n) ? tex.cpu : tex.cpu.subarray(0, n);
+    }
 
     gl.bindTexture(gltarget, tex);
     // TODO: gl.generateMipmap(gltarget); ?

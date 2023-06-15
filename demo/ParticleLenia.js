@@ -57,7 +57,7 @@ class ParticleLenia {
         vec3 pos = Src(I).xyz;
         float mu = mu_k*sigma_k;
         vec3 R_grad=vec3(0), U_grad=vec3(0);
-        float U = peak_f(0.0, mu, sigma_k).x*w_k;
+        float U = peak_f(0.0, mu, sigma_k).x*w_k, E = 1.0;
         for (int y=0; y<ViewSize.y; ++y)
         for (int x=0; x<ViewSize.x; ++x) {
           if (x==I.x && y==I.y) continue;
@@ -66,7 +66,9 @@ class ParticleLenia {
           float r = length(dp);
           dp /= max(r, 1e-4);
           if (r<1.0) {
-            R_grad -= dp*(1.0-r);
+            float f = 1.0-r;
+            R_grad -= dp*f;
+            E += 0.5*(f*f);
           }
           vec2 K = peak_f(r, mu, sigma_k)*w_k;
           U_grad += K.g*dp;
@@ -74,7 +76,7 @@ class ParticleLenia {
         } 
         vec2 G = peak_f(U, mu_g, sigma_g);
         pos -= dt*(R_grad*c_rep - G.g*U_grad);
-        FOut = vec4(pos,0.0);
+        FOut = vec4(pos, E*c_rep-G.x);
         `},  this.state); 
     }
 

@@ -7,6 +7,12 @@
 class FancyLenia extends ParticleLenia {
     static Tags = ['3d', 'simulation'];
 
+    constructor(glsl, gui) {
+        super(glsl, gui);
+        this.meanEnergy = 0.0;
+        gui.add(this, 'meanEnergy', 0.0, 1.0, 0.001).listen();
+    }
+
     reset() {
         super.reset();
         this.trails = this.glsl({Clear:0}, {size:[1024, 1024], format:'r8', tag:'trails'});
@@ -23,7 +29,7 @@ class FancyLenia extends ParticleLenia {
         for (let i=0; i<this.step_n; ++i) {
             this.step();
         }
-    
+
         const {params, viewR, state, trails, glsl} = this; 
         const fieldU = glsl({...params, viewR,
             state:state[0], Grid:state[0].size, Clear:0.0, Blend:'s+d', Inc:`
@@ -62,5 +68,15 @@ class FancyLenia extends ParticleLenia {
         VOut = wld2proj(pos);`, FP:`
         float a = normal.z*0.7+0.3;
         FOut = vec4(vec3(1.0-a*a*0.75), 1.0);`});
+
+        this.meanEnergy = glsl({state:state[0], FP:`
+        ivec2 sz = state_size();
+        float E = 0.0;
+        for (int y=0; y<sz.y; ++y)
+        for (int x=0; x<sz.x; ++x) {
+            E += state(ivec2(x,y)).w;
+        }
+        FOut.x = E / float(sz.x*sz.y);`},
+        {size:[1,1], format:'r32f', tag:'meanE'}).readSync()[0]
     }
 }

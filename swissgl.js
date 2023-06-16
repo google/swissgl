@@ -340,8 +340,8 @@ function createTex2D(gl, params) {
     const [internalFormat, glformat, type, CpuArray] = {
         'r8': [gl.R8, gl.RED, gl.UNSIGNED_BYTE, Uint8Array],
         'rgba8': [gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, Uint8Array],
-        'r16f': [gl.R16F, gl.RED, gl.FLOAT, Uint16Array],
-        'rgba16f': [gl.RGBA16F, gl.RGBA, gl.FLOAT, Uint16Array],
+        'r16f': [gl.R16F, gl.RED, gl.HALF_FLOAT, Uint16Array],
+        'rgba16f': [gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, Uint16Array],
         'r32f': [gl.R32F, gl.RED, gl.FLOAT, Float32Array],
         'rgba32f': [gl.RGBA32F, gl.RGBA, gl.FLOAT, Float32Array],
         'depth': [gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, Uint32Array],

@@ -22,7 +22,7 @@ class CubeDeform {
             color = cubeVert(vec2(0), ID.x)*0.5+0.5;
             vec4 v = vec4(SURF(surface_f, XY, normal, 1e-3), 1.0);
             eyeDir = cameraPos()-v.xyz;
-            VOut = wld2proj(v);
+            VPos = wld2proj(v);
         }`, FP:`
         vec3 n = normalize(normal);
         vec3 lightDir = normalize(vec3(0,1,1));

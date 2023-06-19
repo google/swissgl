@@ -9,7 +9,7 @@ class Torus4d {
             AlphaCoverage:1, DepthTest:1, VP:`
             vec4 p = vec4(cos(XY*PI), sin(XY*PI))*0.6;
             p.xw *= rot2(time*0.4);
-            VOut = wld2proj(vec4(p.xyz/(1.0-p.w)*0.5, 1));`, FP:`
+            VPos = wld2proj(vec4(p.xyz/(1.0-p.w)*0.5, 1));`, FP:`
             vec2 v = UV*rot2(PI/4.)*64.0/sqrt(2.);
             v = smoothstep(0.0, 1.0, (abs(v-round(v))-0.02)/fwidth(v));
             float a = 1.0-v.x*v.y;

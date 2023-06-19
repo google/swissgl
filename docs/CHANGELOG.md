@@ -1,5 +1,22 @@
 # Changelog
 
+### 20023-06-19
+* **(breaking)** `VOut` -> `VPos`
+
+### 20023-06-15
+* `readSync` method for fetching textures to CPU
+
+
+### 20023-06-09
+* `[DotCamera](https://google.github.io/swissgl/#DotCamera) example
+
+
+### 20023-05-15
+* `[ReactionDiffusion](https://google.github.io/swissgl/#ReactionDiffusion) example
+
+### 20023-05-12
+* `[Springs](https://google.github.io/swissgl/#Springs) example
+
 ### 2023-04-30
 * Array uniforms support (https://github.com/google/swissgl/issues/4), see [NeuralCA.js](https://github.com/google/swissgl/blob/main/demo/NeuralCA.js) for the usage example
 
@@ -11,7 +28,7 @@
 
 ### 2023-03-19
 * **(breaking)** removed `code` argument. Shader is passed through `VP`, `FP` and `Inc` parameters. Shortcut syntax can be used in `VP` and `FP` independently.
-* **(breaking)** `vertex()` function now returns `void`,  output should be written into `vec4 VOut` variable. `fragment()` output now should be stored in `vec4 FOut`.
+* **(breaking)** `vertex()` function now returns `void`,  output should be written into `vec4 VPos` variable. `fragment()` output now should be stored in `vec4 FOut`.
 * **(breaking)** `tag` attribute it now obligatory for newly created render targets.
 
 ### 2023-03-16

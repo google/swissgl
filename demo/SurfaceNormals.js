@@ -18,7 +18,7 @@ class SurfaceNormals {
         }
         void vertex() {
             vec4 pos = vec4(SURF(surface_f, UV, normal, 1e-3), 1.0);
-            VOut = wld2proj(pos);
+            VPos = wld2proj(pos);
         }`, FP:`
             FOut = vec4(normal*0.6, 1);
             vec2 m = UV*vec2(Mesh)/4.0;

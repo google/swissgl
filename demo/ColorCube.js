@@ -14,7 +14,7 @@ class ColorCube {
         vec4 pos = vec4(p-0.5, 1);
         pos = wld2view(pos);
         pos.xy += XY*0.03;  // offset quad corners in view space
-        VOut = view2proj(pos);`, FP:`
+        VPos = view2proj(pos);`, FP:`
         float r = length(XY);
         float alpha = smoothstep(1.0, 1.0-fwidth(r), r);
         FOut = vec4(color, alpha);`});

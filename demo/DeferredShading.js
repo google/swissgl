@@ -18,7 +18,7 @@ class DeferredShading {
         }
         void vertex() {
             wldPos = SURF(surface_f, UV, normal, 1e-3);
-            VOut = wld2proj(wldPos);
+            VPos = wld2proj(wldPos);
         }`, FP:`
             FOut = vec4(0.7, 0.7, 0.7, 1.0);
             vec2 m = UV*vec2(Mesh)/4.0;
@@ -36,7 +36,7 @@ class DeferredShading {
                 lightPos.xy *= rot2(time*0.1+lightPos.z)*(0.5+sin(time*0.7)*0.4);
                 lightPos.z = sin((lightPos.x+lightPos.y)*1.5+time*0.25)*0.75;
                 lightColor = hash(ID+1)*5.0;
-                VOut = wld2proj(lightPos+uv2sphere(UV)*lightR);
+                VPos = wld2proj(lightPos+uv2sphere(UV)*lightR);
             }`};
 
         // accumulate surface lights

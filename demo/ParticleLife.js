@@ -81,8 +81,8 @@ class ParticleLife {
               Blend: 's+d', Clear:0.0, Inc:`varying vec3 color;`, VP:`
             vec4 d = points(ID.xy);
             color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
-            VOut.xy = 2.0*(d.xy+XY*1.5)/worldExtent;
-            VOut.xy -= 2.0*vec2(ID.z%2, ID.z/2)*sign(d.xy);`,
+            VPos.xy = 2.0*(d.xy+XY*1.5)/worldExtent;
+            VPos.xy -= 2.0*vec2(ID.z%2, ID.z/2)*sign(d.xy);`,
             FP:`color*smoothstep(1.0, 0.8, length(XY)),1`},
             {size:[256, 256], format:'rgba16f', tag:'field'});
         glsl({field, Aspect:'fit', FP:`sqrt(field(UV))*0.07`});
@@ -92,7 +92,7 @@ class ParticleLife {
             varying vec3 color;`, VP:`
             vec4 d = points(ID.xy);
             color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
-            VOut.xy = 2.0*(d.xy+XY/8.0)/worldExtent;`, 
+            VPos.xy = 2.0*(d.xy+XY/8.0)/worldExtent;`, 
             FP:`color, smoothstep(1.0, 0.6, length(XY))`});
     }
 }

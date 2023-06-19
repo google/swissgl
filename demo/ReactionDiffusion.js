@@ -51,7 +51,7 @@ class ReactionDiffusion {
         const hist = glsl({state:state[0], Grid: state[0].size, Blend:'s+d',
         Clear:0, Inc, VP:`
         vec2 v = state(ID.xy).xy;
-        VOut.xy = state2screen(v) + XY*0.006;
+        VPos.xy = state2screen(v) + XY*0.006;
         `, FP:`exp(-dot(XY,XY)*4.0)`},
         {size:[512, 512], format:'rgba16f', tag:'hist', wrap:'edge'});
 

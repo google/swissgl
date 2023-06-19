@@ -21,7 +21,7 @@ class Shadowmap {
             vec4 s = vec4(pos.xy+dp, -pos.z, lightZ-pos.z);
             shadowCoord = vec4(s.xyz+s.w, s.w*2.0);
             vec4 viewPos = wld2view(vec4(pos, 1.0)) + vec4(dp,0,0);
-            VOut = shadowPass ? s : view2proj(viewPos);
+            VPos = shadowPass ? s : view2proj(viewPos);
         }
         #else
         vec3 getLightDir() {

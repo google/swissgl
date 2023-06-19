@@ -61,7 +61,7 @@ class Physarum {
         `}, {scale:this.U.density/16, story:2, format:'rgba32f', tag:'points'});
         
         glsl({points: points[0], Grid: points[0].size, Blend: 's+d', VP:`
-        VOut.xy = 2.0 * (points(ID.xy).xy+XY*2.0)/vec2(ViewSize) - 1.0;`, FP:`
+        VPos.xy = 2.0 * (points(ID.xy).xy+XY*2.0)/vec2(ViewSize) - 1.0;`, FP:`
         smoothstep(1.0, 0.0, length(XY))`}, field[0]);
     }
 }

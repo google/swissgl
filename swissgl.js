@@ -147,7 +147,7 @@ precision highp int;
 precision lowp sampler2DArray;
 #ifdef VERT
     #define varying out
-    #define VOut gl_Position
+    #define VPos gl_Position
     layout(location = 0) in int VertexID;
     layout(location = 1) in int InstanceID;
     ivec2 VID;
@@ -291,7 +291,7 @@ function expandCode(code, mainFunc, outVar) {
     }
     return code;
 }
-const expandVP = memoize(code=>expandCode(code, 'vertex', 'VOut'));
+const expandVP = memoize(code=>expandCode(code, 'vertex', 'VPos'));
 const expandFP = memoize(code=>expandCode(code, 'fragment', 'FOut'));
 
 function linkShader(gl, uniforms, Inc, VP, FP) {
@@ -316,9 +316,9 @@ function linkShader(gl, uniforms, Inc, VP, FP) {
       ID.y = ii % Grid.y; ii/=Grid.y;
       ID.z = ii;
       UV = vec2(VID) / vec2(Mesh);
-      VOut = vec4(XY,0,1);
+      VPos = vec4(XY,0,1);
       vertex();
-      VOut.xy *= Aspect;
+      VPos.xy *= Aspect;
     }`, `
     #define FRAG
     ${prefix}\n${expandFP(FP)}

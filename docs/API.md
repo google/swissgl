@@ -45,11 +45,11 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 
 ## Code formats
 
-`VP` and `FP` options receive code snippets that define vertex and fragment WebGL pipeline stages. In case of *full* format the snippet must contain the function of the form `void vertex() {...; VOut=...}` (`VP` option) or `void fragment() {...; FOut=...}` (`FP` option). In simple cases shortcut syntax can be used:
+`VP` and `FP` options receive code snippets that define vertex and fragment WebGL pipeline stages. In case of *full* format the snippet must contain the function of the form `void vertex() {...; VPos=...}` (`VP` option) or `void fragment() {...; FOut=...}` (`FP` option). In simple cases shortcut syntax can be used:
 
-* *expression*: a string that becomes the correct expression if it's substituted into the `vec4(${code})` template. The result of the expression is implicitly assigned to `VOut`/`FOut`.
+* *expression*: a string that becomes the correct expression if it's substituted into the `vec4(${code})` template. The result of the expression is implicitly assigned to `VPos`/`FOut`.
 
-* *multiline*: a function body that can be substituted into `void vertex() {...}` or `void fragment() {...}` function template. The output must be explictly written into to `VOut`/`FOut`.
+* *multiline*: a function body that can be substituted into `void vertex() {...}` or `void fragment() {...}` function template. The output must be explictly written into to `VPos`/`FOut`.
 
 [MeshGrid](https://google.github.io/swissgl/#MeshGrid) demo provides a simple example of using the shortcut syntax and `XY`, `UV`, `ID`, `Mesh` and `Grid` input variables to render a few tessellated planes:
 
@@ -59,7 +59,7 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
     VP: `color = hash(ID);
         vec2 pos = vec2(ID) + 0.5 + XY*(0.5-0.5/vec2(Mesh+1));
         pos += sin(UV*TAU+time).yx*0.1*(sin(time*0.5));
-        VOut = vec4(2.0*pos/vec2(Grid)-1.0, 0.0, 1.0);`,
+        VPos = vec4(2.0*pos/vec2(Grid)-1.0, 0.0, 1.0);`,
     FP: `mix(color, vec3(1.0), wireframe()*0.5),1`});
 
 ```

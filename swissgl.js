@@ -231,8 +231,8 @@ vec3 _surf_f(vec3 p, vec3 a, vec3 b, out vec3 normal) {
 
 vec4 _sample(sampler2D tex, vec2 uv) {return texture(tex, uv);}
 vec4 _sample(sampler2D tex, ivec2 xy) {return texelFetch(tex, xy, 0);}
-vec4 _sample(sampler2DArray tex, vec3 uv) {return texture(tex, uv);}
-vec4 _sample(sampler2DArray tex, ivec3 xy) {return texelFetch(tex, xy, 0);}
+vec4 _sample(sampler2DArray tex, vec2 uv, int layer) {return texture(tex, vec3(uv, layer));}
+vec4 _sample(sampler2DArray tex, ivec2 xy, int layer) {return texelFetch(tex, ivec3(xy, layer), 0);}
 
 #ifdef FRAG
     float isoline(float v) {
@@ -256,8 +256,11 @@ function guessUniforms(params) {
         let s = null;
         if (v instanceof WebGLTexture) {
             const [type, D] = v.layern?['sampler2DArray', '3']:['sampler2D', '2'];
+            const lookupMacro = v.layern?
+                `#define ${name}(p,l) (_sample(${name}, (p), (l)))` : 
+                `#define ${name}(p) (_sample(${name}, (p)))`;
             s = `uniform ${type} ${name};
-            #define ${name}(p) (_sample(${name}, (p)))
+            ${lookupMacro}
             ivec${D} ${name}_size() {return textureSize(${name}, 0);}
             vec${D}  ${name}_step() {return 1.0/vec${D}(${name}_size());}`;
         } else if (typeof v === 'number') {

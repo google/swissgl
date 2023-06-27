@@ -42,13 +42,13 @@ class DeferredShading {
         // accumulate surface lights
         const light = glsl({...lightArgs, lightR:0.3, 
             Mesh:[32,64], Clear:0, gbuf, FP:`
-            vec4 wldPos = gbuf(ivec3(I,2));
+            vec4 wldPos = gbuf(I,2);
             if (wldPos.w==0.0) discard;
             vec3 lightDir = lightPos-wldPos.xyz;
             float r = length(lightDir)+1e-10;
             if (r>lightR) discard;
-            vec3 color  = gbuf(ivec3(I,0)).rgb;
-            vec3 normal = gbuf(ivec3(I,1)).xyz;
+            vec3 color  = gbuf(I,0).rgb;
+            vec3 normal = gbuf(I,1).xyz;
             float diff = max(dot(normal, lightDir/r), 0.0);
             float att = 1.5*smoothstep(1.0,0.9,r/lightR) / (1.0+r*r*2e4);
             FOut = vec4(color.rgb*lightColor*att*diff, 1.0);`

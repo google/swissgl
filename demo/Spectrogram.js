@@ -23,10 +23,11 @@ class Spectrogram {
         if (!this.analyser) return;
         this.analyser.getByteFrequencyData(this.frequencyArray);
         const n = this.frequencyArray.length;
+        const histLen = 256;
         const spectro = glsl({}, {size:[n, 1], format:'r8', data:this.frequencyArray, tag:'spectro'});
         const history = glsl({spectro, FP:'I.y>0 ? Src(I-ivec2(0,1)) : spectro(ivec2(I.x,0))'},
-                             {size:[n,256], story:2, wrap:'edge', tag:'history'});
-        glsl({...params, history:history[0], Mesh:history[0].size, DepthTest:1, Aspect:'fit', Inc:`
+                             {size:[n,histLen], story:2, wrap:'edge', tag:'history'});
+        glsl({...params, history:history[0], Mesh:[n-1,histLen-1], DepthTest:1, Aspect:'fit', Inc:`
         varying float z;`, VP:`
         z = history(UV).r;
         float x = 1.0-log(0.005+UV.x)/log(0.005);

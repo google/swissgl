@@ -332,7 +332,7 @@ function linkShader(gl, uniforms, Inc, VP, FP) {
 }
 
 function createTex2D(gl, params) {
-    let {size, format='rgba8', filter='linear', wrap='repeat', layern=null, data=null, depth=null} = params;
+    let {size, format='rgba8', filter='nearest', wrap='repeat', layern=null, data=null, depth=null} = params;
     if (format.includes('+')) {
         const [mainFormat, depthFormat] = format.split('+');
         const tex = createTex2D(gl, {...params, format:mainFormat});
@@ -357,6 +357,7 @@ function createTex2D(gl, params) {
     const glwrap = {'repeat': gl.REPEAT, 'edge': gl.CLAMP_TO_EDGE,
                     'mirror': gl.MIRRORED_REPEAT}[wrap];
     const tex = gl.createTexture();
+    tex.tag = params.tag;
     tex.format = format;
     tex.layern = layern;
     tex.gltarget = gltarget;

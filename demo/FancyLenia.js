@@ -15,7 +15,7 @@ class FancyLenia extends ParticleLenia {
 
     reset() {
         super.reset();
-        this.trails = this.glsl({Clear:0}, {size:[1024, 1024], format:'r8', tag:'trails'});
+        this.trails = this.glsl({Clear:0}, {size:[1024, 1024], format:'r8', filter:'linear', tag:'trails'});
     }
 
     step() {
@@ -37,7 +37,7 @@ class FancyLenia extends ParticleLenia {
         p = (UV*2.0-1.0)*(mu_k+3.0*sigma_k);
         VPos.xy = (state(ID.xy).xy + p)/viewR;`, FP:`
         peak_f(length(p), mu_k, sigma_k).x*w_k`}, 
-        {size:[256, 256], format:'rgba16f', tag:'fieldU'});
+        {size:[256, 256], format:'rgba16f', filter:'linear', tag:'fieldU'});
 
         const viewParams = {viewR, ...cameraParams, scaleU: 0.25,
             DepthTest: 1, Aspect:'mean'};

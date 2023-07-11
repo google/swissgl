@@ -33,7 +33,7 @@ class Physarum {
         float l=x-dp.x, r=x+dp.x, u=y-dp.y, d=y+dp.y;
         #define S(x,y) (Src(vec2(x,y)))
         FOut = 0.95*(S(x,y)+S(l,y)+S(r,y)+S(x,u)+S(x,d)+S(l,u)+S(r,u)+S(l,d)+S(r,d))/9.0;
-        `}, {story:2, format:'rgba8', tag:'field'});
+        `}, {story:2, format:'rgba8', filter:'linear', tag:'field'});
 
         const points = glsl({field:field[0], ...this.U, FP:`
         FOut = Src(I);

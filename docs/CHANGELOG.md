@@ -1,5 +1,8 @@
 # Changelog
 
+### 20023-07-11
+* **(breaking)** Default texture filtering is now `nearest`. This is a workaround for iOS devices, where `texelFetch` stopped working for float32 textures when filtering is `linear`.
+
 ### 20023-06-19
 * **(breaking)** `VOut` -> `VPos`
 

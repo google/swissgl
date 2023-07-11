@@ -16,7 +16,7 @@ class ReactionDiffusion {
 
     reset() {
         this.state = this.glsl({FP:`1.0, exp(-400.0*dot(XY,XY))*hash(I.xyx).x, 0, 0`}, 
-        {size:[256, 256], format:'rgba32f', story:2, tag:'state'});
+        {size:[256, 256], format:'rgba16f', filter:'linear', story:2, tag:'state'});
     }
 
     step() {
@@ -53,7 +53,7 @@ class ReactionDiffusion {
         vec2 v = state(ID.xy).xy;
         VPos.xy = state2screen(v) + XY*0.006;
         `, FP:`exp(-dot(XY,XY)*4.0)`},
-        {size:[512, 512], format:'rgba16f', tag:'hist', wrap:'edge'});
+        {size:[512, 512], format:'rgba16f',  filter:'linear', tag:'hist', wrap:'edge'});
 
         glsl({state:state[0], hist, Aspect:'fit', touchPos, Inc, FP:`
         vec2 v = state(UV).xy;

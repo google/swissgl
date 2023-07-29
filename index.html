@@ -7,25 +7,7 @@
 <script src='swissgl.js'></script>
 <script src="demo/dat.gui.min.js"> </script>
 
-<script src='demo/NeuralCA.js'></script>
-<script src='demo/BitField.js'></script>
-<script src='demo/GameOfLife.js'></script>
-<script src='demo/ParticleLife.js'></script>
-<script src='demo/ParticleLenia.js'></script>
-<script src='demo/FancyLenia.js'></script>
-<script src='demo/Spectrogram.js'></script>
-<script src='demo/Physarum.js'></script>
-<script src='demo/SurfaceNormals.js'></script>
-<script src='demo/MeshGrid.js'></script>
-<script src='demo/CubeDeform.js'></script>
-<script src='demo/ColorCube.js'></script>
-<script src='demo/Shadowmap.js'></script>
-<script src='demo/ParticleLife3d.js'></script>
-<script src='demo/Torus4d.js'></script>
-<script src='demo/DeferredShading.js'></script>
-<script src='demo/Springs.js'></script>
-<script src='demo/ReactionDiffusion.js'></script>
-<script src='demo/DotCamera.js'></script>
+<script src='demo/Haze.js'></script>
 <script src='demo/main.js'></script>
 
 <details id="panel" open>
@@ -45,9 +27,7 @@
 <script>
     'use strict';
     const app = new DemoApp([
-        NeuralCA, DotCamera, MeshGrid, ParticleLife, ParticleLife3d, BitField, GameOfLife, 
-        ParticleLenia, FancyLenia, Spectrogram, Physarum, SurfaceNormals, CubeDeform,
-        ColorCube, Shadowmap, Torus4d, DeferredShading, Springs, ReactionDiffusion,
+        Haze
     ]);
     function fullscreen() {
         app.fullscreen();

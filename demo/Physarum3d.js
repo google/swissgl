@@ -6,6 +6,11 @@
 class Physarum3d {
     static Tags = ['3d'];
 
+    constructor(glsl, gui) {
+        this.showVolume = true;
+        gui.add(this, 'showVolume');
+    }
+
     frame(glsl, params) {
         const D=14, Inc=`const int D=${D}, D2=D*D;
         ivec2 pos2field(vec3 p) {
@@ -67,12 +72,14 @@ class Physarum3d {
         `,FP:`1.0-UV.y*0.7`});
 
         // fake volume rendering
-        glsl({...params, T:field[0], Grid:[D*D/2,3], Blend:'s+d', Aspect:'fit',
-        DepthTest:'keep', Inc:Inc+`varying vec3 p;`, VP:`
-        float l = float(ID.x)/float(Grid.x);
-        p = vec3(UV,l);
-        p = ID.y==0 ? p : (ID.y==1 ? p.xzy : p.zxy);
-        VPos = wld2proj((p*2.0-1.0)*0.75);`,
-        FP:`T(pos2field(p)).r*vec3(1,0.3,0.1)*0.005,1`});
+        if (this.showVolume) {
+            glsl({...params, T:field[0], Grid:[D*D/2,3], Blend:'s+d', Aspect:'fit',
+            DepthTest:'keep', Inc:Inc+`varying vec3 p;`, VP:`
+            float l = float(ID.x)/float(Grid.x);
+            p = vec3(UV,l);
+            p = ID.y==0 ? p : (ID.y==1 ? p.xzy : p.zxy);
+            VPos = wld2proj((p*2.0-1.0)*0.75);`,
+            FP:`T(pos2field(p)).r*vec3(1,0.3,0.1)*0.005,1`});
+        }
     }
 }

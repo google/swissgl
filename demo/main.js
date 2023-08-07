@@ -163,10 +163,12 @@ class DemoApp {
         const params = {time:t/1000.0, xrMode: true, ...this.viewParams};
         for (let i=0; i<2; ++i) {
             const inputSource = this.xrSession.inputSources[i];
-            inputSource?.gamepad?.buttons?.forEach((btn, btnIdx)=>{
-                if (btnIdx<4) this.viewParams.xrButton[i*4+btnIdx] = btn.value || btn.pressed;
-            });
-            if (!inputSource?.targetRaySpace) continue;
+            if (inputSource && inputSource.gamepad && inputSource.gamepad.buttons) {
+                inputSource.gamepad.buttons.forEach((btn, btnIdx)=>{
+                    if (btnIdx<4) this.viewParams.xrButton[i*4+btnIdx] = btn.value || btn.pressed;
+                });
+            }
+            if (!inputSource || !inputSource.targetRaySpace) continue;
             const pose = xrFrame.getPose(inputSource.targetRaySpace, this.xrRefSpace);
             if (!pose) continue;
             this.viewParams.xrRay.set(pose.transform.matrix, i*16);
@@ -236,8 +238,8 @@ class DemoApp {
             this.gui.hide();
         }
         this.demo = new this.demos[name](this.withCamera, this.gui);
-        if (this.gui?.__controllers.length == 0) {
-            if (this.gui) this.gui.destroy();
+        if (this.gui && (this.gui.__controllers.length == 0)) {
+            this.gui.destroy();
             this.gui = null;
         }
         setDisplay('#settingButton', this.gui?'block':'none');

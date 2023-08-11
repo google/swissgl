@@ -21,7 +21,7 @@ class Haze {
 
     frame(glsl) {
 
-        if(this.delay % 5 != 0){
+        if(this.delay % 3 != 0){
             this.delay++;
             return;
         }
@@ -40,7 +40,7 @@ class Haze {
         glsl({lum:lum, seed:Math.random()*124237, FP:`
             void fragment(){
                 vec4 src = Src(UV);
-                float val = pow(lum(UV).r, 10.0) < hash(ivec3(I, seed)).x ? 0.0 : 1.0;
+                float val = pow(lum(UV).r, 8.0) < hash(ivec3(I, seed)).x ? 0.0 : 1.0;
                 FOut = src * 0.95 + vec4(val);
             }
         `}, this.state);

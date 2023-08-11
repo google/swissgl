@@ -1,23 +1,30 @@
 # Changelog
 
-### 20023-07-11
+### 2023-08-11
+* `glsl.adjustCanvas()` helper
+
+### 2023-08-05
+* [Physarum3d](https://google.github.io/swissgl/#Physarum3d) demo
+
+
+### 2023-07-11
 * **(breaking)** Default texture filtering is now `nearest`. This is a workaround for iOS devices, where `texelFetch` stopped working for float32 textures when filtering is `linear`.
 
-### 20023-06-19
+### 2023-06-19
 * **(breaking)** `VOut` -> `VPos`
 
-### 20023-06-15
+### 2023-06-15
 * `readSync` method for fetching textures to CPU
 
 
-### 20023-06-09
+### 2023-06-09
 * `[DotCamera](https://google.github.io/swissgl/#DotCamera) example
 
 
-### 20023-05-15
+### 2023-05-15
 * `[ReactionDiffusion](https://google.github.io/swissgl/#ReactionDiffusion) example
 
-### 20023-05-12
+### 2023-05-12
 * `[Springs](https://google.github.io/swissgl/#Springs) example
 
 ### 2023-04-30

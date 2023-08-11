@@ -145,7 +145,8 @@ class DemoApp {
     frame(t) {
         requestAnimationFrame(this.frame.bind(this));
         if (this.xrSession) return; // skip canvas frames when XR is running
-        this.adjustCanvas();
+        this.glsl.adjustCanvas(1); // fix devicePixelRatio to 1
+        this.viewParams.canvasSize.set([this.canvas.clientWidth, this.canvas.clientHeight]);
         
         this.demo.frame(this.withCamera, {
             time:t/1000.0, xrMode: false,
@@ -270,16 +271,6 @@ class DemoApp {
             el.addEventListener('click', ()=>this.runDemo(name));
             panel.appendChild(el);
         });
-    }
-
-    adjustCanvas() {
-        const {canvas} = this;
-        const dpr = 1;//devicePixelRatio;
-        this.viewParams.canvasSize.set([canvas.clientWidth, canvas.clientHeight]);
-        const w = canvas.clientWidth*dpr, h=canvas.clientHeight*dpr;
-        if (canvas.width != w || canvas.height != h) {
-            canvas.width = w; canvas.height = h;
-        }
     }
 
     // helper function to render demo preview images

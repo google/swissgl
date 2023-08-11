@@ -681,6 +681,14 @@ function SwissGL(canvas_gl) {
         glsl.shaders = {};
         glsl.buffers = {};
     };
+    glsl.adjustCanvas = dpr=>{
+        dpr = dpr || self.devicePixelRatio;
+        const canvas = gl.canvas;
+        const w = canvas.clientWidth*dpr, h=canvas.clientHeight*dpr;
+        if (canvas.width != w || canvas.height != h) {
+            canvas.width = w; canvas.height = h;
+        }
+    }
     return glsl;
 }
 

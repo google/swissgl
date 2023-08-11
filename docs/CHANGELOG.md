@@ -2,6 +2,7 @@
 
 ### 2023-08-11
 * `glsl.adjustCanvas()` helper
+* [`tiny.html`](https://google.github.io/swissgl/tiny.html) minimalistic example
 
 ### 2023-08-05
 * [Physarum3d](https://google.github.io/swissgl/#Physarum3d) demo

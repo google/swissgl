@@ -12,15 +12,9 @@
     "use strict";
     const canvas = document.getElementById('c');
     const glsl = SwissGL(canvas);
-
-    function frame(time) {
-        requestAnimationFrame(frame);
-        glsl.adjustCanvas();
-        
-        time /= 1000.0;
+    glsl.loop(({time})=>{
         glsl({time, Aspect:'cover',
               FP:`sin(length(XY)*vec3(30,30.5,31)
                  -time+atan(XY.x,XY.y)*3.),1`});
-    }
-    requestAnimationFrame(frame);
+    });
 </script>

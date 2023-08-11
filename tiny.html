@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<title>Tiny SwissGL example</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="swissgl.js"></script>
+<style>
+    body, html {margin: 0; padding: 0; overflow: hidden;}
+    #c {width:100vw; height: 100vh}
+</style>
+<canvas id="c"></canvas>
+<script>
+    "use strict";
+    const canvas = document.getElementById('c');
+    const glsl = SwissGL(canvas);
+
+    function frame(time) {
+        requestAnimationFrame(frame);
+        glsl.adjustCanvas();
+        
+        time /= 1000.0;
+        glsl({time, FP:`sin(length(XY)*30.0-time)`});
+    }
+    requestAnimationFrame(frame);
+</script>

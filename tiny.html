@@ -18,7 +18,7 @@
         glsl.adjustCanvas();
         
         time /= 1000.0;
-        glsl({time, FP:`sin(length(XY)*30.0-time)`});
+        glsl({time, Aspect:'cover', FP:`sin(length(XY)*30.0-time)`});
     }
     requestAnimationFrame(frame);
 </script>

@@ -32,9 +32,8 @@ class FancyLenia extends ParticleLenia {
 
         const {params, viewR, state, trails, glsl} = this; 
         const fieldU = glsl({...params, viewR,
-            state:state[0], Grid:state[0].size, Clear:0.0, Blend:'s+d', Inc:`
-        varying vec2 p;`, VP:`
-        p = (UV*2.0-1.0)*(mu_k+3.0*sigma_k);
+            state:state[0], Grid:state[0].size, Clear:0.0, Blend:'s+d', VP:`
+        varying vec2 p = (UV*2.0-1.0)*(mu_k+3.0*sigma_k);
         VPos.xy = (state(ID.xy).xy + p)/viewR;`, FP:`
         peak_f(length(p), mu_k, sigma_k).x*w_k`}, 
         {size:[256, 256], format:'rgba16f', filter:'linear', tag:'fieldU'});
@@ -57,13 +56,11 @@ class FancyLenia extends ParticleLenia {
         FOut.rgb = mix(FOut.rgb, vec3(0.6, 0.8, 0.3), G);
         FOut = mix(FOut, vec4(1), trails(UV).x);`});
 
-        glsl({state:state[0], Grid:state[0].size, Mesh: [32,8], fieldU,
-              ...viewParams, Inc:`
-        varying vec3 normal;`, VP:`
+        glsl({state:state[0], Grid:state[0].size, Mesh: [32,8], fieldU, ...viewParams, VP:`
         vec4 pos = vec4(state(ID.xy).xy, 0.0, 1.0);
         pos.xy /= viewR;
         pos.z = fieldU(pos.xy*0.5+0.5).x*scaleU-0.25;
-        normal = uv2sphere(UV);
+        varying vec3 normal = uv2sphere(UV);
         pos.xyz += normal*0.015;
         VPos = wld2proj(pos);`, FP:`
         float a = normal.z*0.7+0.3;

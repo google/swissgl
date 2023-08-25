@@ -7,8 +7,7 @@ class DeferredShading {
     frame(glsl, params) {
         // draw objects
         const gbuf = glsl({...params, Mesh:[64,128], Grid:[4,4,3],
-              Aspect:'fit', DepthTest:1, Clear:0, Inc:`
-        varying vec3 normal, wldPos;`, VP:`
+              Aspect:'fit', DepthTest:1, Clear:0, VP:`
         vec3 surface_f(vec2 p) {
             vec2 c = sin(time+p*vec2(ID)*TAU);
             vec3 pos = torus(p, 1.0, 0.4 + 0.1*c.x + 0.15*c.y)/8.0;
@@ -17,7 +16,7 @@ class DeferredShading {
             return pos;
         }
         void vertex() {
-            wldPos = SURF(surface_f, UV, normal, 1e-3);
+            varying vec3 normal, wldPos = SURF(surface_f, UV, normal, 1e-3);
             VPos = wld2proj(wldPos);
         }`, FP:`
             FOut = vec4(0.7, 0.7, 0.7, 1.0);
@@ -29,15 +28,12 @@ class DeferredShading {
 
         // common light passes code
         const lightArgs = {...params, Face:'front', Grid:[9, 9, 1],
-            Aspect:'fit', Blend:'s+d', DepthTest:'keep', Inc:`
-            varying vec3 lightPos, lightColor;`, VP:`
-            void vertex() {
-                lightPos = vec3(ID-Grid/2)*0.2;
-                lightPos.xy *= rot2(time*0.1+lightPos.z)*(0.5+sin(time*0.7)*0.4);
-                lightPos.z = sin((lightPos.x+lightPos.y)*1.5+time*0.25)*0.75;
-                lightColor = hash(ID+1)*5.0;
-                VPos = wld2proj(lightPos+uv2sphere(UV)*lightR);
-            }`};
+            Aspect:'fit', Blend:'s+d', DepthTest:'keep', VP:`
+            varying vec3 lightPos = vec3(ID-Grid/2)*0.2;
+            lightPos.xy *= rot2(time*0.1+lightPos.z)*(0.5+sin(time*0.7)*0.4);
+            lightPos.z = sin((lightPos.x+lightPos.y)*1.5+time*0.25)*0.75;
+            varying vec3 lightColor = hash(ID+1)*5.0;
+            VPos = wld2proj(lightPos+uv2sphere(UV)*lightR);`};
 
         // accumulate surface lights
         const light = glsl({...lightArgs, lightR:0.3, 

@@ -8,8 +8,7 @@ class CubeDeform {
 
     frame(glsl, params) {
         glsl({...params, Grid:[6,1], Mesh:[20, 20],
-        Aspect:'fit', DepthTest:1, Inc:`
-        varying vec3 color, normal, eyeDir;`, VP:`
+        Aspect:'fit', DepthTest:1, VP:`
         vec3 surface_f(vec2 xy) {
             vec3 pos = cubeVert(xy, ID.x);
             pos += sin(pos*PI+time).zxy*0.2;
@@ -19,9 +18,9 @@ class CubeDeform {
             return pos*0.4;
         }
         void vertex() {
-            color = cubeVert(vec2(0), ID.x)*0.5+0.5;
+            varying vec3 color = cubeVert(vec2(0), ID.x)*0.5+0.5, normal;
             vec4 v = vec4(SURF(surface_f, XY, normal, 1e-3), 1.0);
-            eyeDir = cameraPos()-v.xyz;
+            varying vec3 eyeDir = cameraPos()-v.xyz;
             VPos = wld2proj(v);
         }`, FP:`
         vec3 n = normalize(normal);

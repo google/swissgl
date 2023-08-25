@@ -90,16 +90,13 @@ glsl({K, worldExtent, // uniforms
     Aspect:'fit', 
     // blend primitives using alpha transparency
     Blend: 'd*(1-sa)+s*sa', 
-    // the 'Inc' code is available in both
-    // vertex and fragment shaders
-    Inc:`varying vec3 color;`,
     // vertex shader that defines where to draw
     // the quad primitives
     VP:`
     // fetch the current particle data
     vec4 d = points(ID.xy);
     // populate color varying to use in fragment shader
-    color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
+    varying vec3 color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
     // set the clip-space vertex position, 'vec2 XY' contains
     // coordinates of the quad vertex in -1..1 range
     VPos.xy = 2.0*(d.xy+XY/8.0)/worldExtent;`, 

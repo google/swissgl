@@ -54,12 +54,11 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 [MeshGrid](https://google.github.io/swissgl/#MeshGrid) demo provides a simple example of using the shortcut syntax and `XY`, `UV`, `ID`, `Mesh` and `Grid` input variables to render a few tessellated planes:
 
 ```glsl
-    glsl({time, Grid:[5,5], Mesh:[4,4], Aspect:'fit',
-    Inc: `varying vec3 color;`,
-    VP: `color = hash(ID);
-        vec2 pos = vec2(ID) + 0.5 + XY*(0.5-0.5/vec2(Mesh+1));
-        pos += sin(UV*TAU+time).yx*0.1*(sin(time*0.5));
-        VPos = vec4(2.0*pos/vec2(Grid)-1.0, 0.0, 1.0);`,
+    glsl({time, Grid:[5,5], Mesh:[4,4], Aspect:'fit', VP:`
+    varying vec3color = hash(ID);
+    vec2 pos = vec2(ID) + 0.5 + XY*(0.5-0.5/vec2(Mesh+1));
+    pos += sin(UV*TAU+time).yx*0.1*(sin(time*0.5));
+    VPos = vec4(2.0*pos/vec2(Grid)-1.0, 0.0, 1.0);`,
     FP: `mix(color, vec3(1.0), wireframe()*0.5),1`});
 
 ```

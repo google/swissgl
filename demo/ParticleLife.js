@@ -78,9 +78,9 @@ class ParticleLife {
         this.step(touchPos);
 
         const field = glsl({K, worldExtent, points: points[0], Grid: [...points[0].size, 4],
-              Blend: 's+d', Clear:0.0, Inc:`varying vec3 color;`, VP:`
+              Blend: 's+d', Clear:0.0, VP:`
             vec4 d = points(ID.xy);
-            color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
+            varying vec3 color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
             VPos.xy = 2.0*(d.xy+XY*1.5)/worldExtent;
             VPos.xy -= 2.0*vec2(ID.z%2, ID.z/2)*sign(d.xy);`,
             FP:`color*smoothstep(1.0, 0.8, length(XY)),1`},
@@ -88,10 +88,9 @@ class ParticleLife {
         glsl({field, Aspect:'fit', FP:`sqrt(field(UV))*0.07`});
 
         glsl({K, worldExtent, points: points[0], Grid: points[0].size,
-                Aspect:'fit', Blend: 'd*(1-sa)+s*sa', Inc:`
-            varying vec3 color;`, VP:`
+                Aspect:'fit', Blend: 'd*(1-sa)+s*sa', VP:`
             vec4 d = points(ID.xy);
-            color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
+            varying vec3 color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
             VPos.xy = 2.0*(d.xy+XY/8.0)/worldExtent;`, 
             FP:`color, smoothstep(1.0, 0.6, length(XY))`});
     }

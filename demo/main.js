@@ -177,11 +177,9 @@ class DemoApp {
         }
         
         this.demo.frame(this.withCamera, params);
-        this.withCamera({...params, Mesh: [20,20], Grid:[2], DepthTest:1, Inc:`
-            varying vec3 p;
-            varying vec4 buttons;`, VP:`
-            p = uv2sphere(UV);
-            buttons = xrButton[ID.x];
+        this.withCamera({...params, Mesh: [20,20], Grid:[2], DepthTest:1, VP:`
+            varying vec3 p = uv2sphere(UV);
+            varying vec4 buttons = xrButton[ID.x];
             VPos = wld2proj(xrRay[ID.x]*vec4(p*vec3(0.02, 0.02, 0.1),1));`, FP:`
             vec3 c = p*0.5+0.5;
             FOut = vec4(c*0.5,1);

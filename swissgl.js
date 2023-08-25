@@ -31,6 +31,7 @@
 // - view transform params
 // - fragment only aspect
 // - tag already exists
+// - texture/array uniform compatibility
 
 const Type2Setter = {};
 for (const t of ['FLOAT', 'INT', 'BOOL']) {
@@ -297,16 +298,30 @@ function expandCode(code, mainFunc, outVar) {
 const expandVP = memoize(code=>expandCode(code, 'vertex', 'VPos'));
 const expandFP = memoize(code=>expandCode(code, 'fragment', 'FOut'));
 
+function extractVaryings(VP) {
+    return Array.from(stripComments(VP).matchAll(/\bvarying\s+[^;]+;/g))
+    .map(m=>m[0]).map(s=>{
+        while (s != (s=s.replace(/\([^()]*\)/g, ''))); // remove nested ()
+        return s.replace(/=[^,;]*/g,'')  // remove assigned values 
+    }).join('\n');
+}
+
+function stripVaryings(VP) {
+    return VP.replace(/\bvarying\s+\w+/g,'');
+}
+
 function linkShader(gl, uniforms, Inc, VP, FP) {
     const defined = definedUniforms([glsl_template, Inc, VP, FP].join('\n'));
     const undefined = Object.entries(uniforms)
         .filter(kv=>kv[0].match(/^\w+$/))
         .filter(kv=>!(defined.has(kv[0])));
     const guessed = guessUniforms(Object.fromEntries(undefined));
-    const prefix = `${glsl_template}\n${Inc}\n${guessed}`;
+    const varyings = extractVaryings(VP);
+    VP = expandVP(stripVaryings(VP));
+    const prefix = `${glsl_template}\n${Inc}\n${guessed}\n${varyings}`;
     return compileProgram(gl, `
     #define VERT
-    ${prefix}\n${expandVP(VP)}
+    ${prefix}\n${VP}
     void main() {
       int rowVertN = Mesh.x*2+3;
       int rowI = VertexID/rowVertN;
@@ -691,7 +706,6 @@ function SwissGL(canvas_gl) {
     }
     glsl.loop = callback=>{
         const frameFunc = time=>{
-            glsl.adjustCanvas();
             const res = callback({glsl, time:time/1000.0});
             if (res != 'stop') requestAnimationFrame(frameFunc);
         };

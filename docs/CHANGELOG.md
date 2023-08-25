@@ -1,5 +1,9 @@
 # Changelog
 
+### 2023-08-25
+* `varying`'s can be declared in-place in `VP` arguments
+* `glsl.adjustCanvas()` should be explicitly called in `glsl.loop()` callback
+
 ### 2023-08-11
 * `glsl.adjustCanvas()` helper
 * `glsl.loop()` helper

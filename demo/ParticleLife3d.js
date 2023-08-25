@@ -31,10 +31,9 @@ class ParticleLife3d extends ParticleLife {
 
         const { K, points, worldExtent } = this;
         glsl({...params, K, worldExtent,
-            points: points[0], Grid: points[0].size, Inc:`
-        varying vec3 color;`, VP:`
+            points: points[0], Grid: points[0].size, VP:`
         vec4 d = points(ID.xy);
-        color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
+        varying vec3 color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
         PointSize = 0.13/worldExtent;
         Normal = vec3(0,0,1);
         emitVertex(d.xyz/worldExtent*1.3);`, FP:`
@@ -44,12 +43,12 @@ class ParticleLife3d extends ParticleLife {
         if (!shadowPass) {
             for (const face of ['back', 'front'])
             glsl({...params, Grid:[6,1], Blend:'d*(1-sa)+s',
-                Face:face, DepthTest:face=='front'?'keep':1, Inc:`
-            varying vec3 portalPos;`, VP:`
+                Face:face, DepthTest:face=='front'?'keep':1, VP:`
             vec3 p = cubeVert(XY, ID.x)*0.5+0.5;
             Normal = -cubeVert(vec2(0), ID.x);
-            portalPos.xy = Normal.z!=0. ? p.xy : (Normal.x!=0. ? p.yz : p.zx);
-            portalPos.z = abs(Normal.x)+abs(Normal.y)*2.0;
+            varying vec3 portalPos = vec3(
+                Normal.z!=0. ? p.xy : (Normal.x!=0. ? p.yz : p.zx),
+                abs(Normal.x)+abs(Normal.y)*2.0);
             emitVertex((p-0.5)*1.3);`, FP:`
             if (!gl_FrontFacing) {
                 vec2 c = XY; c*=c; c*=c;
@@ -76,12 +75,11 @@ class ParticleLife3d extends ParticleLife {
         const { points, worldExtent } = this;
         const [sx, sy] = points[0].size
         const portalmap = glsl({worldExtent, points: points[0], Grid: [sx, sy, 3],
-            Clear:0, Blend:'max(s,d)', portalR:0.1, Inc:`
-            varying vec3 dp;`, VP:`
+            Clear:0, Blend:'max(s,d)', portalR:0.1, VP:`
             vec3 p = 2.0*points(ID.xy).xyz/worldExtent;
             vec3 proj = ID.z==0 ? p.xyz : (ID.z==1 ? p.yzx : p.zxy);
             vec2 v = clamp(proj.xy+XY*portalR,-1.0, 1.0);
-            dp = vec3(v-proj.xy, 1.0-abs(proj.z))/portalR;
+            varying vec3 dp = vec3(v-proj.xy, 1.0-abs(proj.z))/portalR;
             VPos = vec4((v.x*0.5+0.5+float(ID.z))/3.0*2.0-1.0, v.y, 0,1);`, FP:`
             1.0-length(dp)`}, {size:[256*3, 256], tag:'portalmap'});
         const shadowmap = this.drawScene(params);

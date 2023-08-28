@@ -318,7 +318,7 @@ function linkShader(gl, uniforms, Inc, VP, FP) {
     const guessed = guessUniforms(Object.fromEntries(undefined));
     const varyings = extractVaryings(VP);
     VP = expandVP(stripVaryings(VP));
-    const prefix = `${glsl_template}\n${Inc}\n${guessed}\n${varyings}`;
+    const prefix = `${glsl_template}\n${guessed}\n${varyings}\n${Inc}\n`;
     return compileProgram(gl, `
     #define VERT
     ${prefix}\n${VP}

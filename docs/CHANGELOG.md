@@ -1,5 +1,8 @@
 # Changelog
 
+### 2023-09-07
+* Samplers support (see [TextureSamplers](https://google.github.io/swissgl/#TextureSamplers) demo)
+
 ### 2023-08-25
 * `varying`'s can be declared in-place in `VP` arguments
 * `glsl.adjustCanvas()` should be explicitly called in `glsl.loop()` callback

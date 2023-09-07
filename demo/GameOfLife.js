@@ -22,7 +22,7 @@ class GameOfLife {
         FOut = vec4(v,0,0,1);
         `}, {scale:1/4, story:2, tag:'state'});
         const fade = glsl({S:state[0], Blend:'d*sa+s', FP:`S(I).xxx,0.9`},
-            {size:state[0].size, filter:'nearest', tag:'fade'})
+            {size:state[0].size, tag:'fade'})
         glsl({fade, FP:`fade(UV).x`});
     }
 }

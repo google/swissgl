@@ -37,7 +37,7 @@ class NeuralCA {
                  + R(l,d)*vec4(1,1,-1,-1) + R(x,d)*vec4(2,2,0,-2) + R(r,d)*vec4(1,1,1,-1);
           vec4 ds = rule(s-0.5, p);  // NCA rule application
           FOut = s+ds;
-        }`}, {story:2, scale:1/4, filter:'nearest', tag:'state'});
+        }`}, {story:2, scale:1/4, tag:'state'});
         glsl({tex:state[0], FP:`tex(UV)*2.-.5`});
     }
 }

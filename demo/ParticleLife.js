@@ -84,7 +84,7 @@ class ParticleLife {
             VPos.xy = 2.0*(d.xy+XY*1.5)/worldExtent;
             VPos.xy -= 2.0*vec2(ID.z%2, ID.z/2)*sign(d.xy);`,
             FP:`color*smoothstep(1.0, 0.8, length(XY)),1`},
-            {size:[256, 256], format:'rgba16f', tag:'field'});
+            {size:[256, 256], format:'rgba16f', filter:'linear', tag:'field'});
         glsl({field, Aspect:'fit', FP:`sqrt(field(UV))*0.07`});
 
         glsl({K, worldExtent, points: points[0], Grid: points[0].size,

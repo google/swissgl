@@ -18,7 +18,6 @@
 // - multiple named render targets (Out...?)
 // - stencil?
 // - mipmaps?
-// samplers/filter?
 // data texture subimage?
 // glsl lib
 // - hash (overloads)
@@ -34,16 +33,32 @@
 // - texture/array uniform compatibility
 
 const Type2Setter = {};
-for (const t of ['FLOAT', 'INT', 'BOOL']) {
-    const suf = t=='FLOAT' ? 'f':'i';
+const UniformType2TexTarget = {};
+const TextureFormats = {};
+{
     const GL = WebGL2RenderingContext;
-    Type2Setter[GL[t]] = 'uniform1'+suf;
-    for (const i of [2, 3, 4]) {
-        Type2Setter[GL[`${t}_VEC${i}`]] = `uniform${i}${suf}v`;
-        if (suf=='f') {
-            Type2Setter[GL[`${t}_MAT${i}`]] = `uniformMatrix${i}fv`;
+    for (const t of ['FLOAT', 'INT', 'BOOL']) {
+        const suf = t=='FLOAT' ? 'f':'i';
+        Type2Setter[GL[t]] = 'uniform1'+suf;
+        for (const i of [2, 3, 4]) {
+            Type2Setter[GL[`${t}_VEC${i}`]] = `uniform${i}${suf}v`;
+            if (suf=='f') {
+                Type2Setter[GL[`${t}_MAT${i}`]] = `uniformMatrix${i}fv`;
+            }
         }
     }
+    UniformType2TexTarget[GL.SAMPLER_2D] = GL.TEXTURE_2D;
+    UniformType2TexTarget[GL.SAMPLER_2D_ARRAY] = GL.TEXTURE_2D_ARRAY;
+
+    for (const [name, internalFormat, glformat, type, CpuArray, chn] of [
+        ['r8', GL.R8, GL.RED, GL.UNSIGNED_BYTE, Uint8Array, 1],
+        ['rgba8', GL.RGBA8, GL.RGBA, GL.UNSIGNED_BYTE, Uint8Array, 4],
+        ['r16f', GL.R16F, GL.RED, GL.HALF_FLOAT, Uint16Array, 1],
+        ['rgba16f', GL.RGBA16F, GL.RGBA, GL.HALF_FLOAT, Uint16Array, 4],
+        ['r32f', GL.R32F, GL.RED, GL.FLOAT, Float32Array, 1],
+        ['rgba32f', GL.RGBA32F, GL.RGBA, GL.FLOAT, Float32Array, 4],
+        ['depth', GL.DEPTH_COMPONENT24, GL.DEPTH_COMPONENT, GL.UNSIGNED_INT, Uint32Array, 1],
+    ]) TextureFormats[name] = {internalFormat, glformat, type, CpuArray, chn};
 }
 
 function memoize(f) {
@@ -51,6 +66,11 @@ function memoize(f) {
     const wrap = k => k in cache ? cache[k] : cache[k]=f(k);
     wrap.cache = cache;
     return wrap;
+}
+
+function updateObject(o, updates) {
+    for (const s in updates) { o[s] = updates[s];}
+    return o;
 }
 
 // Parse strings like 'min(s,d)', 'max(s,d)', 's*d', 's+d*(1-sa)',
@@ -121,20 +141,26 @@ function compileProgram(gl, vs, fs) {
     }
     gl.useProgram(program);
     program.setters = {};
-    program.samplers = [];
+    let unitCount = 0;
     const numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
     for (let i = 0; i < numUniforms; ++i) {
         const info = gl.getActiveUniform(program, i);
         const loc = gl.getUniformLocation(program, info.name);
-        if (info.type==gl.SAMPLER_2D || info.type==gl.SAMPLER_2D_ARRAY) {
-            gl.uniform1i(loc, program.samplers.length);
-            program.samplers.push(info);
+        const name = info.name.match(/^\w+/)[0];
+        if (info.type in UniformType2TexTarget) {
+            const unit = unitCount++;
+            const target = UniformType2TexTarget[info.type];
+            gl.uniform1i(loc, unit);
+            program.setters[name] = tex=>{
+                gl.activeTexture(gl.TEXTURE0+unit);
+                gl.bindTexture(target, tex?tex.handle:null);
+                if (tex) gl.bindSampler(unit, tex._sampler);
+            }
         } else {
             const fname = Type2Setter[info.type];
             const setter = fname.startsWith('uniformMatrix') ?
                 v=>gl[fname](loc, false, v) : v=>gl[fname](loc, v);
-            program.setters[info.name.match(/^\w+/)[0]] = setter;
-
+            program.setters[name] = v=>v!=undefined?setter(v):null;
         }
     }
     gl.useProgram(null);
@@ -255,7 +281,7 @@ function guessUniforms(params) {
     for (const name in params) {
         const v = params[name];
         let s = null;
-        if (v instanceof WebGLTexture) {
+        if (v instanceof TextureSampler) {
             const [type, D] = v.layern?['sampler2DArray', '3']:['sampler2D', '2'];
             const lookupMacro = v.layern?
                 `#define ${name}(p,l) (_sample(${name}, (p), (l)))` : 
@@ -346,40 +372,60 @@ function linkShader(gl, uniforms, Inc, VP, FP) {
     }`);
 }
 
-function createTex2D(gl, params) {
-    let {size, format='rgba8', filter='nearest', wrap='repeat', layern=null, data=null, depth=null} = params;
-    if (format.includes('+')) {
-        const [mainFormat, depthFormat] = format.split('+');
-        const tex = createTex2D(gl, {...params, format:mainFormat});
-        tex.depth = createTex2D(gl, {...params, format:depthFormat, layern:null, depth:null});
-        return tex;
+class TextureSampler {
+    fork(updates) {
+        const {gl, handle, layern, filter, wrap} = {...this, ...updates};
+        return updateObject(new TextureSampler(), {gl, handle, layern, filter, wrap});
     }
-    const gltarget = layern ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D;
-    const [internalFormat, glformat, type, CpuArray] = {
-        'r8': [gl.R8, gl.RED, gl.UNSIGNED_BYTE, Uint8Array],
-        'rgba8': [gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, Uint8Array],
-        'r16f': [gl.R16F, gl.RED, gl.HALF_FLOAT, Uint16Array],
-        'rgba16f': [gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, Uint16Array],
-        'r32f': [gl.R32F, gl.RED, gl.FLOAT, Float32Array],
-        'rgba32f': [gl.RGBA32F, gl.RGBA, gl.FLOAT, Float32Array],
-        'depth': [gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, Uint32Array],
-    }[format];
-    // TODO: mipmap
-    if (format == 'depth') {
-        filter = 'nearest';
+    get linear()  {return this.fork({filter:'linear'})}
+    get nearest() {return this.fork({filter:'nearest'})}
+    get edge()    {return this.fork({wrap:'edge'})}
+    get repeat()  {return this.fork({wrap:'repeat'})}
+    get mirror()  {return this.fork({wrap:'mirror'})}
+
+    get _sampler() {
+        const {gl, filter, wrap} = this;
+        if (!gl._samplers) {gl._samplers = {};}
+        const id = `${filter}:${wrap}`;
+        if (!(id in gl._samplers)) {
+            const glfilter = { 'nearest': gl.NEAREST, 'linear': gl.LINEAR}[filter];
+            const glwrap = {'repeat': gl.REPEAT, 'edge': gl.CLAMP_TO_EDGE,
+                            'mirror': gl.MIRRORED_REPEAT}[wrap];
+            const sampler = gl.createSampler();
+            const setf = (k, v)=>gl.samplerParameteri(sampler, gl['TEXTURE_'+k], v);
+            setf('MIN_FILTER', glfilter);
+            setf('MAG_FILTER', glfilter);
+            setf('WRAP_S', glwrap);
+            setf('WRAP_T', glwrap);
+            gl._samplers[id] = sampler;
+        }
+        return gl._samplers[id];
     }
-    const glfilter = { 'nearest': gl.NEAREST, 'linear': gl.LINEAR}[filter];
-    const glwrap = {'repeat': gl.REPEAT, 'edge': gl.CLAMP_TO_EDGE,
-                    'mirror': gl.MIRRORED_REPEAT}[wrap];
-    const tex = gl.createTexture();
-    tex.tag = params.tag;
-    tex.format = format;
-    tex.layern = layern;
-    tex.gltarget = gltarget;
-    if (depth) {tex.depth = depth;}
-    tex.update = (size, data)=> {
+}
+
+class TextureTarget extends TextureSampler {
+    constructor(gl, params) {
+        super();
+        let {size, tag, format='rgba8', filter='nearest', wrap='repeat',
+            layern=null, data=null, depth=null} = params;
+        if (!depth && format.includes('+')) {
+            const [mainFormat, depthFormat] = format.split('+');
+            format = mainFormat;
+            depth = new TextureTarget(gl, {...params,
+                tag:tag+'_depth',format:depthFormat, layern:null, depth:null});
+        }
+        this.handle = gl.createTexture(),
+        this.filter = format=='depth' ? 'nearest' : filter;
+        this.gltarget = layern ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D;
+        this.formatInfo = TextureFormats[format];
+        updateObject(this, {gl, tag, format, layern, wrap, depth});
+        this.update(size, data);
+    }
+    update(size, data) {
+        const {gl, handle, gltarget, layern} = this;
+        const {internalFormat, glformat, type} = this.formatInfo;
         const [w, h] = size;
-        gl.bindTexture(gltarget, tex);
+        gl.bindTexture(gltarget, handle);
         if (!layern) {
             gl.texImage2D(gltarget, 0/*mip level*/,
                 internalFormat, w, h, 0/*border*/,
@@ -390,43 +436,34 @@ function createTex2D(gl, params) {
                 glformat, type, data/*data*/);
         }
         gl.bindTexture(gltarget, null);
-        tex.size = size;
-        if (tex.depth) {tex.depth.update(size, data);}
+        this.size = size;
+        if (this.depth) {this.depth.update(size, data);}
     }
-    tex.update(size, data);
-    tex.readSync = (...arg)=>{
-        const [x, y, w, h] = arg.length ? arg : [0, 0, ...tex.size];
-        const ch = (glformat == gl.RGBA) ? 4 : 1;
-        const n = w*h*ch;
-        if (!tex.cpu || tex.cpu.length < n) {
-            tex.cpu = new CpuArray(n);
+    readSync(...arg) {
+        const {gl} = this;
+        const {chn, glformat, type, CpuArray} = this.formatInfo;
+        const [x, y, w, h] = arg.length ? arg : [0, 0, ...this.size];
+        const n = w*h*chn;
+        if (!this.cpu || this.cpu.length < n) {
+            this.cpu = new CpuArray(n);
         }
-        bindTarget(gl, tex);
-        gl.readPixels(x, y, w, h, glformat, type, tex.cpu);
-        return (tex.cpu.length == n) ? tex.cpu : tex.cpu.subarray(0, n);
+        const buf = this.cpu;
+        bindTarget(gl, this);
+        gl.readPixels(x, y, w, h, glformat, type, buf);
+        return (buf.length == n) ? buf : buf.subarray(0, n);
     }
-
-    gl.bindTexture(gltarget, tex);
-    // TODO: gl.generateMipmap(gltarget); ?
-    gl.texParameteri(gltarget, gl.TEXTURE_MIN_FILTER, glfilter);
-    gl.texParameteri(gltarget, gl.TEXTURE_MAG_FILTER, glfilter);
-    gl.texParameteri(gltarget, gl.TEXTURE_WRAP_S, glwrap);
-    gl.texParameteri(gltarget, gl.TEXTURE_WRAP_T, glwrap);
-    gl.bindTexture(gltarget, null);
-    return tex;
+    free() {
+        const gl = this.gl;
+        if (this.depth) this.depth.free();
+        if (this.fbo) gl.deleteFramebuffer(this.fbo);
+        gl.deleteTexture(this.handle);
+    }
 }
 
-function createTex(gl, params) {
-    const story = params.story || 1;
-    const textures = [];
-    for (let i=0; i<story; ++i){
-        textures.push(createTex2D(gl, params));
-    }
-    const res = story > 1 ? textures : textures[0];
-    console.log('created', res);
-    return res;
+function createTarget(gl, params) {
+    if (!params.story) return new TextureTarget(gl, params);
+    return Array(params.story).fill(0).map(_=>new TextureTarget(gl, params));
 }
-
 
 function calcAspect(aspect, w, h) {
     if (!aspect) return [1,1];
@@ -477,7 +514,7 @@ function ensureVertexArray(gl, neededSize) {
 
 function isTargetSpec(target) {
     return !(!target ||  // canvas
-        (target instanceof WebGLTexture) || Array.isArray(target) || (target.fbo !== undefined));
+        (target instanceof TextureTarget) || Array.isArray(target) || (target.fbo !== undefined));
 }
 
 function getTargetSize(gl, {size, scale=1}) {
@@ -492,7 +529,8 @@ function prepareOwnTarget(self, spec) {
     const buffers = self.buffers;
     spec.size = getTargetSize(self.gl, spec);
     if (!buffers[spec.tag]) {
-        buffers[spec.tag] = createTex(self.gl, spec);
+        const target = buffers[spec.tag] = createTarget(self.gl, spec);
+        console.log('created', target);
     } else {
         const target = buffers[spec.tag];
         const tex = Array.isArray(target) ? target[target.length-1] : target;
@@ -511,14 +549,14 @@ function attachTex(gl, tex) {
     if (!tex.layern) {
         const attachment = tex.format == 'depth' ? gl.DEPTH_ATTACHMENT : gl.COLOR_ATTACHMENT0;
         gl.framebufferTexture2D(
-            gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, tex, 0/*level*/);
+            gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, tex.handle, 0/*level*/);
     } else {
         const drawBuffers = [];
         for (let i=0; i<tex.layern; ++i) {
             const attachment = gl.COLOR_ATTACHMENT0+i;
             drawBuffers.push(attachment);
             gl.framebufferTextureLayer(
-                gl.FRAMEBUFFER, attachment, tex, 0/*level*/, i);
+                gl.FRAMEBUFFER, attachment, tex.handle, 0/*level*/, i);
         }
         gl.drawBuffers(drawBuffers);
     }
@@ -632,17 +670,8 @@ function drawQuads(self, params, target) {
     gl.bindVertexArray(gl._indexVA);
 
     // setup uniforms and textures
-    for (const name in uniforms) {
-        const val = uniforms[name];
-        if (name in prog.setters) {
-            prog.setters[name](val);
-        }
-    }
-    for (let i=0; i<prog.samplers.length; ++i) {
-        const tex = uniforms[prog.samplers[i].name];
-        gl.activeTexture(gl.TEXTURE0+i);
-        gl.bindTexture(tex?tex.gltarget:gl.TEXTURE_2D, tex);
-        //gl.bindSampler(i, null); //TODO: sampler
+    for (const name in prog.setters) {
+        prog.setters[name](uniforms[name]);
     }
     
     // draw
@@ -653,7 +682,6 @@ function drawQuads(self, params, target) {
     if (options.DepthTest) gl.disable(gl.DEPTH_TEST);
     if (options.Face) gl.disable(gl.CULL_FACE);
     if (options.AlphaCoverage) gl.disable(gl.SAMPLE_ALPHA_TO_COVERAGE);
-
     gl.bindVertexArray(null);
     return target;
 }
@@ -678,21 +706,9 @@ function SwissGL(canvas_gl) {
     glsl.gl = gl;
     glsl.shaders = {};
     glsl.buffers = {};
-
-    const releaseTarget = target=>{
-        if (target.fbo) gl.deleteFramebuffer(target.fbo);
-        gl.deleteTexture(target);
-    }
     glsl.reset = ()=>{
-        Object.values(glsl.shaders).forEach(
-            prog=>gl.deleteProgram(prog));
-        Object.values(glsl.buffers).forEach(target=>{
-            if (Array.isArray(target)) {
-                target.forEach(releaseTarget);
-            } else {
-                releaseTarget(target);
-            }
-        });
+        Object.values(glsl.shaders).forEach(prog=>gl.deleteProgram(prog));
+        Object.values(glsl.buffers).flat().forEach(target=>target.free());
         glsl.shaders = {};
         glsl.buffers = {};
     };

@@ -439,6 +439,33 @@ class TextureTarget extends TextureSampler {
         this.size = size;
         if (this.depth) {this.depth.update(size, data);}
     }
+    attach(gl) {
+        if (!this.layern) {
+            const attachment = this.format == 'depth' ? gl.DEPTH_ATTACHMENT : gl.COLOR_ATTACHMENT0;
+            gl.framebufferTexture2D(
+                gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, this.handle, 0/*level*/);
+        } else {
+            const drawBuffers = [];
+            for (let i=0; i<this.layern; ++i) {
+                const attachment = gl.COLOR_ATTACHMENT0+i;
+                drawBuffers.push(attachment);
+                gl.framebufferTextureLayer(
+                    gl.FRAMEBUFFER, attachment, this.handle, 0/*level*/, i);
+            }
+            gl.drawBuffers(drawBuffers);
+        }
+    }
+    bind(gl) {
+        if (this.fbo) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+        } else {
+            this.fbo = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+            this.attach(gl)
+            if (this.depth) this.depth.attach(gl);
+        }
+        return this.size;
+    }
     readSync(...arg) {
         const {gl} = this;
         const {chn, glformat, type, CpuArray} = this.formatInfo;
@@ -448,7 +475,7 @@ class TextureTarget extends TextureSampler {
             this.cpu = new CpuArray(n);
         }
         const buf = this.cpu;
-        bindTarget(gl, this);
+        this.bind(gl);
         gl.readPixels(x, y, w, h, glformat, type, buf);
         return (buf.length == n) ? buf : buf.subarray(0, n);
     }
@@ -458,11 +485,6 @@ class TextureTarget extends TextureSampler {
         if (this.fbo) gl.deleteFramebuffer(this.fbo);
         gl.deleteTexture(this.handle);
     }
-}
-
-function createTarget(gl, params) {
-    if (!params.story) return new TextureTarget(gl, params);
-    return Array(params.story).fill(0).map(_=>new TextureTarget(gl, params));
 }
 
 function calcAspect(aspect, w, h) {
@@ -512,9 +534,8 @@ function ensureVertexArray(gl, neededSize) {
     console.log('created:', va);
 }
 
-function isTargetSpec(target) {
-    return !(!target ||  // canvas
-        (target instanceof TextureTarget) || Array.isArray(target) || (target.fbo !== undefined));
+function isReadyTarget(target) {
+    return !target /*cavnas*/ || Array.isArray(target) || !!target.bind;
 }
 
 function getTargetSize(gl, {size, scale=1}) {
@@ -522,6 +543,10 @@ function getTargetSize(gl, {size, scale=1}) {
     return [Math.ceil(size[0]*scale), Math.ceil(size[1]*scale)];
 }
 
+function createTarget(gl, params) {
+    if (!params.story) return new TextureTarget(gl, params);
+    return Array(params.story).fill(0).map(_=>new TextureTarget(gl, params));
+}
 function prepareOwnTarget(self, spec) {
     if (!spec.tag) {
         throw 'target must have a tag';
@@ -531,49 +556,28 @@ function prepareOwnTarget(self, spec) {
     if (!buffers[spec.tag]) {
         const target = buffers[spec.tag] = createTarget(self.gl, spec);
         console.log('created', target);
-    } else {
-        const target = buffers[spec.tag];
-        const tex = Array.isArray(target) ? target[target.length-1] : target;
-        const needResize = tex.size[0] != spec.size[0] || tex.size[1] != spec.size[1];
-        if (needResize || spec.data) {
-            if (needResize) {
-                console.log(`resized tex (${tex.size})->(${spec.size})`);
-            }
-            tex.update(spec.size, spec.data);
+    } 
+    const target = buffers[spec.tag];
+    const tex = Array.isArray(target) ? target[target.length-1] : target;
+    const needResize = tex.size[0] != spec.size[0] || tex.size[1] != spec.size[1];
+    if (needResize || spec.data) {
+        if (needResize) {
+            console.log(`resized tex (${tex.size})->(${spec.size})`);
         }
+        tex.update(spec.size, spec.data);
     }
     return buffers[spec.tag];
 }
 
-function attachTex(gl, tex) {
-    if (!tex.layern) {
-        const attachment = tex.format == 'depth' ? gl.DEPTH_ATTACHMENT : gl.COLOR_ATTACHMENT0;
-        gl.framebufferTexture2D(
-            gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, tex.handle, 0/*level*/);
-    } else {
-        const drawBuffers = [];
-        for (let i=0; i<tex.layern; ++i) {
-            const attachment = gl.COLOR_ATTACHMENT0+i;
-            drawBuffers.push(attachment);
-            gl.framebufferTextureLayer(
-                gl.FRAMEBUFFER, attachment, tex.handle, 0/*level*/, i);
-        }
-        gl.drawBuffers(drawBuffers);
+function bindTarget(gl, target) {
+    if (!target) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        return [gl.canvas.width, gl.canvas.height];
     }
-}
-
-function bindTarget(gl, tex) {
-    if (tex && (tex.fbo===undefined)) {
-        tex.fbo = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, tex.fbo);
-        attachTex(gl, tex);
-        if (tex.depth) attachTex(gl, tex.depth);
-    } else {
-        const fbo = tex ? tex.fbo : null;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-
+    if (Array.isArray(target)) {
+        target.unshift(target = target.pop());
     }
-    return tex ? tex.size : [gl.canvas.width, gl.canvas.height];
+    return target.bind(gl)
 }
 
 const OptNames = new Set([
@@ -591,14 +595,11 @@ function drawQuads(self, params, target) {
     const shaderID = Inc+VP+FP;
 
     // setup target
-    if (isTargetSpec(target)) {
+    if (!isReadyTarget(target)) {
         target = prepareOwnTarget(self, target);
     }
-    let targetTexture = target;
     if (Array.isArray(target)) {
         uniforms.Src = uniforms.Src || target[0];
-        target.unshift(target.pop());
-        targetTexture = target[0];
     }
 
     // bind (and clear) target
@@ -606,7 +607,7 @@ function drawQuads(self, params, target) {
         return target;
     }
     const gl = self.gl;
-    const targetSize = bindTarget(gl, targetTexture);
+    const targetSize = bindTarget(gl, target);
     let view = options.View || [0, 0, targetSize[0], targetSize[1]];
     if (view.length == 2) {
         view = [0, 0, view[0], view[1]]
@@ -673,7 +674,6 @@ function drawQuads(self, params, target) {
     for (const name in prog.setters) {
         prog.setters[name](uniforms[name]);
     }
-    
     // draw
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, vertN, instN);
     

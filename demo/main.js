@@ -88,8 +88,10 @@ class DemoApp {
             }
             delete params.Aspect;
             let glLayer = this.xrSession.renderState.baseLayer;
-            target = {size: [glLayer.framebufferWidth, glLayer.framebufferHeight],
-                fbo: glLayer.framebuffer};
+            target = {bind:(gl)=>{
+                gl.bindFramebuffer(gl.FRAMEBUFFER, glLayer.framebuffer);
+                return [glLayer.framebufferWidth, glLayer.framebufferHeight];
+            }}
             for (let view of this.xrPose.views) {
                 const vp = glLayer.getViewport(view);
                 params.View = [vp.x, vp.y, vp.width, vp.height];

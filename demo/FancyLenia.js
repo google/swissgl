@@ -66,7 +66,7 @@ class FancyLenia extends ParticleLenia {
         float a = normal.z*0.7+0.3;
         FOut = vec4(vec3(1.0-a*a*0.75), 1.0);`});
 
-        this.meanEnergy = glsl({state:state[0], FP:`
+        glsl({state:state[0], FP:`
         ivec2 sz = state_size();
         float E = 0.0;
         for (int y=0; y<sz.y; ++y)
@@ -74,6 +74,6 @@ class FancyLenia extends ParticleLenia {
             E += state(ivec2(x,y)).w;
         }
         FOut.x = E / float(sz.x*sz.y);`},
-        {size:[1,1], format:'r32f', tag:'meanE'}).readSync()[0]
+        {size:[1,1], format:'r32f', tag:'meanE'}).read([],d=>this.meanEnergy=d[0]);
     }
 }

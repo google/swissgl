@@ -5,14 +5,16 @@
 
 // Visualization of Particle Lenia fields as 3d landscape
 class FancyLenia extends ParticleLenia {
-    static Tags = ['3d', 'simulation'];
+    static Tags = ['3d', 'simulation', 'audio'];
 
     constructor(glsl, gui) {
         super(glsl, gui);
         this.meanEnergy = 0.0;
         gui.add(this, 'meanEnergy', 0.0, 1.0, 0.001).listen();
+        this.volume = 0.5;
+        gui.add(this, 'volume', 0.0, 1.0);
+        gui.add(this, 'toggleAudio');
     }
-
     reset() {
         super.reset();
         this.trails = this.glsl({Clear:0}, {size:[1024, 1024], format:'r8', filter:'linear', tag:'trails'});
@@ -74,6 +76,54 @@ class FancyLenia extends ParticleLenia {
             E += state(ivec2(x,y)).w;
         }
         FOut.x = E / float(sz.x*sz.y);`},
-        {size:[1,1], format:'r32f', tag:'meanE'}).read([],d=>this.meanEnergy=d[0]);
+        {size:[1,1], format:'r32f', tag:'meanE'}).read(d=>this.meanEnergy=d[0]);
+
+        if (this.audio) {
+            glsl({T:this.audio, Grid:this.audio.size, Blend:'s+d', VP:`
+            vec2 p = vec2(float(ID.x)/float(Grid.x-1)*2.-1., T(ID.xy).x*2.+0.5);
+            p = (ViewSize.x>ViewSize.y) ? p : p.yx; 
+            VPos.xy = p+XY*0.008;
+            `, FP:'vec4(0.8,0.1,0.7,0)*exp(-dot(XY,XY)*3.0)'});
+        }
     }
+
+    toggleAudio() {
+        if (!this.audioStream) {
+            this.audioStream = new AudioStream();
+            this.audioStream.start((...a)=>this.audioFrame(...a));
+        } else {
+            this.audioStream.stop();
+            delete this.audioStream
+            delete this.audio;
+        }
+    }
+    free() {
+        if (this.audioStream) {this.audioStream.stop();}
+    }
+    audioFrame(e, submit) {
+        const n = e.buf.length/2;
+        const dt = n/e.sampleRate;
+        const [s1, s0] = this.state;
+        this.phase_vol = this.glsl({s0, s1, dt, FP:`
+            vec4 d0=s0(I), d1=s1(I);
+            FOut.x = fract(Src(I).x + dt*exp2(4.0*d1.w));
+            FOut.y = length(d1.xyz-d0.xyz);
+        `}, {size:s0.size, story:2, format:'rg32f', tag:'phase_vol'});
+        const [p1, p0] = this.phase_vol;
+        this.audio = this.glsl({dt, p0, p1, volume:this.volume, FP:`
+            ivec2 i, sz = p0_size();
+            float acc = 0.0;
+            for (i.y=0; i.y<sz.y; ++i.y)
+            for (i.x=0; i.x<sz.x; ++i.x) {
+                vec2 d0 = p0(i).xy, d1 = p1(i).xy;
+                float t = TAU*mix(d0.x, d1.x+step(d1.x,d0.x), UV.x);
+                float vel = mix(d0.y,d1.y,UV.x);
+                acc += vel;
+                FOut.xy += vel*(rot2(50.*t)[0]+rot2(300.*t)[0]) * exp(-abs(fract(5.0*t/TAU)-0.5)*20.0);
+            }
+            FOut.xy *= volume/acc;
+        `}, {size:[n, 1], format:'rg32f', tag:'audio'});
+        this.audio.read(submit, [], e.buf);
+    }
+
 }

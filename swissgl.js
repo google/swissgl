@@ -56,6 +56,7 @@ const TextureFormats = {};
         ['r16f', GL.R16F, GL.RED, GL.HALF_FLOAT, Uint16Array, 1],
         ['rgba16f', GL.RGBA16F, GL.RGBA, GL.HALF_FLOAT, Uint16Array, 4],
         ['r32f', GL.R32F, GL.RED, GL.FLOAT, Float32Array, 1],
+        ['rg32f', GL.RG32F, GL.RG, GL.FLOAT, Float32Array, 2],
         ['rgba32f', GL.RGBA32F, GL.RGBA, GL.FLOAT, Float32Array, 4],
         ['depth', GL.DEPTH_COMPONENT24, GL.DEPTH_COMPONENT, GL.UNSIGNED_INT, Uint32Array, 1],
     ]) TextureFormats[name] = {internalFormat, glformat, type, CpuArray, chn};
@@ -468,76 +469,86 @@ class TextureTarget extends TextureSampler {
         }
         return this.size;
     }
-    readSync(...arg) {
-        const {gl} = this;
-        const {chn, glformat, type, CpuArray} = this.formatInfo;
-        const [x, y, w, h] = arg.length ? arg : [0, 0, ...this.size];
-        const n = w*h*chn;
+    _getBox(box) {
+        box = (box && box.length) ? box : [0, 0, ...this.size];
+        const [x, y, w, h] = box, n = w*h*this.formatInfo.chn;
+        return {box, n}
+    }
+    _getCPUBuf(n) {
         if (!this.cpu || this.cpu.length < n) {
-            this.cpu = new CpuArray(n);
+            this.cpu = new this.formatInfo.CpuArray(n);
         }
-        const buf = this.cpu;
-        this.bind(gl);
-        gl.readPixels(x, y, w, h, glformat, type, buf);
-        return (buf.length == n) ? buf : buf.subarray(0, n);
+        return this.cpu.length == n ? this.cpu : this.cpu.subarray(0, n);
+    }
+    _readPixels(box, targetBuf) {
+        const {glformat, type} = this.formatInfo;
+        this.bind(this.gl);
+        this.gl.readPixels(...box, glformat, type, targetBuf);
+    }
+    readSync(...optBox) {
+        const {box, n} = this._getBox(optBox);
+        const buf = this._getCPUBuf(n);
+        this._readPixels(box, buf);
+        return buf
     }
     _bindAsyncBuffer(n) {
         const {gl} = this;
         const {CpuArray} = this.formatInfo;
         if (!this.async) {this.async = {all:new Set(), queue:[]};}
         if (this.async.queue.length == 0) {
-            const newBuf = {gpu: gl.createBuffer(), cpu:null};
-            this.async.queue.push(newBuf);
-            this.async.all.add(newBuf);
+            const gpuBuf = gl.createBuffer();
+            this.async.queue.push(gpuBuf);
+            this.async.all.add(gpuBuf);
         }
-        const buf = this.async.queue.shift();
+        const gpuBuf = this.async.queue.shift();
         if (this.async.queue.length > 2) {
             this._deleteAsyncBuf(this.async.queue.pop());
         }
-        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf.gpu);
-        if (!buf.cpu || buf.cpu.length < n) {
-            buf.cpu = new CpuArray(n);
-            gl.bufferData(gl.PIXEL_PACK_BUFFER, buf.cpu.byteLength, gl.STREAM_READ);
-            console.log(`created/resized async buffer "${this.tag}":`, buf);
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, gpuBuf);
+        if (!gpuBuf.length || gpuBuf.length < n) {
+            const byteN = n * this.formatInfo.CpuArray.BYTES_PER_ELEMENT
+            gl.bufferData(gl.PIXEL_PACK_BUFFER, byteN, gl.STREAM_READ);
+            gpuBuf.length = n;
+            console.log(`created/resized async gpu buffer "${this.tag}":`, gpuBuf);
         }
-        return buf;
+        return gpuBuf;
     }
-    _deleteAsyncBuf(buf) {
-        this.gl.deleteBuffer(buf.gpu);
-        delete buf.cpu; delete buf.gpu;
-        this.async.all.delete(buf);
+    _deleteAsyncBuf(gpuBuf) {
+        delete gpuBuf.length;
+        this.gl.deleteBuffer(gpuBuf);
+        this.async.all.delete(gpuBuf);
     }
     // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices#use_non-blocking_async_data_readback
-    read(box, callback, target) {
+    read(callback, optBox, optTarget) {
         const {gl} = this;
-        const {chn, glformat, type} = this.formatInfo;
-        const [x, y, w, h] = (box && box.length) ? box : [0, 0, ...this.size];
-        const n = w*h*chn;
-        this.bind(gl);
-        const buf = this. _bindAsyncBuffer(n);
-        gl.readPixels(x, y, w, h, glformat, type, 0);
+        const {box, n} = this._getBox(optBox);
+        const gpuBuf = this._bindAsyncBuffer(n);
+        this._readPixels(box, 0);
         gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
         const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
         gl.flush();
-        target = target || buf.cpu;
-        target = target.length == n ? target : target.subarray(0, n);
-        const test = ()=>{
-            if (!buf.gpu) return; // check that the buffer is not deleted
-            const res = gl.clientWaitSync(sync, 0, 0);
-            if (res === gl.TIMEOUT_EXPIRED) { setTimeout(test, 1 /*ms*/); return; }            
-            if (res === gl.WAIT_FAILED) {
-                console.log(`async read of ${this.tag} failed`);
-            } else {
-                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf.gpu);
-                gl.getBufferSubData(gl.PIXEL_PACK_BUFFER,  0 /*srcOffset*/,
-                    target, 0 /*dstOffset*/, n /*length*/);
-                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-                callback(target);
-            }
-            gl.deleteSync(sync);
-            this.async.queue.push(buf);
+        this._asyncFetch(gpuBuf, sync, callback, optTarget);
+    }
+    _asyncFetch(gpuBuf, sync, callback, optTarget) {
+        const {gl} = this;
+        if (!gpuBuf.length) {  // check that gpu buffer is not deleted
+            gl.deleteSync(sync); return;
         }
-        test();
+        const res = gl.clientWaitSync(sync, 0, 0);
+        if (res === gl.TIMEOUT_EXPIRED) { 
+            setTimeout(()=>this._asyncFetch(gpuBuf, sync, callback, optTarget), 1 /*ms*/); return; }            
+        if (res === gl.WAIT_FAILED) {
+            console.log(`async read of ${this.tag} failed`);
+        } else {
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, gpuBuf);
+            const target = optTarget || this._getCPUBuf(gpuBuf.length);
+            gl.getBufferSubData(gl.PIXEL_PACK_BUFFER,  0 /*srcOffset*/,
+                target, 0 /*dstOffset*/, gpuBuf.length /*length*/);
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+            callback(target);
+        }
+        gl.deleteSync(sync);
+        this.async.queue.push(gpuBuf);
     }
     free() {
         const gl = this.gl;

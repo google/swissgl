@@ -382,6 +382,7 @@ class TextureSampler {
     }
     get linear()  {return this.fork({filter:'linear'})}
     get nearest() {return this.fork({filter:'nearest'})}
+    get miplinear() {return this.fork({filter:'miplinear'})}
     get edge()    {return this.fork({wrap:'edge'})}
     get repeat()  {return this.fork({wrap:'repeat'})}
     get mirror()  {return this.fork({wrap:'mirror'})}
@@ -391,13 +392,14 @@ class TextureSampler {
         if (!gl._samplers) {gl._samplers = {};}
         const id = `${filter}:${wrap}`;
         if (!(id in gl._samplers)) {
-            const glfilter = { 'nearest': gl.NEAREST, 'linear': gl.LINEAR}[filter];
+            const glfilter = { 'nearest': gl.NEAREST, 'linear': gl.LINEAR,
+                'miplinear':gl.LINEAR_MIPMAP_LINEAR}[filter];
             const glwrap = {'repeat': gl.REPEAT, 'edge': gl.CLAMP_TO_EDGE,
                             'mirror': gl.MIRRORED_REPEAT}[wrap];
             const sampler = gl.createSampler();
             const setf = (k, v)=>gl.samplerParameteri(sampler, gl['TEXTURE_'+k], v);
             setf('MIN_FILTER', glfilter);
-            setf('MAG_FILTER', glfilter);
+            setf('MAG_FILTER', filter=='miplinear' ? gl.LINEAR : glfilter);
             setf('WRAP_S', glwrap);
             setf('WRAP_T', glwrap);
             gl._samplers[id] = sampler;
@@ -441,6 +443,12 @@ class TextureTarget extends TextureSampler {
         gl.bindTexture(gltarget, null);
         this.size = size;
         if (this.depth) {this.depth.update(size, data);}
+    }
+    genMipmaps() {
+        const {gl, handle, gltarget} = this;
+        gl.bindTexture(gltarget, handle);
+        gl.generateMipmap(gltarget);
+        gl.bindTexture(gltarget, null);
     }
     attach(gl) {
         if (!this.layern) {
@@ -653,11 +661,18 @@ function bindTarget(gl, target) {
 }
 
 const OptNames = new Set([
-    'Inc', 'VP', 'FP',
+    'Inc', 'VP', 'FP', 'MipGen',
     'Clear', 'Blend', 'View', 'Grid', 'Mesh', 'Aspect', 'DepthTest', 'AlphaCoverage', 'Face'
 ]);
 
 function drawQuads(self, params, target) {
+    if (params.MipGen && target) {
+        const p = {...params};
+        delete p.MipGen;
+        const r = drawQuads(self, p, target);
+        (Array.isArray(r)?r[0]:r).genMipmaps()
+        return r;
+    }
     const options={}, uniforms={}
     for (const p in params) {
         (OptNames.has(p)?options:uniforms)[p] = params[p];
@@ -771,6 +786,8 @@ function SwissGL(canvas_gl) {
         canvas_gl.getContext('webgl2', {alpha:false, antialias:true}) : canvas_gl;
     gl.getExtension("EXT_color_buffer_float");
     gl.getExtension("OES_texture_float_linear");
+    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     ensureVertexArray(gl, 1024);
     const glsl = (params, target)=>drawQuads(glsl, params, target);
     glsl.hook = wrapSwissGL;

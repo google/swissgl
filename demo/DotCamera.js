@@ -5,9 +5,6 @@
 
 class DotCamera {
     constructor(glsl, gui) {
-        this.tmp = glsl({},{size:[1,1], tag:'tmp'}); // placeholder
-        this.field = this.tmp;
-        
         this.video = document.createElement('video');
         navigator.mediaDevices.getUserMedia({ video: true })
           .then((stream) => {
@@ -18,57 +15,50 @@ class DotCamera {
           });
     }
 
-    calcForceField(glsl) {
+    frame(glsl, {time, canvasSize}) {
+        let tex;
         if (this.video.videoWidth == 0) {
-            return this.tmp;
+            tex = glsl({time, 
+                FP:`step(0.0, sin(length(XY)*20.0-time*3.0+atan(XY.x,XY.y)*3.))*0.25`},
+                {size:[512, 512], tag:'tmp'});
+        } else {
+            tex = glsl({},
+                {size:[this.video.videoWidth, this.video.videoHeight], data:this.video, tag:'video'});
         }
-        const filter = {filter:'linear', wrap:'edge'};
-        const tex = glsl({}, {size:[this.video.videoWidth, this.video.videoHeight], data:this.video, tag:'video'});
-        let lum = glsl({tex, FP:`dot(tex(1.0-UV).rgb, vec3(0.21,0.72,0.07))`},
-            {size:tex.size, ...filter, tag:'lum'});
-        const levels = {lum0:lum};
-        for (let i=1; i<=6; ++i) {
-            levels[`lum${i}`] = lum = glsl({T:lum, FP: `
-                vec2 d = T_step()*0.8;
-                FOut.r = 0.25 * (T(UV+d).r + T(UV-d).r + T(UV+vec2(d.x,-d.y)).r + T(UV+vec2(-d.x,d.y)).r);
-                `}, {size:lum.size, scale:1/2, ...filter, tag:`lum${i}`});
-        }
-        const merged = glsl({...levels, FP:`
-            sqrt((lum0(UV).r+lum1(UV).r+lum2(UV).r+lum3(UV).r+lum4(UV).r+lum5(UV).r+lum6(UV).r)/7.0)`},
-            {size:tex.size, format:'r16f', ...filter, tag:'merged'});
-        const grad = glsl({T:merged, FP:`
+        const lum = glsl({tex:tex.edge.linear, MipGen:1, 
+                VP:`vec2 r = vec2(ViewSize)/vec2(tex_size()); r /= max(r.x, r.y); VPos.xy = XY/r;`,
+                FP:`dot(tex(1.0-UV).rgb, vec3(0.21,0.72,0.07))`}, {scale:1/2, format:'r8', tag:'lum'});
+        const merged = glsl({T:lum.edge.miplinear, FP:`
+            for (float lod=0.; lod<8.0; lod+=1.0) {FOut.x += textureLod(T, UV, lod).x;}
+            FOut = vec4(FOut.x/8.0);
+        `}, {size:lum.size, format:'r16f', tag:'merged'});
+        const grad = glsl({T:merged.edge, FP:`
             vec2 s=T_step();
             float a=T(UV-s).r, b=T(UV+vec2(s.x,-s.y)).r, c=T(UV+vec2(-s.x,s.y)).r, d=T(UV+s).r;
-            FOut = vec4(b+d-a-c, c+d-a-b, 0, 0);`},
-            {size:tex.size, format:'rgba16f', ...filter, tag:'grad'});
-        return grad;
-    }
+            FOut = vec4(b+d-a-c, c+d-a-b, 0, 0);`
+        }, {size:lum.size, format:'rgba16f', tag:'grad'});
 
-    frame(glsl, {canvasSize}) {
-        const arg = {canvasSize};
-
-        const imgForce = this.calcForceField(glsl);
-
+        const arg = {canvasSize}, imgForce = grad;
+        const field = glsl({}, {scale:1/4, format:'rgba16f', filter:'linear', tag:'field'});
         let points;
         for (let i=0; i<10; ++i) {
-            points = glsl({...arg, field:this.field, imgForce, seed: Math.random()*124237, FP: `
+            points = glsl({...arg, field, imgForce:imgForce.edge.linear, seed: Math.random()*124237, FP: `
                 vec4 p=Src(I), f=field(p.xy);
                 if (p.w == 0.0) {
                     FOut = vec4(hash(ivec3(I, seed)).xy, 0.0, 1.0);
                     return;
                 }
-                if (f.z>1.9) {p.xy += 0.2*(hash(ivec3(I,seed)).xy-0.5)/canvasSize;}
+                if (f.z>2.5) {p.xy = hash(ivec3(I,seed)).xy;}
                 vec2 force = f.xy*10.0 + imgForce(p.xy).xy*20.0;
                 p.xy = clamp(p.xy + force/canvasSize, vec2(0), vec2(1));
                 FOut = p;
             `}, {scale:1/8, story:2, format:'rgba32f', tag:'points'});
 
-            this.field = glsl({...arg, points:points[0], Grid: points[0].size, Blend:'s+d', Clear:0, VP:`
+            glsl({...arg, points:points[0], Grid: points[0].size, Blend:'s+d', Clear:0, VP:`
                 VPos.xy = (points(ID.xy).xy + XY*15.0/canvasSize)*2.0-1.0;
                 `, FP:`vec3(XY,1.)*exp(-dot(XY,XY)*vec3(4,4,8)),0`},
-                {scale:1/4, format:'rgba16f', filter:'linear', tag:'field'})
+                field)
         }
-
         // draw dots on screen
         glsl({...arg, points:points[0], Grid: points[0].size, Blend:'s+d', VP:`
         VPos.xy = (points(ID.xy).xy + XY*4.0/canvasSize)*2.0-1.0;

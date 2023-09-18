@@ -1,7 +1,7 @@
 # Changelog
 
 ### 2023-09-12
-* Async texture fetch support (`target.read(box, data=>{...})`)
+* Async texture fetch support (see (FancyLenia)[https://google.github.io/swissgl/#FancyLenia] demo)
 
 ### 2023-09-07
 * Samplers support (see [TextureSamplers](https://google.github.io/swissgl/#TextureSamplers) demo)

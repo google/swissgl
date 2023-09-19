@@ -678,8 +678,7 @@ function drawQuads(self, params, target) {
         (OptNames.has(p)?options:uniforms)[p] = params[p];
     }
     const [Inc, VP, FP] = [options.Inc||'', options.VP||'', options.FP||''];
-    const emptyShader = !VP && !FP;
-    const shaderID = Inc+VP+FP;
+    const noShader = !VP && !FP;
 
     // setup target
     if (!isReadyTarget(target)) {
@@ -690,7 +689,7 @@ function drawQuads(self, params, target) {
     }
 
     // bind (and clear) target
-    if (options.Clear === undefined && emptyShader) {
+    if (options.Clear === undefined && noShader) {
         return target;
     }
     const gl = self.gl;
@@ -713,9 +712,10 @@ function drawQuads(self, params, target) {
     }
 
     // setup program
-    if (emptyShader) {
+    if (noShader) {
         return target;
     }
+    const shaderID = Inc+VP+FP;
     if (!(shaderID in self.shaders)) {
         self.shaders[shaderID] = linkShader(gl, uniforms, Inc, VP, FP);
     }
@@ -758,9 +758,7 @@ function drawQuads(self, params, target) {
     gl.bindVertexArray(gl._indexVA);
 
     // setup uniforms and textures
-    for (const name in prog.setters) {
-        prog.setters[name](uniforms[name]);
-    }
+    Object.entries(prog.setters).forEach(([name, f])=>f(uniforms[name]));
     // draw
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, vertN, instN);
     

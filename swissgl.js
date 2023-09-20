@@ -154,8 +154,7 @@ function compileProgram(gl, vs, fs) {
             gl.uniform1i(loc, unit);
             program.setters[name] = tex=>{
                 gl.activeTexture(gl.TEXTURE0+unit);
-                gl.bindTexture(target, tex?tex.handle:null);
-                if (tex) gl.bindSampler(unit, tex._sampler);
+                tex ? tex.bindSampler(unit) : gl.bindTexture(target, null);
             }
         } else {
             const fname = Type2Setter[info.type];
@@ -377,8 +376,8 @@ function linkShader(gl, uniforms, Inc, VP, FP) {
 
 class TextureSampler {
     fork(updates) {
-        const {gl, handle, layern, filter, wrap} = {...this, ...updates};
-        return updateObject(new TextureSampler(), {gl, handle, layern, filter, wrap});
+        const {gl, handle, gltarget, layern, filter, wrap} = {...this, ...updates};
+        return updateObject(new TextureSampler(), {gl, handle, gltarget, layern, filter, wrap});
     }
     get linear()  {return this.fork({filter:'linear'})}
     get nearest() {return this.fork({filter:'nearest'})}
@@ -405,6 +404,16 @@ class TextureSampler {
             gl._samplers[id] = sampler;
         }
         return gl._samplers[id];
+    }
+    bindSampler(unit) {
+        // assume unit is already active
+        const {gl, gltarget, handle} = this;
+        gl.bindTexture(gltarget, handle);
+        if (this.filter == 'miplinear' && !handle.hasMipmap) {
+            gl.generateMipmap(gltarget)
+            handle.hasMipmap = true;
+        }
+        gl.bindSampler(unit, this._sampler);
     }
 }
 
@@ -444,12 +453,6 @@ class TextureTarget extends TextureSampler {
         this.size = size;
         if (this.depth) {this.depth.update(size, data);}
     }
-    genMipmaps() {
-        const {gl, handle, gltarget} = this;
-        gl.bindTexture(gltarget, handle);
-        gl.generateMipmap(gltarget);
-        gl.bindTexture(gltarget, null);
-    }
     attach(gl) {
         if (!this.layern) {
             const attachment = this.format == 'depth' ? gl.DEPTH_ATTACHMENT : gl.COLOR_ATTACHMENT0;
@@ -466,7 +469,7 @@ class TextureTarget extends TextureSampler {
             gl.drawBuffers(drawBuffers);
         }
     }
-    bind(gl) {
+    bind(gl, readonly=false) {
         if (this.fbo) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
         } else {
@@ -475,6 +478,7 @@ class TextureTarget extends TextureSampler {
             this.attach(gl)
             if (this.depth) this.depth.attach(gl);
         }
+        if (!readonly) {this.handle.hasMipmap = false;}
         return this.size;
     }
     _getBox(box) {
@@ -490,7 +494,7 @@ class TextureTarget extends TextureSampler {
     }
     _readPixels(box, targetBuf) {
         const {glformat, type} = this.formatInfo;
-        this.bind(this.gl);
+        this.bind(this.gl, /*readonly*/true);
         this.gl.readPixels(...box, glformat, type, targetBuf);
     }
     readSync(...optBox) {
@@ -618,7 +622,10 @@ function isReadyTarget(target) {
     return !target /*cavnas*/ || Array.isArray(target) || !!target.bind;
 }
 
-function getTargetSize(gl, {size, scale=1}) {
+function getTargetSize(gl, {size, scale=1, data}) {
+    if (!size && (data && data.videoWidth && data.videoHeight)) {
+        size = [data.videoWidth, data.videoHeight];
+    }
     size = size || [gl.canvas.width, gl.canvas.height];
     return [Math.ceil(size[0]*scale), Math.ceil(size[1]*scale)];
 }
@@ -661,18 +668,11 @@ function bindTarget(gl, target) {
 }
 
 const OptNames = new Set([
-    'Inc', 'VP', 'FP', 'MipGen',
+    'Inc', 'VP', 'FP',
     'Clear', 'Blend', 'View', 'Grid', 'Mesh', 'Aspect', 'DepthTest', 'AlphaCoverage', 'Face'
 ]);
 
 function drawQuads(self, params, target) {
-    if (params.MipGen && target) {
-        const p = {...params};
-        delete p.MipGen;
-        const r = drawQuads(self, p, target);
-        (Array.isArray(r)?r[0]:r).genMipmaps()
-        return r;
-    }
     const options={}, uniforms={}
     for (const p in params) {
         (OptNames.has(p)?options:uniforms)[p] = params[p];

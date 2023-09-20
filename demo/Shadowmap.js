@@ -52,11 +52,12 @@ class Shadowmap {
         const target = shadowPass ? 
             glsl({}, {size:[1024, 1024], format:'depth', tag:'shadowmap'}) : null;
         params = {...params, shadowPass, DepthTest:1};
+        // sphere
         glsl({...params, Grid:[3], Mesh:[32,32], Clear:[.5,.5,.8,1], VP:`
         Normal = uv2sphere(UV);
         emitVertex(Normal*0.3-vec3(0,0,0.3));`, FP:`
         emitFragment(vec3(0.8, 0.2, 0.2));`}, target);
-
+        // spirals
         glsl({...params, Mesh:[10, 256], VP:`
         vec3 surf(vec2 uv) {
             float s = uv.y*TAU*8.0;
@@ -68,7 +69,7 @@ class Shadowmap {
         void vertex() {
             emitVertex(SURF(surf, UV, Normal, 1e-3));
         }`, FP:`emitFragment(vec3(0.3, 0.7, 0.2));`}, target);
-
+        // snow
         glsl({...params, Grid:[16, 16, 16], VP:`
         PointSize = 0.005;
         Normal = vec3(0,0,1);
@@ -76,7 +77,6 @@ class Shadowmap {
         emitVertex((p-0.5)*2.0);`, FP:`
         if (length(XY)>1.0) discard;
         emitFragment(vec3(0.9, 0.9, 0.8));`}, target);
-
         // floor
         glsl({...params, Face:'front', VP:`
         Normal = vec3(0,0,1);

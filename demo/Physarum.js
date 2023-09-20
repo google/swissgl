@@ -13,9 +13,9 @@ class Physarum {
         const par = (s, v, ...arg)=>{U[s]||=v;controllers.push(gui.add(U,s,...arg))};
         const presets = {
             worms: {senseFlip: false, senseAng:15, senseDist:10,moveAng:7,moveDist:1},
-            mesh: {senseFlip: false, senseAng:42, senseDist:19,moveAng:7,moveDist:2},
+            mesh:{senseFlip:false, senseAng:45, senseDist:15, moveAng:17,moveDist:1},        
             flocks: {senseFlip: true, senseAng:40, senseDist:36,moveAng:7,moveDist:1},
-            swirl:{senseFlip: true, senseAng:1.28, senseDist: 19, moveAng: 7, moveDist: 2},            
+            swirl:{senseFlip: true, senseAng:1.28, senseDist: 19, moveAng: 7, moveDist: 2},    
         };
         this.preset = 'worms';
         gui.add(this, 'preset', Object.keys(presets)).onChange(name=>{

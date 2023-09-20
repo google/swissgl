@@ -19,15 +19,13 @@ class DotCamera {
 
     frame(glsl, {time, canvasSize}) {
         let tex;
-        if (this.video.videoWidth == 0) {
-            tex = glsl({time, 
-                FP:`step(0.0, sin(length(XY)*20.0-time*3.0+atan(XY.x,XY.y)*3.))*0.25`},
-                {size:[512, 512], tag:'tmp'});
+        if (this.video.videoWidth) {
+            tex = glsl({}, {data:this.video, tag:'video'});
         } else {
-            tex = glsl({},
-                {size:[this.video.videoWidth, this.video.videoHeight], data:this.video, tag:'video'});
+            tex = glsl({time, FP:`step(0.0, sin(length(XY)*20.0-time*3.0+atan(XY.x,XY.y)*3.))*0.25`},
+                {size:[512, 512], tag:'tmp'});
         }
-        const lum = glsl({tex:tex.edge.linear, MipGen:1, 
+        const lum = glsl({tex:tex.edge.linear,
             VP:`vec2 r = vec2(ViewSize)/vec2(tex_size()); r /= max(r.x, r.y); VPos.xy = XY/r;`,
             FP:`dot(tex(1.0-UV).rgb, vec3(0.21,0.72,0.07))`}, {scale:1/2, format:'r8', tag:'lum'});
         const merged = glsl({T:lum.edge.miplinear, FP:`

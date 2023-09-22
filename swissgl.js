@@ -432,7 +432,7 @@ class TextureTarget extends TextureSampler {
         this.filter = format=='depth' ? 'nearest' : filter;
         this.gltarget = layern ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D;
         this.formatInfo = TextureFormats[format];
-        updateObject(this, {gl, tag, format, layern, wrap, depth});
+        updateObject(this, {gl, _tag:tag, format, layern, wrap, depth});
         this.update(size, data);
     }
     update(size, data) {
@@ -521,7 +521,7 @@ class TextureTarget extends TextureSampler {
             const byteN = n * this.formatInfo.CpuArray.BYTES_PER_ELEMENT
             gl.bufferData(gl.PIXEL_PACK_BUFFER, byteN, gl.STREAM_READ);
             gpuBuf.length = n;
-            console.log(`created/resized async gpu buffer "${this.tag}":`, gpuBuf);
+            console.log(`created/resized async gpu buffer "${this._tag}":`, gpuBuf);
         }
         return gpuBuf;
     }
@@ -550,7 +550,7 @@ class TextureTarget extends TextureSampler {
         if (res === gl.TIMEOUT_EXPIRED) { 
             setTimeout(()=>this._asyncFetch(gpuBuf, sync, callback, optTarget), 1 /*ms*/); return; }            
         if (res === gl.WAIT_FAILED) {
-            console.log(`async read of ${this.tag} failed`);
+            console.log(`async read of ${this._tag} failed`);
         } else {
             gl.bindBuffer(gl.PIXEL_PACK_BUFFER, gpuBuf);
             const target = optTarget || this._getCPUBuf(gpuBuf.length);
@@ -618,10 +618,6 @@ function ensureVertexArray(gl, neededSize) {
     console.log('created:', va);
 }
 
-function isReadyTarget(target) {
-    return !target /*cavnas*/ || Array.isArray(target) || !!target.bind;
-}
-
 function getTargetSize(gl, {size, scale=1, data}) {
     if (!size && (data && data.videoWidth && data.videoHeight)) {
         size = [data.videoWidth, data.videoHeight];
@@ -635,9 +631,6 @@ function createTarget(gl, params) {
     return Array(params.story).fill(0).map(_=>new TextureTarget(gl, params));
 }
 function prepareOwnTarget(self, spec) {
-    if (!spec.tag) {
-        throw 'target must have a tag';
-    }
     const buffers = self.buffers;
     spec.size = getTargetSize(self.gl, spec);
     if (!buffers[spec.tag]) {
@@ -649,7 +642,7 @@ function prepareOwnTarget(self, spec) {
     const needResize = tex.size[0] != spec.size[0] || tex.size[1] != spec.size[1];
     if (needResize || spec.data) {
         if (needResize) {
-            console.log(`resized tex (${tex.size})->(${spec.size})`);
+            console.log(`resizing "${spec.tag}" (${tex.size})->(${spec.size})`);
         }
         tex.update(spec.size, spec.data);
     }
@@ -679,19 +672,18 @@ function drawQuads(self, params, target) {
     }
     const [Inc, VP, FP] = [options.Inc||'', options.VP||'', options.FP||''];
     const noShader = !VP && !FP;
+    const noDraw = (options.Clear === undefined) && noShader;
 
     // setup target
-    if (!isReadyTarget(target)) {
+    if (target && target.tag) {
         target = prepareOwnTarget(self, target);
+        if (noDraw) return target;
     }
     if (Array.isArray(target)) {
         uniforms.Src = uniforms.Src || target[0];
     }
 
     // bind (and clear) target
-    if (options.Clear === undefined && noShader) {
-        return target;
-    }
     const gl = self.gl;
     const targetSize = bindTarget(gl, target);
     let view = options.View || [0, 0, targetSize[0], targetSize[1]];

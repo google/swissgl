@@ -26,7 +26,7 @@ class ParticleLife3d extends ParticleLife {
         const glsl = this.shadowmap.glsl;
         const shadowPass = !params.shadowmap;
         const target = shadowPass ? 
-            glsl({Clear:0}, {size:[1024, 1024], format:'depth', tag:'shadowmap'}) : null;
+            glsl({Clear:0}, {size:[2048, 2048], format:'depth', tag:'shadowmap'}) : null;
         params = {...params, shadowPass, DepthTest:1};
 
         const { K, points, worldExtent } = this;

@@ -81,7 +81,7 @@ class ParticleLife3d extends ParticleLife {
             vec2 v = clamp(proj.xy+XY*portalR,-1.0, 1.0);
             varying vec3 dp = vec3(v-proj.xy, 1.0-abs(proj.z))/portalR;
             VPos = vec4((v.x*0.5+0.5+float(ID.z))/3.0*2.0-1.0, v.y, 0,1);`, FP:`
-            1.0-length(dp)`}, {size:[256*3, 256], tag:'portalmap'});
+            1.0-length(dp)`}, {size:[256*3, 256], filter:'linear', tag:'portalmap'});
         const shadowmap = this.drawScene(params);
         this.drawScene({...params, Aspect:'fit', shadowmap, portalmap});
     }

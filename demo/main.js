@@ -112,10 +112,6 @@ class DemoApp {
         this.canvas.addEventListener('pointerdown', e=>{
             if (!e.isPrimary) return;
             setPointer(e, e.buttons);
-            if (window.innerWidth < 500) {
-                // close menu on small screens
-                $('#panel').removeAttribute("open");
-            }
         });
         this.canvas.addEventListener('pointerout', e=>setPointer(e, 0));
         this.canvas.addEventListener('pointerup', e=>setPointer(e, 0));

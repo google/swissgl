@@ -36,14 +36,28 @@
     <div id="cards"></div>
 </details>
 <div id="demo">
-  <canvas id="c" width="640" height="360"></canvas>
+    <canvas id="c" width="640" height="360"></canvas>
+    <button title="about" id="aboutButton" onclick="showAbout()">?</button>
+    <div id="buttons">
+        <button title="VR" onclick="toggleVR()" id="vrButton">VR</button>
+        <button title="AR" onclick="toggleAR()" id="arButton">AR</button>
+        <button title="settings" onclick="toggleGui()" id="settingButton" style="font-size: 180%;">⛯</button>
+        <button title="source code"><a id='sourceLink' href="" target="_blank">&lt;&gt;</a></button>
+        <button title="fullscreen" onclick="fullscreen()"">⛶</button>
+    </div>
 </div>
-<div id="buttons">
-    <button title="VR" onclick="toggleVR()" id="vrButton">VR</button>
-    <button title="AR" onclick="toggleAR()" id="arButton">AR</button>
-    <button title="settings" onclick="toggleGui()" id="settingButton" style="font-size: 180%;">⛯</button>
-    <a id='sourceLink' href="" target="_blank"><button title="source code">&lt;&gt;</button></a>
-    <button title="fullscreen" onclick="fullscreen()"">⛶</button>
+<div id="about">
+    <p>
+        <a href="https://github.com/google/swissgl"><b>SwissGL</b></a>
+        is a prototype of a minimal yet expressive GPU library built on 
+        WebGL2. A single <nobr>"glsl()"</nobr> function runs GLSL code 
+        snippets on the GPU and manages the resulting texture buffers.
+    </p>
+    <p>
+        This page contains a few demos built using the library. Make sure you click 
+        the <nobr>"&lt;&gt;"</nobr> button to see the source of the current example.
+    </p>
+    <button style="font-size: 20px; margin: auto;" onclick="hideAbout()">hide</button>
 </div>
 <script>
     'use strict';
@@ -64,4 +78,15 @@
     function toggleAR() {
         app.toggleXR('ar');
     }
+    const showAbout = ()=>{$('#about').style.display = 'block';}
+    const hideAbout = ()=>{$('#about').style.display = 'none';}
+    $('#demo').addEventListener('pointerdown', ()=>{
+        hideAbout();
+        if (window.innerWidth < 500) {
+            // close menu on small screens
+            $('#panel').removeAttribute("open");
+        }
+    })
+    $('#panel').addEventListener('click', hideAbout);
+
 </script>

@@ -43,6 +43,7 @@ class ParticleLife3d extends ParticleLife {
         if (!shadowPass) {
             for (const face of ['back', 'front'])
             glsl({...params, Grid:[6,1], Blend:'d*(1-sa)+s',
+                portalColor: face=='back'?[0.5, 1.0, 1.5]:[1.5, 1.0, 0.5],
                 Face:face, DepthTest:face=='front'?'keep':1, VP:`
             vec3 p = cubeVert(XY, ID.x)*0.5+0.5;
             Normal = -cubeVert(vec2(0), ID.x);
@@ -65,7 +66,7 @@ class ParticleLife3d extends ParticleLife {
             vec2 dp=portalmap_step()*0.5, p=clamp(portalPos.xy, dp,1.0-dp);
             p = (p+vec2(portalPos.z,0)) / vec2(3,1);
             float portal = portalmap(p).r;
-            FOut = mix(FOut, vec4(0.5, 1.0, 1.5, 1.0), portal);`});
+            FOut = mix(FOut, vec4(portalColor, 1.0), portal);`});
         }
         return target;
     }

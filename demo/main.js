@@ -88,7 +88,7 @@ class DemoApp {
             }
             delete params.Aspect;
             let glLayer = this.xrSession.renderState.baseLayer;
-            target = {bind:(gl)=>{
+            target = {bindTarget:(gl)=>{
                 gl.bindFramebuffer(gl.FRAMEBUFFER, glLayer.framebuffer);
                 return [glLayer.framebufferWidth, glLayer.framebufferHeight];
             }}

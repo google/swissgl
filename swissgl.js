@@ -469,7 +469,7 @@ class TextureTarget extends TextureSampler {
             gl.drawBuffers(drawBuffers);
         }
     }
-    bind(gl, readonly=false) {
+    bindTarget(gl, readonly=false) {
         if (this.fbo) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
         } else {
@@ -494,7 +494,7 @@ class TextureTarget extends TextureSampler {
     }
     _readPixels(box, targetBuf) {
         const {glformat, type} = this.formatInfo;
-        this.bind(this.gl, /*readonly*/true);
+        this.bindTarget(this.gl, /*readonly*/true);
         this.gl.readPixels(...box, glformat, type, targetBuf);
     }
     readSync(...optBox) {
@@ -513,7 +513,7 @@ class TextureTarget extends TextureSampler {
             this.async.all.add(gpuBuf);
         }
         const gpuBuf = this.async.queue.shift();
-        if (this.async.queue.length > 2) {
+        if (this.async.queue.length > 6) {
             this._deleteAsyncBuf(this.async.queue.pop());
         }
         gl.bindBuffer(gl.PIXEL_PACK_BUFFER, gpuBuf);
@@ -657,7 +657,7 @@ function bindTarget(gl, target) {
     if (Array.isArray(target)) {
         target.unshift(target = target.pop());
     }
-    return target.bind(gl)
+    return target.bindTarget(gl)
 }
 
 const OptNames = new Set([

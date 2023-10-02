@@ -691,7 +691,7 @@ function drawQuads(self, params, target) {
         view = [0, 0, view[0], view[1]]
     }
     gl.depthMask(!(options.DepthTest == 'keep'));
-    if (options.Clear !== undefined) {  // can be 0.0
+    if ((typeof options.Clear === 'number') || Array.isArray(options.Clear)) {
         let clear = options.Clear;
         if (typeof clear === 'number') {
             clear = [clear, clear, clear, clear];

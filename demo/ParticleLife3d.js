@@ -72,10 +72,9 @@ class ParticleLife3d extends ParticleLife {
                 float spot = smoothstep(0.995, 0.999, -dot(getLightDir(), getEyeDir()));
                 FOut = vec4(clamp(vec3(0.9, 0.8, 0.7)*(0.5+ao*0.5)+spot, 0., 1.), 1);
             } else {
-                emitFragment(vec3(ao));
+                float grid = 1.0-0.2*(isoline(UV.x*4.0)+isoline(UV.y*4.0));
+                emitFragment(vec3(ao*grid));
             }
-            float edge = sqrt(isoline(UV.x*4.0)+isoline(UV.y*4.0));
-            FOut = mix(FOut, vec4(0,0,0,1), edge*0.1);
         }
         vec2 dp=portalmap_step()*0.5, p=clamp(portalPos.xy, dp,1.0-dp);
         p = (p+vec2(portalPos.z,0)) / vec2(3,1);

@@ -1,1 +1,2 @@
-// Reexport your entry components here
+export * from './swissgl.js';
+export { SwissGL as default } from './swissgl.js';

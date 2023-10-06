@@ -1,26 +1,30 @@
-/** @license 
-  * Copyright 2023 Google LLC.
-  * SPDX-License-Identifier: Apache-2.0 
-  */
+/** @license
+ * Copyright 2023 Google LLC.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 class ReactionDiffusion {
-    static Tags = ['2d', 'simulation'];
+	static Tags = ['2d', 'simulation'];
 
-    constructor(glsl, gui) {
-        this.glsl = glsl;
-        this.step_n = 1;
-        gui.add(this, 'reset');
-        gui.add(this, 'step_n', 0, 20, 1);
-        this.reset();
-    }
+	constructor(glsl, gui) {
+		this.glsl = glsl;
+		this.step_n = 1;
+		gui.add(this, 'reset');
+		gui.add(this, 'step_n', 0, 20, 1);
+		this.reset();
+	}
 
-    reset() {
-        this.state = this.glsl({FP:`1.0, exp(-400.0*dot(XY,XY))*hash(I.xyx).x, 0, 0`}, 
-        {size:[256, 256], format:'rgba16f', filter:'linear', story:2, tag:'state'});
-    }
+	reset() {
+		this.state = this.glsl(
+			{ FP: `1.0, exp(-400.0*dot(XY,XY))*hash(I.xyx).x, 0, 0` },
+			{ size: [256, 256], format: 'rgba16f', filter: 'linear', story: 2, tag: 'state' }
+		);
+	}
 
-    step() {
-        this.glsl({FP:`
+	step() {
+		this.glsl(
+			{
+				FP: `
             vec2 v = Src(I).xy;
             {
                 ivec2 D=Src_size();
@@ -32,30 +36,47 @@ class ReactionDiffusion {
             const float k=0.05684, f=0.02542;
             float r = v.x*v.y*v.y;
             FOut.xy = v + vec2(-r+f*(1.0-v.x), r-(f+k)*v.y);
-            `}, this.state);
-        
-    }
+            `
+			},
+			this.state
+		);
+	}
 
-    frame(glsl, params) {
-        const {state} = this;
-        for (let i=0; i<this.step_n; ++i) this.step();
+	frame(glsl, params) {
+		const { state } = this;
+		for (let i = 0; i < this.step_n; ++i) this.step();
 
-        const [x, y, _] = params.pointer;
-        const s = 2.0/Math.min(...params.canvasSize);
-        const touchPos = [x*s, y*s];
-        const Inc = `
+		const [x, y, _] = params.pointer;
+		const s = 2.0 / Math.min(...params.canvasSize);
+		const touchPos = [x * s, y * s];
+		const Inc = `
         vec2 state2screen(vec2 v) {
             return vec2((1.0-v.x)*2.0,v.y*4.0+0.1)-1.0;
         }`;
 
-        const hist = glsl({state:state[0], Grid: state[0].size, Blend:'s+d',
-        Clear:0, Inc, VP:`
+		const hist = glsl(
+			{
+				state: state[0],
+				Grid: state[0].size,
+				Blend: 's+d',
+				Clear: 0,
+				Inc,
+				VP: `
         vec2 v = state(ID.xy).xy;
         VPos.xy = state2screen(v) + XY*0.006;
-        `, FP:`exp(-dot(XY,XY)*4.0)`},
-        {size:[512, 512], format:'rgba16f',  filter:'linear', tag:'hist', wrap:'edge'});
+        `,
+				FP: `exp(-dot(XY,XY)*4.0)`
+			},
+			{ size: [512, 512], format: 'rgba16f', filter: 'linear', tag: 'hist', wrap: 'edge' }
+		);
 
-        glsl({state:state[0], hist, Aspect:'fit', touchPos, Inc, FP:`
+		glsl({
+			state: state[0],
+			hist,
+			Aspect: 'fit',
+			touchPos,
+			Inc,
+			FP: `
         vec2 v = state(UV).xy;
         FOut = vec4(sqrt(v.y));
 
@@ -64,6 +85,7 @@ class ReactionDiffusion {
 
         float r = length(state2screen(v)-touchPos)*20.0;
         float s = length(XY-touchPos)*20.0;
-        FOut.g += exp(-r*r) + exp(-s*s);`})
-    }
+        FOut.g += exp(-r*r) + exp(-s*s);`
+		});
+	}
 }

@@ -1,10 +1,11 @@
 /** @license
  * Copyright 2023 Google LLC.
+ * Copyright 2023 João Paquim
  * SPDX-License-Identifier: Apache-2.0
  */
 
 // Example of streaming spectrogram data from WebAudio to WebGL2
-class Spectrogram {
+export default class Spectrogram {
 	static Tags = ['3d', 'data'];
 
 	constructor(glsl, gui) {
@@ -17,7 +18,7 @@ class Spectrogram {
 				this.analyser.smoothingTimeConstant = 0.5;
 				this.input.connect(this.analyser);
 				this.frequencyArray = new Uint8Array(this.analyser.frequencyBinCount);
-				console.log('mic activated, frequencyBinCount:', this.analyser.frequencyBinCount);
+				console.debug('mic activated, frequencyBinCount:', this.analyser.frequencyBinCount);
 			})
 			.catch((e) => console.error('Error getting microphone:', e));
 	}

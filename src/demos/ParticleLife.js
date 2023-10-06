@@ -1,10 +1,11 @@
 /** @license
  * Copyright 2023 Google LLC.
+ * Copyright 2023 João Paquim
  * SPDX-License-Identifier: Apache-2.0
  */
 
 // Inspired by the video https://youtu.be/p4YirERTVF0?t=480
-class ParticleLife {
+export default class ParticleLife {
 	static Tags = ['2d', 'simulation'];
 	constructor(glsl, gui) {
 		this.glsl = glsl;

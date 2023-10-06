@@ -1,9 +1,10 @@
 /** @license
  * Copyright 2023 Google LLC.
+ * Copyright 2023 João Paquim
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class ReactionDiffusion {
+export default class ReactionDiffusion {
 	static Tags = ['2d', 'simulation'];
 
 	constructor(glsl, gui) {

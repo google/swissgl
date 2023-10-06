@@ -1,10 +1,14 @@
 /** @license
  * Copyright 2023 Google LLC.
+ * Copyright 2023 João Paquim
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import ParticleLife from './ParticleLife.js';
+import Shadowmap from './Shadowmap.js';
+
 // Inspired by the video https://youtu.be/p4YirERTVF0?t=480
-class ParticleLife3d extends ParticleLife {
+export default class ParticleLife3d extends ParticleLife {
 	static Tags = ['3d', 'simulation', 'shadows'];
 
 	constructor(glsl, gui) {

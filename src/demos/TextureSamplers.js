@@ -1,10 +1,11 @@
 /** @license
  * Copyright 2023 Google LLC.
+ * Copyright 2023 João Paquim
  * SPDX-License-Identifier: Apache-2.0
  */
 
 // Use different sampling modes on the same texture
-class TextureSamplers {
+export default class TextureSamplers {
 	static Tags = ['2d'];
 	frame(glsl, { time }) {
 		const T = glsl(

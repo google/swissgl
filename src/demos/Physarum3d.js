@@ -1,9 +1,10 @@
 /** @license
  * Copyright 2023 Google LLC.
+ * Copyright 2023 João Paquim
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class Physarum3d {
+export default class Physarum3d {
 	static Tags = ['3d'];
 
 	constructor(glsl, gui) {

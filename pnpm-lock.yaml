@@ -14,6 +14,9 @@ devDependencies:
   '@sveltejs/package':
     specifier: ^2.0.0
     version: 2.2.2(svelte@4.2.1)(typescript@5.2.2)
+  '@types/webxr':
+    specifier: ^0.5.5
+    version: 0.5.5
   '@typescript-eslint/eslint-plugin':
     specifier: ^6.0.0
     version: 6.7.4(@typescript-eslint/parser@6.7.4)(eslint@8.50.0)(typescript@5.2.2)
@@ -29,6 +32,9 @@ devDependencies:
   eslint-plugin-svelte:
     specifier: ^2.30.0
     version: 2.34.0(eslint@8.50.0)(svelte@4.2.1)
+  lil-gui:
+    specifier: ^0.18.2
+    version: 0.18.2
   prettier:
     specifier: ^3.0.3
     version: 3.0.3
@@ -492,6 +498,10 @@ packages:
 
   /@types/semver@7.5.3:
     resolution: {integrity: sha512-OxepLK9EuNEIPxWNME+C6WwbRAOOI2o2BaQEGzz5Lu2e4Z5eDnEo+/aVEDMIXywoJitJ7xWd641wrGLZdtwRyw==}
+    dev: true
+
+  /@types/webxr@0.5.5:
+    resolution: {integrity: sha512-HVOsSRTQYx3zpVl0c0FBmmmcY/60BkQLzVnpE9M1aG4f2Z0aKlBWfj4XZ2zr++XNBfkQWYcwhGlmuu44RJPDqg==}
     dev: true
 
   /@typescript-eslint/eslint-plugin@6.7.4(@typescript-eslint/parser@6.7.4)(eslint@8.50.0)(typescript@5.2.2):
@@ -1305,6 +1315,10 @@ packages:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+    dev: true
+
+  /lil-gui@0.18.2:
+    resolution: {integrity: sha512-DgdrLy3/KGC0PiQLKgOcJMPItP4xY4iWgJ9+91Zaxfr8GCTmMps05QS9w9jW7yspILlbscbquwjOwxmWnSx5Uw==}
     dev: true
 
   /lilconfig@2.1.0:

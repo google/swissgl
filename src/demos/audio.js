@@ -1,10 +1,11 @@
 /** @license
  * Copyright 2023 Google LLC.
+ * Copyright 2023 João Paquim
  * SPDX-License-Identifier: Apache-2.0
  */
 
 class AudioWorkletProcessor {}
-class AudioStream extends AudioWorkletProcessor {
+export default class AudioStream extends AudioWorkletProcessor {
 	constructor() {
 		super();
 		this.chunkSize = 1024;
@@ -64,7 +65,7 @@ class AudioStream extends AudioWorkletProcessor {
 		const submit = (buf) => this.workletNode.port.postMessage(buf, [buf.buffer]);
 		this.workletNode.port.onmessage = (msg) => callback(msg.data, submit);
 		this.workletNode.connect(this.audioContext.destination);
-		console.log('audio stream started');
+		console.debug('audio stream started');
 	}
 	stop() {
 		this.audioContext.close();

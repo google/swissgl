@@ -1,9 +1,10 @@
 /** @license
  * Copyright 2023 Google LLC.
+ * Copyright 2023 João Paquim
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class DotCamera {
+export default class DotCamera {
 	constructor(glsl, gui) {
 		this.video = document.createElement('video');
 		this.dayMode = false;
@@ -17,7 +18,7 @@ class DotCamera {
 				this.video.play();
 			})
 			.catch((error) => {
-				console.log('Error accessing camera:', error);
+				console.warn('Error accessing camera:', error);
 			});
 	}
 

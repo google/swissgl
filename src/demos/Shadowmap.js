@@ -1,9 +1,10 @@
 /** @license
  * Copyright 2023 Google LLC.
+ * Copyright 2023 João Paquim
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class Shadowmap {
+export default class Shadowmap {
 	static Tags = ['3d', 'shadows'];
 
 	constructor(glsl, gui) {

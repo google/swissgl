@@ -1,9 +1,10 @@
 /** @license
  * Copyright 2023 Google LLC.
+ * Copyright 2023 João Paquim
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class ColorCube {
+export default class ColorCube {
 	static Tags = ['3d'];
 
 	frame(glsl, params) {

@@ -707,11 +707,10 @@ function drawQuads(self, params, target) {
     if (noShader) {
         return target;
     }
-    const shaderID = Inc+VP+FP;
-    if (!(shaderID in self.shaders)) {
-        self.shaders[shaderID] = linkShader(gl, uniforms, Inc, VP, FP);
-    }
-    const prog = self.shaders[shaderID];
+    let prog = self.shaders;
+    prog = prog[Inc] || (prog[Inc] = {});
+    prog = prog[VP] || (prog[VP] = {});
+    prog = prog[FP] || (prog[FP] = linkShader(gl, uniforms, Inc, VP, FP));
     gl.useProgram(prog);
     
     // process options

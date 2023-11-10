@@ -785,7 +785,8 @@ function SwissGL(canvas_gl) {
     glsl.shaders = {};
     glsl.buffers = {};
     glsl.reset = ()=>{
-        Object.values(glsl.shaders).forEach(prog=>gl.deleteProgram(prog));
+        const freeProg = o=>(o instanceof WebGLProgram) ? gl.deleteProgram(o) : Object.values(o).forEach(freeProg);
+        freeProg(glsl.shaders);
         Object.values(glsl.buffers).flat().forEach(target=>target.free());
         glsl.shaders = {};
         glsl.buffers = {};

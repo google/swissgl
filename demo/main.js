@@ -81,8 +81,9 @@ class DemoApp {
                 return wld2proj(vec4(p,1.0));
             }
         `;
-        this.withCamera = this.glsl.hook((glsl, params, target)=>{
-            params = {...params, Inc:this.glsl_include+(params.Inc||'')};
+        const glsl = this.glsl;
+        this.withCamera = (params, target)=>{
+            params = {...params, Inc:[this.glsl_include].concat(params.Inc||[])};
             if (target || !params.xrMode) {
                 return glsl(params, target);
             }
@@ -101,7 +102,7 @@ class DemoApp {
                 params.xrPosition = [x, y, z];
                 glsl(params, target);
             }
-        });
+        };
 
         const setPointer = (e, buttons)=>{
             const [w, h] = this.viewParams.canvasSize;
@@ -276,8 +277,8 @@ class DemoApp {
         const canvas = document.createElement('canvas');
         canvas.width = 400; canvas.height = 300;
         const glsl = SwissGL(canvas);
-        const withCamera = glsl.hook((glsl, p, t)=>glsl(
-            {...p, Inc:this.glsl_include+(p.Inc||'')}, t));
+        const withCamera = (params, target)=>glsl({...params, 
+            Inc:[this.glsl_include].concat(params.Inc||[])}, target);
         Object.keys(this.demos).forEach(name=>{
             if (name == 'Spectrogram') return;
             const dummyGui = new dat.GUI();

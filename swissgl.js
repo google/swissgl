@@ -19,6 +19,7 @@
 // - stencil?
 // - mipmaps?
 // data texture subimage?
+// integer textures
 // glsl lib
 // - hash (overloads)
 // - 3d prim/helpers
@@ -339,6 +340,7 @@ function stripVaryings(VP) {
 }
 
 function linkShader(gl, uniforms, Inc, VP, FP) {
+    Inc = Inc.join('\n');
     const defined = definedUniforms([glsl_template, Inc, VP, FP].join('\n'));
     const undefined = Object.entries(uniforms)
         .filter(kv=>kv[0].match(/^\w+$/))
@@ -670,7 +672,9 @@ function drawQuads(self, params, target) {
     for (const p in params) {
         (OptNames.has(p)?options:uniforms)[p] = params[p];
     }
-    const [Inc, VP, FP] = [options.Inc||'', options.VP||'', options.FP||''];
+    let Inc = options.Inc || [];
+    if (!Array.isArray(Inc)) { Inc = [Inc]; }
+    const [VP, FP] = [options.VP||'', options.FP||''];
     const noShader = !VP && !FP;
     const noDraw = (options.Clear === undefined) && noShader;
 
@@ -708,7 +712,9 @@ function drawQuads(self, params, target) {
         return target;
     }
     let prog = self.shaders;
-    prog = prog[Inc] || (prog[Inc] = {});
+    for (const chunk of Inc) {
+        prog = prog[chunk] || (prog[chunk] = {});    
+    }
     prog = prog[VP] || (prog[VP] = {});
     prog = prog[FP] || (prog[FP] = linkShader(gl, uniforms, Inc, VP, FP));
     gl.useProgram(prog);
@@ -762,14 +768,6 @@ function drawQuads(self, params, target) {
     return target;
 }
 
-function wrapSwissGL(hook) {
-    const glsl = this;
-    const f = (params, target)=>hook(glsl, params, target);
-    f.hook = wrapSwissGL;
-    f.gl = glsl.gl;
-    return f;
-}
-
 function SwissGL(canvas_gl) {
     const gl = canvas_gl.getContext ?
         canvas_gl.getContext('webgl2', {alpha:false, antialias:true}) : canvas_gl;
@@ -779,7 +777,6 @@ function SwissGL(canvas_gl) {
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     ensureVertexArray(gl, 1024);
     const glsl = (params, target)=>drawQuads(glsl, params, target);
-    glsl.hook = wrapSwissGL;
     
     glsl.gl = gl;
     glsl.shaders = {};

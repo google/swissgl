@@ -7,7 +7,7 @@ class Shadowmap {
     static Tags = ['3d', 'shadows'];
     
     constructor(glsl, gui) {
-        this.glsl = glsl.hook((glsl, p, t)=>glsl({...p, Inc:`
+        this.glsl = (param, target)=>glsl({...param, Inc:[`
         uniform sampler2D shadowmap;
         uniform bool shadowPass;
         varying vec4 shadowCoord;
@@ -43,7 +43,7 @@ class Shadowmap {
             FOut.rgb = sqrt(FOut.rgb); // gamma
         }
         #endif
-        `+(p.Inc||'')}, t));
+        `].concat(param.Inc||[])}, target);
     }
 
     drawScene(params) {

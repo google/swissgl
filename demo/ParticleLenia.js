@@ -10,12 +10,12 @@ class ParticleLenia {
     static Tags = ['2d', 'simulation'];
 
     constructor(glsl, gui) {
-        this.glsl = glsl.hook((glsl, p, t)=>glsl({...p, Inc:`
-        vec2 peak_f(float x, float mu, float sigma) {
-          float t = (x-mu)/sigma;
-          float y = exp(-t*t);
-          return vec2(y, -2.0*t*y/sigma);
-        }\n`+(p.Inc||'')}, t));
+        this.glsl = (param, target)=>glsl({...param, Inc:[`
+            vec2 peak_f(float x, float mu, float sigma) {
+              float t = (x-mu)/sigma;
+              float y = exp(-t*t);
+              return vec2(y, -2.0*t*y/sigma);
+            }`].concat(param.Inc||[])}, target);
         this.step_n = 5;
         this.viewR = 15.0;
         const params = this.params = {dt: 0.1,

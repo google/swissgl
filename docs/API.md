@@ -86,16 +86,3 @@ The following options control the creation of new textures:
 * `filter`: `'nearest'` or `'linear'`
 
 * `wrap`: `'repeat'`, `'edge'` or `'mirror'`
-
-
-## Hooks
-
-`glsl.hook(fn)` mechanism provides a simple way of extending and modifying SwissGL behavior. This function receives the callback function of the form:
-```js
-(glsl, params, target)=>{
-    // modify params of target and even make 
-    // multiple calls to 'glsl' if needed
-    return glsl(params, target);
-}
-```
-`glsl.hook` returns a wrapped version of `glsl`, that calls the provided callback on each invocation. The callback may alter the provided `params` and `target` before passing them down the chain. Multiple hooks can be chained by calling `.hook()` of the returned wrapper object. SwissGL Demo application uses this mechanism to inject camera transform functions used by some examples, and even provide VR support by redirecting canvas rendering calls to two eye viewports.

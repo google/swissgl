@@ -31,7 +31,7 @@ class LargeLenia extends ParticleLenia{
         this.state = this.glsl({
             seed: Math.random() * 1234567, FP: `
             vec3 r = hash(I.xyx);
-            FOut = vec4(rot2(r.x*TAU)[0]*sqrt(r.y)*200.0, 0, 0);
+            FOut = vec4(r.xy*300.0-150.0,0,0);
         `}, { size: [size, size], story: 2, format: 'rgba32f', tag: 'state' });
         this.sort_phase = 0;
         this.step_i = 0;

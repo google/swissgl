@@ -1,5 +1,9 @@
 # Changelog
 
+### 2023-11-15
+* devicePixelRatio handling in examples
+* (LargeLenia)[https://google.github.io/swissgl/#LargeLenia] demo)
+
 ### 2023-11-12
 * `Inc` can be a list of strings (to avoid long string concatenations every frame)
 * Removed hooks mechanism (using wrapper functions instead)

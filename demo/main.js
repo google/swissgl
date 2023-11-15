@@ -37,6 +37,7 @@ class DemoApp {
         }
 
         this.viewParams = {
+            DPR: window.devicePixelRatio,
             canvasSize: new Float32Array(2),
             pointer: new Float32Array(3),
             cameraYPD: new Float32Array(3),
@@ -144,8 +145,9 @@ class DemoApp {
     frame(t) {
         requestAnimationFrame(this.frame.bind(this));
         if (this.xrSession) return; // skip canvas frames when XR is running
-        this.glsl.adjustCanvas(1); // fix devicePixelRatio to 1
+        this.glsl.adjustCanvas();
         this.viewParams.canvasSize.set([this.canvas.clientWidth, this.canvas.clientHeight]);
+        this.viewParams.DPR = window.devicePixelRatio;
         
         this.demo.frame(this.withCamera, {
             time:t/1000.0, xrMode: false,

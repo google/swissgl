@@ -17,7 +17,7 @@ class DotCamera {
           });
     }
 
-    frame(glsl, {time, canvasSize}) {
+    frame(glsl, {time, canvasSize, DPR}) {
         let tex;
         if (this.video.videoWidth) {
             tex = glsl({}, {data:this.video, tag:'video'});
@@ -33,7 +33,7 @@ class DotCamera {
             if (!rgbMode) {
                 FOut.r = dot(FOut.rgb, vec3(0.21,0.72,0.07));
             }`},
-            {scale:1/2, tag:'lum'});
+            {scale:1/2/DPR, tag:'lum'});
         const merged = glsl({T:lum.edge.miplinear, FP:`
             for (float lod=0.; lod<8.0; lod+=1.0) {FOut += textureLod(T, UV, lod);}
             FOut /= 8.0;`}, {size:lum.size, format:'rgba16f', tag:'merged'});
@@ -44,7 +44,7 @@ class DotCamera {
         }, {size:lum.size, layern:2, format:'rgba16f', tag:'grad'});
 
         const arg = {canvasSize, rgbMode};
-        const field = glsl({}, {scale:1/4, format:'rgba16f', layern:3, filter:'linear', tag:'field'});
+        const field = glsl({}, {scale:1/4/DPR, format:'rgba16f', layern:3, filter:'linear', tag:'field'});
         let points;
         for (let i=0; i<10; ++i) {
             points = glsl({...arg, field:field.edge, imgForce:imgForce.edge.linear, seed: Math.random()*124237, FP: `
@@ -59,7 +59,7 @@ class DotCamera {
                 vec2 force = f.xy*10.0 + imf.xy*20.0;
                 p.xy = clamp(p.xy + force/canvasSize, vec2(0), vec2(1));
                 FOut = p;
-            `}, {scale:(rgbMode?1.7:1)/8, story:2, format:'rgba32f', tag:'points'});
+            `}, {scale:(rgbMode?1.7:1)/8/DPR, story:2, format:'rgba32f', tag:'points'});
             glsl({...arg, points:points[0], Grid: points[0].size, Blend:'s+d', Clear:0, VP:`
                 VPos.xy = (points(ID.xy).xy + XY*15.0/canvasSize)*2.0-1.0;
                 int c = rgbMode ? ID.x%3 : 0;

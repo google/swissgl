@@ -35,9 +35,9 @@ class Physarum {
         updateObject(U, presets[this.preset]);
     }
 
-    frame(glsl) {
+    frame(glsl, {DPR}) {
         for (let i=0; i<this.U.step_n; ++i) {
-            this.step(glsl);
+            this.step(glsl, DPR);
         }
         const points = this.points[0];
         const common = {field:this.field[0], ...this.U, points, Inc:`
@@ -58,7 +58,7 @@ class Physarum {
         FP:`smoothstep(1.0, 0.0, length(XY))*color`});
     }
 
-    step(glsl) {
+    step(glsl, DPR) {
         const U=this.U, dt=U.dt;
         const field = this.field = glsl({dt, Inc:`
         float unpack(float x){return exp((x-1.0)*4.0);}
@@ -70,7 +70,7 @@ class Physarum {
         float v0 = S(x,y);
         float v1 = 0.95*(v0+S(l,y)+S(r,y)+S(x,u)+S(x,d)+S(l,u)+S(r,u)+S(l,d)+S(r,d))/9.0;
         FOut.x = pack(clamp(mix(v0, v1, dt),1e-5,1.));
-        `}, {story:2, format:'rgba8', filter:'linear', tag:'field'});
+        `}, {story:2, scale:1/DPR, format:'rgba8', filter:'linear', tag:'field'});
 
         const points = this.points = glsl({field:field[0], ...this.U, 
             rotAng:(1-U.senseFlip*2)*U.moveAng/180.0*Math.PI, FP:`
@@ -95,7 +95,7 @@ class Physarum {
         }
         FOut.xy += dir*moveDist*dt;
         FOut.xy = mod(FOut.xy, wldSize);
-        `}, {scale:this.U.density/16, story:2, format:'rgba32f', tag:'points'});
+        `}, {scale:this.U.density/16/DPR, story:2, format:'rgba32f', tag:'points'});
         
         glsl({dt, points: points[0], Grid: points[0].size, Blend: 's+d', VP:`
         VPos.xy = 2.0 * (points(ID.xy).xy+XY*2.0)/vec2(ViewSize) - 1.0;`, FP:`

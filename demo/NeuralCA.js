@@ -13,7 +13,7 @@ class NeuralCA {
         4,13,18,-57,-79,-22,-25,71,-12,-11,24,27,-17,-8,-7,6, 11,10,4,0,4,1,2,7,-26,-33,-15,-3,22,27,20,-34]);
       this.b = new Float32Array([2,-5,-14,9]);
     }
-    frame(glsl) {
+    frame(glsl, {DPR}) {
         const state = glsl({W:this.W, b:this.b, FP:`
         uniform mat4 W[4];
         uniform vec4 b;
@@ -37,7 +37,7 @@ class NeuralCA {
                  + R(l,d)*vec4(1,1,-1,-1) + R(x,d)*vec4(2,2,0,-2) + R(r,d)*vec4(1,1,1,-1);
           vec4 ds = rule(s-0.5, p);  // NCA rule application
           FOut = s+ds;
-        }`}, {story:2, scale:1/4, tag:'state'});
+        }`}, {story:2, scale:1/4/DPR, tag:'state'});
         glsl({tex:state[0], FP:`tex(UV)*2.-.5`});
     }
 }

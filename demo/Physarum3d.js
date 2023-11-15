@@ -7,8 +7,8 @@ class Physarum3d {
     static Tags = ['3d'];
 
     constructor(glsl, gui) {
-        this.showVolume = true;
-        gui.add(this, 'showVolume');
+        this.showVolume = true; gui.add(this, 'showVolume');
+        this.showAgents = true; gui.add(this, 'showAgents');
     }
 
     frame(glsl, params) {
@@ -61,15 +61,17 @@ class Physarum3d {
         `, FP:`1.0`}, field[0]);
 
         // render agents
-        glsl({...params, Aspect:'fit', DepthTest: 1,
-        points:points[0], Grid: points[0].size, Mesh:[6,1], VP:`
-        vec3 pos = points(ID.xy,0).xyz*2.0-1.0;
-        vec3 dir = points(ID.xy,1).xyz;
-        vec3 u=normalize(cross(dir, vec3(1))), v=cross(dir, u);
-        vec2 p = rot2(UV.x*TAU)*vec2(0.5,0);
-        pos += 0.01*mat3(u, v, dir*2.0)*vec3(p*UV.y, 1.0-UV.y);
-        VPos = wld2proj(pos*0.75);
-        `,FP:`1.0-UV.y*0.7`});
+        if (this.showAgents) {
+            glsl({...params, Aspect:'fit', DepthTest: 1,
+            points:points[0], Grid: points[0].size, Mesh:[6,1], VP:`
+            vec3 pos = points(ID.xy,0).xyz*2.0-1.0;
+            vec3 dir = points(ID.xy,1).xyz;
+            vec3 u=normalize(cross(dir, vec3(1))), v=cross(dir, u);
+            vec2 p = rot2(UV.x*TAU)*vec2(0.5,0);
+            pos += 0.01*mat3(u, v, dir*2.0)*vec3(p*UV.y, 1.0-UV.y);
+            VPos = wld2proj(pos*0.75);
+            `,FP:`1.0-UV.y*0.7`});
+        }
 
         // fake volume rendering
         if (this.showVolume) {

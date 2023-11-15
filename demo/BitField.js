@@ -11,8 +11,11 @@ class BitField {
         this.k = 9;
         gui.add(this, 'k', 2, 50, 1);
     }
-    frame(glsl, {time}) {
+    frame(glsl, {time, DPR}) {
         const {k} = this;
-        glsl({t:time, k, FP:`1-((I.x+int(t*40.))/4^(I.y+int(t*20.))/4)%int(k)`});
+        glsl({t:time, k, DPR, FP:`
+            ivec2 i = (I+int(t*40.))/4/int(DPR);
+            FOut = vec4(1 - (i.x^i.y)%int(k));
+        `});
     }
 }

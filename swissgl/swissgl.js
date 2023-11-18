@@ -70,7 +70,7 @@ function memoize(f) {
   return wrap;
 }
 
-function updateObject(o, updates) {
+export function updateObject(o, updates) {
   for (const s in updates) {
     o[s] = updates[s];
   }
@@ -884,7 +884,7 @@ function drawQuads(self, params, target) {
   return target;
 }
 
-function SwissGL(canvas_gl) {
+export default function SwissGL(canvas_gl) {
   const gl = canvas_gl.getContext
     ? canvas_gl.getContext('webgl2', { alpha: false, antialias: true })
     : canvas_gl;
@@ -927,5 +927,3 @@ function SwissGL(canvas_gl) {
   };
   return glsl;
 }
-
-self._SwissGL = SwissGL;

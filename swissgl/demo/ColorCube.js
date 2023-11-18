@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class ColorCube {
+export default class ColorCube {
   static Tags = ['3d'];
 
   frame(glsl, params) {

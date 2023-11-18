@@ -6,7 +6,7 @@
 // Model description:
 // https://google-research.github.io/self-organising-systems/particle-lenia/
 // https://observablehq.com/@znah/particle-lenia-from-scratch
-class ParticleLenia {
+export default class ParticleLenia {
   static Tags = ['2d', 'simulation'];
 
   constructor(glsl, gui) {

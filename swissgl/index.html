@@ -7,34 +7,6 @@
     <link rel="stylesheet" href="demo/style.css" />
   </head>
   <body>
-    <script src="swissgl.js"></script>
-    <script src="audio.js"></script>
-    <script src="demo/dat.gui.min.js"></script>
-
-    <script src="demo/NeuralCA.js"></script>
-    <script src="demo/BitField.js"></script>
-    <script src="demo/GameOfLife.js"></script>
-    <script src="demo/ParticleLife.js"></script>
-    <script src="demo/ParticleLenia.js"></script>
-    <script src="demo/FancyLenia.js"></script>
-    <script src="demo/Spectrogram.js"></script>
-    <script src="demo/Physarum.js"></script>
-    <script src="demo/SurfaceNormals.js"></script>
-    <script src="demo/MeshGrid.js"></script>
-    <script src="demo/CubeDeform.js"></script>
-    <script src="demo/ColorCube.js"></script>
-    <script src="demo/Shadowmap.js"></script>
-    <script src="demo/ParticleLife3d.js"></script>
-    <script src="demo/Torus4d.js"></script>
-    <script src="demo/DeferredShading.js"></script>
-    <script src="demo/Springs.js"></script>
-    <script src="demo/ReactionDiffusion.js"></script>
-    <script src="demo/DotCamera.js"></script>
-    <script src="demo/Physarum3d.js"></script>
-    <script src="demo/TextureSamplers.js"></script>
-    <script src="demo/LargeLenia.js"></script>
-    <script src="demo/main.js"></script>
-
     <details id="panel" open>
       <summary><a href="https://github.com/google/swissgl">SwissGL</a> demos</summary>
       <div id="cards"></div>
@@ -65,8 +37,33 @@
       </p>
       <button style="font-size: 20px; margin: auto" onclick="hideAbout()">hide</button>
     </div>
-    <script>
-      'use strict';
+    <script type="module">
+      import './demo/dat.gui.min.js';
+
+      import NeuralCA from './demo/NeuralCA.js';
+      import BitField from './demo/BitField.js';
+      import GameOfLife from './demo/GameOfLife.js';
+      import ParticleLife from './demo/ParticleLife.js';
+      import ParticleLenia from './demo/ParticleLenia.js';
+      import FancyLenia from './demo/FancyLenia.js';
+      import Spectrogram from './demo/Spectrogram.js';
+      import Physarum from './demo/Physarum.js';
+      import SurfaceNormals from './demo/SurfaceNormals.js';
+      import MeshGrid from './demo/MeshGrid.js';
+      import CubeDeform from './demo/CubeDeform.js';
+      import ColorCube from './demo/ColorCube.js';
+      import Shadowmap from './demo/Shadowmap.js';
+      import ParticleLife3d from './demo/ParticleLife3d.js';
+      import Torus4d from './demo/Torus4d.js';
+      import DeferredShading from './demo/DeferredShading.js';
+      import Springs from './demo/Springs.js';
+      import DotCamera from './demo/DotCamera.js';
+      import ReactionDiffusion from './demo/ReactionDiffusion.js';
+      import Physarum3d from './demo/Physarum3d.js';
+      import TextureSamplers from './demo/TextureSamplers.js';
+      import LargeLenia from './demo/LargeLenia.js';
+      import DemoApp, { $ } from './demo/main.js';
+
       const app = new DemoApp([
         NeuralCA,
         DotCamera,
@@ -109,6 +106,16 @@
       const hideAbout = () => {
         $('#about').style.display = 'none';
       };
+
+      Object.assign(window, {
+        fullscreen,
+        toggleGui,
+        toggleVR,
+        toggleAR,
+        showAbout,
+        hideAbout,
+      });
+
       //hideAbout();
       $('#demo').addEventListener('pointerdown', () => {
         hideAbout();

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class SurfaceNormals {
+export default class SurfaceNormals {
   static Tags = ['3d'];
 
   frame(glsl, params) {

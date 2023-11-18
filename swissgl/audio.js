@@ -4,7 +4,7 @@
  */
 
 class AudioWorkletProcessor {}
-class AudioStream extends AudioWorkletProcessor {
+export default class AudioStream extends AudioWorkletProcessor {
   constructor() {
     super();
     this.chunkSize = 1024;

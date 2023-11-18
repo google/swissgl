@@ -5,7 +5,7 @@
 
 // Bit Field texture, inspired by the tweet thread:
 // https://twitter.com/aemkei/status/1378106731386040322
-class BitField {
+export default class BitField {
   static Tags = ['2d'];
   constructor(glsl, gui) {
     this.k = 9;

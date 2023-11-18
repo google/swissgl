@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class Shadowmap {
+export default class Shadowmap {
   static Tags = ['3d', 'shadows'];
 
   constructor(glsl, gui) {

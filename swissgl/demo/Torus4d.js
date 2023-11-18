@@ -2,7 +2,7 @@
  * Copyright 2023 Google LLC.
  * SPDX-License-Identifier: Apache-2.0
  */
-class Torus4d {
+export default class Torus4d {
   static Tags = ['3d'];
   frame(glsl, params) {
     glsl({

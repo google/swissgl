@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class GameOfLife {
+export default class GameOfLife {
   static Tags = ['2d', 'ca'];
   frame(glsl) {
     const state = glsl(

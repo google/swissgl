@@ -1,11 +1,11 @@
-'use strict';
+import SwissGL from '../swissgl.js';
 
-const $ = s => document.querySelector(s);
+export const $ = s => document.querySelector(s);
 const setDisplay = (el, val) => {
   if ($(el)) $(el).style.display = val;
 };
 
-class DemoApp {
+export default class DemoApp {
   constructor(demos, defaultDemo = 'ParticleLife3d') {
     this.singleMode = demos.length == 1;
     if (this.singleMode) {

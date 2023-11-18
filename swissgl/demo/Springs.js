@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class Springs {
+export default class Springs {
   static Tags = ['2d'];
 
   constructor(glsl, gui) {

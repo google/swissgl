@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import AudioStream from '../audio.js';
+import ParticleLenia from './ParticleLenia.js';
+
 // Visualization of Particle Lenia fields as 3d landscape
-class FancyLenia extends ParticleLenia {
+export default class FancyLenia extends ParticleLenia {
   static Tags = ['3d', 'simulation', 'audio'];
 
   constructor(glsl, gui) {

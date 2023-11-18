@@ -5,7 +5,7 @@
 
 // Based on "μNCA: Texture Generation with Ultra-Compact Neural Cellular Automata"
 // https://arxiv.org/abs/2111.13545
-class NeuralCA {
+export default class NeuralCA {
   static Tags = ['2d', 'ca'];
   constructor() {
     this.W = new Float32Array([

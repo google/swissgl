@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class DeferredShading {
+export default class DeferredShading {
   frame(glsl, params) {
     // draw objects
     const gbuf = glsl(

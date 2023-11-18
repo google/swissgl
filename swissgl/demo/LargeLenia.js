@@ -3,10 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import ParticleLenia from './ParticleLenia.js';
+
 // Model description:
 // https://google-research.github.io/self-organising-systems/particle-lenia/
 // https://observablehq.com/@znah/particle-lenia-from-scratch
-class LargeLenia extends ParticleLenia {
+export default class LargeLenia extends ParticleLenia {
   static Tags = ['2d', 'simulation'];
 
   constructor(glsl, gui) {

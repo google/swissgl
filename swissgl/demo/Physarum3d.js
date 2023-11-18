@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class Physarum3d {
+export default class Physarum3d {
   static Tags = ['3d'];
 
   constructor(glsl, gui) {

@@ -4,7 +4,7 @@
  */
 
 // Inspired by the video https://youtu.be/p4YirERTVF0?t=480
-class ParticleLife {
+export default class ParticleLife {
   static Tags = ['2d', 'simulation'];
   constructor(glsl, gui) {
     this.glsl = glsl;

@@ -4,7 +4,7 @@
  */
 
 // Example of streaming spectrogram data from WebAudio to WebGL2
-class Spectrogram {
+export default class Spectrogram {
   static Tags = ['3d', 'data'];
 
   constructor(glsl, gui) {

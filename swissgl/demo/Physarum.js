@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { updateObject } from '../swissgl.js';
+
 // Inspired by https://cargocollective.com/sagejenson/physarum
-class Physarum {
+export default class Physarum {
   static Tags = ['2d', 'simulation'];
 
   constructor(glsl, gui) {

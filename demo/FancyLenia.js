@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import AudioStream from '../audio.js';
+import AudioStream from '../src/audio.js';
 import ParticleLenia from './ParticleLenia.js';
 
 // Visualization of Particle Lenia fields as 3d landscape

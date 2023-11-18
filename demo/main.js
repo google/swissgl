@@ -1,4 +1,4 @@
-import SwissGL from '../swissgl.js';
+import SwissGL from '../src/swissgl.js';
 
 export const $ = s => document.querySelector(s);
 const setDisplay = (el, val) => {
@@ -290,7 +290,7 @@ export default class DemoApp {
     Object.keys(this.demos).forEach(name => {
       const el = document.createElement('div');
       el.classList.add('card');
-      el.innerHTML = `<img src="demo/preview/${name}.jpg">${name}`;
+      el.innerHTML = `<img src="/demo/preview/${name}.jpg">${name}`;
       el.addEventListener('click', () => this.runDemo(name));
       panel.appendChild(el);
     });

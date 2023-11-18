@@ -1,0 +1,5 @@
+.DS_Store
+build
+dist
+pnpm-lock.yaml
+*.min.js

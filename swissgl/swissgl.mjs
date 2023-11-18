@@ -1,4 +1,4 @@
-import './swissgl.js'
+import './swissgl.js';
 
 const SwissGL = self._SwissGL;
 

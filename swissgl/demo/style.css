@@ -49,9 +49,19 @@ body {
 
 #gui {
   position: fixed;
-  bottom: 0px;
-  right: 50px;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  z-index: 0;
 }
+
+.lil-gui {
+  position: fixed;
+  bottom: 20px;
+  right: 70px;
+}
+
 #buttons {
   position: fixed;
   bottom: 10px;

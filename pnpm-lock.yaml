@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 devDependencies:
+  lil-gui:
+    specifier: ^0.19.1
+    version: 0.19.1
   prettier:
     specifier: ^3.1.0
     version: 3.1.0
@@ -348,6 +351,10 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /lil-gui@0.19.1:
+    resolution: {integrity: sha512-9dbIg+UxS8RIROI6OH5gV2KrVE0Cn37bcLOQGF2GKN8ibTxDrUSLzzZfkQR82LnZsgs7DEZOOGfn3zhtd6hk0Q==}
+    dev: true
 
   /nanoid@3.3.7:
     resolution: {integrity: sha512-eSRppjcPIatRIMC1U6UngP8XFcz8MQWGQdt1MTBQ7NaAmvXDfvNxbvWV3x2y6CdEUciCSsDHDQZbhYaB8QEo2g==}

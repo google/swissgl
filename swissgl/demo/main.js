@@ -257,13 +257,12 @@ export default class DemoApp {
       this.demo = this.gui = null;
     }
     if (!this.singleMode) location.hash = name;
-    if (self.dat) {
-      this.gui = new dat.GUI();
-      this.gui.domElement.id = 'gui';
+    if (window.lil) {
+      this.gui = new lil.GUI({ container: $('#gui') });
       this.gui.hide();
     }
     this.demo = new this.demos[name](this.withCamera, this.gui);
-    if (this.gui && this.gui.__controllers.length == 0) {
+    if (this.gui && this.gui.controllers.length == 0) {
       this.gui.destroy();
       this.gui = null;
     }
@@ -309,7 +308,7 @@ export default class DemoApp {
       glsl({ ...params, Inc: [this.glsl_include].concat(params.Inc || []) }, target);
     Object.keys(this.demos).forEach(name => {
       if (name == 'Spectrogram') return;
-      const dummyGui = new dat.GUI();
+      const dummyGui = new lil.GUI();
       const demo = new this.demos[name](withCamera, dummyGui);
       dummyGui.destroy();
       this.resetCamera();

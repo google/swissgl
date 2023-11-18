@@ -16,6 +16,12 @@
   "exports": {
     ".": "./dist/swissgl.js"
   },
+  "files": [
+    "dist",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ],
   "devDependencies": {
     "lil-gui": "^0.19.1",
     "prettier": "^3.1.0",
@@ -26,6 +32,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
+    "lib": "vite build -c vite.lib.config.ts",
     "lint": "prettier --check .",
     "format": "prettier --write ."
   }

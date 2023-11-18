@@ -1,19 +1,32 @@
 {
   "name": "@pluvial/swissgl",
-  "private": true,
+  "description": "SwissGL is a minimalistic wrapper on top of WebGL2 JS API. It's designed to reduce the amount of boilerplate code required to manage GLSL shaders, textures and framebuffers when making procedural visualizations or simulations.",
+  "license": "Apache-2.0",
   "version": "0.0.0",
+  "author": "Alexander Mordvintsev, João Paquim",
+  "bugs": {
+    "url": "https://github.com/pluvial/swissgl/issues"
+  },
+  "homepage": "https://github.com/pluvial/swissgl#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pluvial/swissgl"
+  },
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "lint": "prettier --check .",
-    "format": "prettier --write ."
+  "exports": {
+    ".": "./dist/swissgl.js"
   },
   "devDependencies": {
     "lil-gui": "^0.19.1",
     "prettier": "^3.1.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "prettier --check .",
+    "format": "prettier --write ."
   }
 }

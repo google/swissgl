@@ -11,6 +11,9 @@ devDependencies:
   prettier:
     specifier: ^3.1.0
     version: 3.1.0
+  prettier-plugin-glsl:
+    specifier: ^0.1.3
+    version: 0.1.3(prettier@3.1.0)
   terser:
     specifier: ^5.24.0
     version: 5.24.0
@@ -25,6 +28,29 @@ devDependencies:
     version: 1.1.2(vite@5.0.0)
 
 packages:
+
+  /@chevrotain/cst-dts-gen@10.5.0:
+    resolution: {integrity: sha512-lhmC/FyqQ2o7pGK4Om+hzuDrm9rhFYIJ/AXoQBeongmn870Xeb0L6oGEiuR8nohFNL5sMaQEJWCxr1oIVIVXrw==}
+    dependencies:
+      '@chevrotain/gast': 10.5.0
+      '@chevrotain/types': 10.5.0
+      lodash: 4.17.21
+    dev: true
+
+  /@chevrotain/gast@10.5.0:
+    resolution: {integrity: sha512-pXdMJ9XeDAbgOWKuD1Fldz4ieCs6+nLNmyVhe2gZVqoO7v8HXuHYs5OV2EzUtbuai37TlOAQHrTDvxMnvMJz3A==}
+    dependencies:
+      '@chevrotain/types': 10.5.0
+      lodash: 4.17.21
+    dev: true
+
+  /@chevrotain/types@10.5.0:
+    resolution: {integrity: sha512-f1MAia0x/pAVPWH/T73BJVyO2XU5tI4/iE7cnxb7tqdNTNhQI3Uq3XkqcoteTmD4t1aM0LbHCJOhgIDn07kl2A==}
+    dev: true
+
+  /@chevrotain/utils@10.5.0:
+    resolution: {integrity: sha512-hBzuU5+JjB2cqNZyszkDHZgOSrUUT8V3dhgRl8Q9Gp6dAj/H5+KILGjbhDpc3Iy9qmqlm/akuOI2ut9VUtzJxQ==}
+    dev: true
 
   /@esbuild/android-arm64@0.19.5:
     resolution: {integrity: sha512-5d1OkoJxnYQfmC+Zd8NBFjkhyCNYwM4n9ODrycTFY6Jk1IGiZ+tjVJDDSwDt77nK+tfpGP4T50iMtVi4dEGzhQ==}
@@ -261,6 +287,14 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
 
+  /@netflix/nerror@1.1.3:
+    resolution: {integrity: sha512-b+MGNyP9/LXkapreJzNUzcvuzZslj/RGgdVVJ16P2wSlYatfLycPObImqVJSmNAdyeShvNeM/pl3sVZsObFueg==}
+    dependencies:
+      assert-plus: 1.0.0
+      extsprintf: 1.4.1
+      lodash: 4.17.21
+    dev: true
+
   /@rollup/pluginutils@5.0.5:
     resolution: {integrity: sha512-6aEYR910NyP73oHiJglti74iRyOwgFU4x3meH/H8OJx6Ry0j6cOVZ5X/wTvub7G7Ao6qaHBEaNsV3GLJkSsF+Q==}
     engines: {node: '>=14.0.0'}
@@ -381,8 +415,24 @@ packages:
     hasBin: true
     dev: true
 
+  /assert-plus@1.0.0:
+    resolution: {integrity: sha512-NfJ4UzBCcQGLDlQq7nHxH+tv3kyZ0hHQqF5BO6J7tNJeP5do1llPr8dZ8zHonfhAu0PHAdMkSo+8o0wxg9lZWw==}
+    engines: {node: '>=0.8'}
+    dev: true
+
   /buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
+    dev: true
+
+  /chevrotain@10.5.0:
+    resolution: {integrity: sha512-Pkv5rBY3+CsHOYfV5g/Vs5JY9WTHHDEKOlohI2XeygaZhUeqhAlldZ8Hz9cRmxu709bvS08YzxHdTPHhffc13A==}
+    dependencies:
+      '@chevrotain/cst-dts-gen': 10.5.0
+      '@chevrotain/gast': 10.5.0
+      '@chevrotain/types': 10.5.0
+      '@chevrotain/utils': 10.5.0
+      lodash: 4.17.21
+      regexp-to-ast: 0.5.0
     dev: true
 
   /commander@2.20.3:
@@ -423,6 +473,11 @@ packages:
     resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
     dev: true
 
+  /extsprintf@1.4.1:
+    resolution: {integrity: sha512-Wrk35e8ydCKDj/ArClo1VrPVmN8zph5V4AtHwIuHhvMXsKf73UT3BOD+azBIW+3wOJ4FhEH7zyaJCFvChjYvMA==}
+    engines: {'0': node >=0.6.0}
+    dev: true
+
   /fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -433,6 +488,10 @@ packages:
 
   /lil-gui@0.19.1:
     resolution: {integrity: sha512-9dbIg+UxS8RIROI6OH5gV2KrVE0Cn37bcLOQGF2GKN8ibTxDrUSLzzZfkQR82LnZsgs7DEZOOGfn3zhtd6hk0Q==}
+    dev: true
+
+  /lodash@4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
     dev: true
 
   /nanoid@3.3.7:
@@ -459,10 +518,25 @@ packages:
       source-map-js: 1.0.2
     dev: true
 
+  /prettier-plugin-glsl@0.1.3(prettier@3.1.0):
+    resolution: {integrity: sha512-hi9y+fjqIe/AMPUbR6h40n/Fq3kElqNF7EgvcFYI/5mvJSNY9oVyjz1Q1eMgd7RXfocxw0lFb8D7OtRVPn/9xA==}
+    peerDependencies:
+      prettier: ^3.0.0
+    dependencies:
+      '@netflix/nerror': 1.1.3
+      chevrotain: 10.5.0
+      lodash: 4.17.21
+      prettier: 3.1.0
+    dev: true
+
   /prettier@3.1.0:
     resolution: {integrity: sha512-TQLvXjq5IAibjh8EpBIkNKxO749UEWABoiIZehEPiY4GNpVdhaFKqSTu+QrlU6D2dPAfubRmtJTi4K4YkQ5eXw==}
     engines: {node: '>=14'}
     hasBin: true
+    dev: true
+
+  /regexp-to-ast@0.5.0:
+    resolution: {integrity: sha512-tlbJqcMHnPKI9zSrystikWKwHkBqu2a/Sgw01h3zFjvYrMxEDYHzzoMZnUrbIfpTFEsoRnnviOXNCzFiSc54Qw==}
     dev: true
 
   /rollup@4.5.0:

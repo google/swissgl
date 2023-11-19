@@ -39,51 +39,6 @@
       <button style="font-size: 20px; margin: auto" onclick="hideAbout()">hide</button>
     </div>
     <div id="gui"></div>
-    <script type="module">
-      import * as lil from 'lil-gui';
-      window.lil = lil;
-
-      import demos from './demo/index.js';
-      import DemoApp, { $ } from './demo/main.js';
-
-      const app = new DemoApp(demos);
-      function fullscreen() {
-        app.fullscreen();
-      }
-      function toggleGui() {
-        app.toggleGui();
-      }
-      function toggleVR() {
-        app.toggleXR('vr');
-      }
-      function toggleAR() {
-        app.toggleXR('ar');
-      }
-      const showAbout = () => {
-        $('#about').style.display = 'block';
-      };
-      const hideAbout = () => {
-        $('#about').style.display = 'none';
-      };
-
-      Object.assign(window, {
-        fullscreen,
-        toggleGui,
-        toggleVR,
-        toggleAR,
-        showAbout,
-        hideAbout,
-      });
-
-      //hideAbout();
-      $('#demo').addEventListener('pointerdown', () => {
-        hideAbout();
-        if (window.innerWidth < 500) {
-          // close menu on small screens
-          $('#panel').removeAttribute('open');
-        }
-      });
-      $('#panel').addEventListener('click', hideAbout);
-    </script>
+    <script type="module" src="/demo/main.js"></script>
   </body>
 </html>

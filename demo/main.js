@@ -1,4 +1,8 @@
+import * as lil from 'lil-gui';
 import SwissGL from '../src/swissgl.js';
+import demos from './index.js';
+
+window.lil = lil;
 
 export const $ = s => document.querySelector(s);
 const setDisplay = (el, val) => {
@@ -339,3 +343,42 @@ export default class DemoApp {
     if (f) f.apply(canvas);
   }
 }
+
+const app = new DemoApp(demos);
+function fullscreen() {
+  app.fullscreen();
+}
+function toggleGui() {
+  app.toggleGui();
+}
+function toggleVR() {
+  app.toggleXR('vr');
+}
+function toggleAR() {
+  app.toggleXR('ar');
+}
+const showAbout = () => {
+  $('#about').style.display = 'block';
+};
+const hideAbout = () => {
+  $('#about').style.display = 'none';
+};
+
+Object.assign(window, {
+  fullscreen,
+  toggleGui,
+  toggleVR,
+  toggleAR,
+  showAbout,
+  hideAbout,
+});
+
+//hideAbout();
+$('#demo').addEventListener('pointerdown', () => {
+  hideAbout();
+  if (window.innerWidth < 500) {
+    // close menu on small screens
+    $('#panel').removeAttribute('open');
+  }
+});
+$('#panel').addEventListener('click', hideAbout);

@@ -36,9 +36,9 @@ export default class ParticleLife {
           K: this.K,
           seed: 123,
           FP: `
-                vec2 pos = (hash(ivec3(I, seed)).xy-0.5)*10.0;
-                float color = floor(UV.x*K);
-                FOut = vec4(pos, 0.0, color);`,
+vec2 pos = (hash(ivec3(I, seed)).xy-0.5)*10.0;
+float color = floor(UV.x*K);
+FOut = vec4(pos, 0.0, color);`,
         },
         this.points,
       );
@@ -59,29 +59,29 @@ export default class ParticleLife {
           dt,
           past: points[1],
           FP: `
-        vec3 wrap(vec3 p) {
-          return (fract(p/worldExtent+0.5)-0.5)*worldExtent;
-        }
-        void fragment() {
-            FOut = Src(I);
-            vec3 force=vec3(0);
-            for (int y=0; y<ViewSize.y; ++y)
-            for (int x=0; x<ViewSize.x; ++x) {
-              vec4 data1 = Src(ivec2(x,y));
-              vec3 dpos = wrap(data1.xyz-FOut.xyz);
-              float r = length(dpos);
-              if (r>3.0) continue;
-              dpos /= r+1e-8;
-              float rep = max(1.0-r, 0.0)*repulsion;
-              float f = F(ivec2(FOut.w, data1.w)).x;
-              float att = f*max(1.0-abs(r-2.0), 0.0);
-              force += dpos*(att-rep);
-            }
-            vec3 touchVec = (touchPos-FOut.xyz);
-            force += touchVec*exp(-dot(touchVec, touchVec))*50.0;
-            vec3 vel = wrap(FOut.xyz-past(I).xyz)*pow(inertia, dt);
-            FOut.xyz = wrap(FOut.xyz+vel+0.5*force*(dt*dt));
-        }`,
+vec3 wrap(vec3 p) {
+  return (fract(p/worldExtent+0.5)-0.5)*worldExtent;
+}
+void fragment() {
+    FOut = Src(I);
+    vec3 force=vec3(0);
+    for (int y=0; y<ViewSize.y; ++y)
+    for (int x=0; x<ViewSize.x; ++x) {
+      vec4 data1 = Src(ivec2(x,y));
+      vec3 dpos = wrap(data1.xyz-FOut.xyz);
+      float r = length(dpos);
+      if (r>3.0) continue;
+      dpos /= r+1e-8;
+      float rep = max(1.0-r, 0.0)*repulsion;
+      float f = F(ivec2(FOut.w, data1.w)).x;
+      float att = f*max(1.0-abs(r-2.0), 0.0);
+      force += dpos*(att-rep);
+    }
+    vec3 touchVec = (touchPos-FOut.xyz);
+    force += touchVec*exp(-dot(touchVec, touchVec))*50.0;
+    vec3 vel = wrap(FOut.xyz-past(I).xyz)*pow(inertia, dt);
+    FOut.xyz = wrap(FOut.xyz+vel+0.5*force*(dt*dt));
+}`,
         },
         points,
       );
@@ -106,10 +106,10 @@ export default class ParticleLife {
         Blend: 's+d',
         Clear: 0.0,
         VP: `
-            vec4 d = points(ID.xy);
-            varying vec3 color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
-            VPos.xy = 2.0*(d.xy+XY*1.5)/worldExtent;
-            VPos.xy -= 2.0*vec2(ID.z%2, ID.z/2)*sign(d.xy);`,
+vec4 d = points(ID.xy);
+varying vec3 color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
+VPos.xy = 2.0*(d.xy+XY*1.5)/worldExtent;
+VPos.xy -= 2.0*vec2(ID.z%2, ID.z/2)*sign(d.xy);`,
         FP: `color*smoothstep(1.0, 0.8, length(XY)),1`,
       },
       { size: [256, 256], format: 'rgba16f', filter: 'linear', tag: 'field' },
@@ -124,9 +124,9 @@ export default class ParticleLife {
       Aspect: 'fit',
       Blend: 'd*(1-sa)+s*sa',
       VP: `
-            vec4 d = points(ID.xy);
-            varying vec3 color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
-            VPos.xy = 2.0*(d.xy+XY/8.0)/worldExtent;`,
+vec4 d = points(ID.xy);
+varying vec3 color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
+VPos.xy = 2.0*(d.xy+XY/8.0)/worldExtent;`,
       FP: `color, smoothstep(1.0, 0.6, length(XY))`,
     });
   }

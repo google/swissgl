@@ -43,11 +43,10 @@ export default class Spectrogram {
       DepthTest: 1,
       Aspect: 'fit',
       VP: `
-        varying float z = history(UV).r;
-        float x = 1.0-log(0.005+UV.x)/log(0.005);
-        VPos = wld2proj(vec4(-XY.y, (x-0.5)*1.8, z*0.5, 1.0));`,
-      FP: `
-        mix(vec3(0.0, 0.0, 0.1), vec3(0.9, 0.8, 0.5), z*2.0),1`,
+varying float z = history(UV).r;
+float x = 1.0-log(0.005+UV.x)/log(0.005);
+VPos = wld2proj(vec4(-XY.y, (x-0.5)*1.8, z*0.5, 1.0));`,
+      FP: `mix(vec3(0.0, 0.0, 0.1), vec3(0.9, 0.8, 0.5), z*2.0),1`,
     });
   }
 

@@ -16,16 +16,16 @@ export default class ColorCube {
       DepthTest: 1,
       AlphaCoverage: 1,
       VP: `
-        vec3 p = color = vec3(ID)/vec3(Grid-1);
-        varying vec3 color = p;
-        vec4 pos = vec4(p-0.5, 1);
-        pos = wld2view(pos);
-        pos.xy += XY*0.03;  // offset quad corners in view space
-        VPos = view2proj(pos);`,
+vec3 p = color = vec3(ID)/vec3(Grid-1);
+varying vec3 color = p;
+vec4 pos = vec4(p-0.5, 1);
+pos = wld2view(pos);
+pos.xy += XY*0.03;  // offset quad corners in view space
+VPos = view2proj(pos);`,
       FP: `
-        float r = length(XY);
-        float alpha = smoothstep(1.0, 1.0-fwidth(r), r);
-        FOut = vec4(color, alpha);`,
+float r = length(XY);
+float alpha = smoothstep(1.0, 1.0-fwidth(r), r);
+FOut = vec4(color, alpha);`,
     });
   }
 }

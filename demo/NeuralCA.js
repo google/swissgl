@@ -22,29 +22,29 @@ export default class NeuralCA {
         W: this.W,
         b: this.b,
         FP: `
-        uniform mat4 W[4];
-        uniform vec4 b;
-        vec4 rule(vec4 s, vec4 p) {
-          return 1e-3*(b + W[0]*s + W[1]*p + W[2]*abs(s) + W[3]*abs(p));     
-        }
-        void fragment() {
-          vec4 s = Src(UV);
-          if (s == vec4(0)) {
-            ivec2 I = ivec2(gl_FragCoord.xy);
-            FOut = 0.1+vec4(hash(I.xyy).x)*0.4;
-            return;
-          }
-          vec2 dp = Src_step();
-          float x=UV.x, y=UV.y;
-          float l=x-dp.x, r=x+dp.x, u=y-dp.y, d=y+dp.y;
-          #define R(x, y) Src(vec2(x, y))
-          // perception
-          vec4 p = R(l,u)*vec4(1,1,-1, 1) + R(x,u)*vec4(2,2,0, 2) + R(r,u)*vec4(1,1,1, 1)
-                 + R(l,y)*vec4(2,2,-2, 0) +  s*vec4(-12,-12,0, 0) + R(r,y)*vec4(2,2,2, 0)
-                 + R(l,d)*vec4(1,1,-1,-1) + R(x,d)*vec4(2,2,0,-2) + R(r,d)*vec4(1,1,1,-1);
-          vec4 ds = rule(s-0.5, p);  // NCA rule application
-          FOut = s+ds;
-        }`,
+uniform mat4 W[4];
+uniform vec4 b;
+vec4 rule(vec4 s, vec4 p) {
+  return 1e-3*(b + W[0]*s + W[1]*p + W[2]*abs(s) + W[3]*abs(p));
+}
+void fragment() {
+  vec4 s = Src(UV);
+  if (s == vec4(0)) {
+    ivec2 I = ivec2(gl_FragCoord.xy);
+    FOut = 0.1+vec4(hash(I.xyy).x)*0.4;
+    return;
+  }
+  vec2 dp = Src_step();
+  float x=UV.x, y=UV.y;
+  float l=x-dp.x, r=x+dp.x, u=y-dp.y, d=y+dp.y;
+  #define R(x, y) Src(vec2(x, y))
+  // perception
+  vec4 p = R(l,u)*vec4(1,1,-1, 1) + R(x,u)*vec4(2,2,0, 2) + R(r,u)*vec4(1,1,1, 1)
+         + R(l,y)*vec4(2,2,-2, 0) +  s*vec4(-12,-12,0, 0) + R(r,y)*vec4(2,2,2, 0)
+         + R(l,d)*vec4(1,1,-1,-1) + R(x,d)*vec4(2,2,0,-2) + R(r,d)*vec4(1,1,1,-1);
+  vec4 ds = rule(s-0.5, p);  // NCA rule application
+  FOut = s+ds;
+}`,
       },
       { story: 2, scale: 1 / 4 / DPR, tag: 'state' },
     );

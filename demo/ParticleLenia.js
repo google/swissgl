@@ -17,11 +17,11 @@ export default class ParticleLenia {
           ...param,
           Inc: [
             `
-            vec2 peak_f(float x, float mu, float sigma) {
-              float t = (x-mu)/sigma;
-              float y = exp(-t*t);
-              return vec2(y, -2.0*t*y/sigma);
-            }`,
+vec2 peak_f(float x, float mu, float sigma) {
+  float t = (x-mu)/sigma;
+  float y = exp(-t*t);
+  return vec2(y, -2.0*t*y/sigma);
+}`,
           ].concat(param.Inc || []),
         },
         target,
@@ -77,30 +77,29 @@ export default class ParticleLenia {
       {
         ...this.params,
         FP: `
-        vec3 pos = Src(I).xyz;
-        float mu = mu_k*sigma_k;
-        vec3 R_grad=vec3(0), U_grad=vec3(0);
-        float U = peak_f(0.0, mu, sigma_k).x*w_k, E = 1.0;
-        for (int y=0; y<ViewSize.y; ++y)
-        for (int x=0; x<ViewSize.x; ++x) {
-          if (x==I.x && y==I.y) continue;
-          vec3 pos1 = Src(ivec2(x, y)).xyz;
-          vec3 dp = pos-pos1;
-          float r = length(dp);
-          dp /= max(r, 1e-4);
-          if (r<1.0) {
-            float f = 1.0-r;
-            R_grad -= dp*f;
-            E += 0.5*(f*f);
-          }
-          vec2 K = peak_f(r, mu, sigma_k)*w_k;
-          U_grad += K.g*dp;
-          U += K.x;
-        } 
-        vec2 G = peak_f(U, mu_g, sigma_g);
-        pos -= dt*(R_grad*c_rep - G.g*U_grad);
-        FOut = vec4(pos, E*c_rep-G.x);
-        `,
+vec3 pos = Src(I).xyz;
+float mu = mu_k*sigma_k;
+vec3 R_grad=vec3(0), U_grad=vec3(0);
+float U = peak_f(0.0, mu, sigma_k).x*w_k, E = 1.0;
+for (int y=0; y<ViewSize.y; ++y)
+for (int x=0; x<ViewSize.x; ++x) {
+  if (x==I.x && y==I.y) continue;
+  vec3 pos1 = Src(ivec2(x, y)).xyz;
+  vec3 dp = pos-pos1;
+  float r = length(dp);
+  dp /= max(r, 1e-4);
+  if (r<1.0) {
+    float f = 1.0-r;
+    R_grad -= dp*f;
+    E += 0.5*(f*f);
+  }
+  vec2 K = peak_f(r, mu, sigma_k)*w_k;
+  U_grad += K.g*dp;
+  U += K.x;
+}
+vec2 G = peak_f(U, mu_g, sigma_g);
+pos -= dt*(R_grad*c_rep - G.g*U_grad);
+FOut = vec4(pos, E*c_rep-G.x);`,
       },
       this.state,
     );

@@ -19,9 +19,8 @@ export default class BitField {
       k,
       DPR,
       FP: `
-            ivec2 i = (I+int(t*40.))/4/int(DPR);
-            FOut = vec4(1 - (i.x^i.y)%int(k));
-        `,
+ivec2 i = (I+int(t*40.))/4/int(DPR);
+FOut = vec4(1 - (i.x^i.y)%int(k));`,
     });
   }
 }

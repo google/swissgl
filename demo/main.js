@@ -1,5 +1,5 @@
 import { GUI } from 'lil-gui';
-import SwissGL from '../src/swissgl.js';
+import SwissGL from '@/swissgl.js';
 import demos from './index.js';
 
 export const $ = s => document.querySelector(s);

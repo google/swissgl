@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { updateObject } from '../src/swissgl.js';
+import { updateObject } from '@/swissgl.js';
 
 // Inspired by https://cargocollective.com/sagejenson/physarum
 export default class Physarum {

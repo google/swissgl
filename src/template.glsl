@@ -1,27 +1,3 @@
-
-precision highp float;
-precision highp int;
-precision lowp sampler2DArray;
-#ifdef VERT
-    #define varying out
-    #define VPos gl_Position
-    layout(location = 0) in int VertexID;
-    layout(location = 1) in int InstanceID;
-    ivec2 VID;
-    ivec3 ID;
-#else
-    #define varying in
-    layout(location = 0) out vec4 FOut;
-    layout(location = 1) out vec4 FOut1;
-    layout(location = 2) out vec4 FOut2;
-    layout(location = 3) out vec4 FOut3;
-    layout(location = 4) out vec4 FOut4;
-    layout(location = 5) out vec4 FOut5;
-    layout(location = 6) out vec4 FOut6;
-    layout(location = 7) out vec4 FOut7;
-    ivec2 I;
-#endif
-
 uniform ivec3 Grid;
 uniform ivec2 Mesh;
 uniform ivec4 View;

@@ -137,7 +137,11 @@ function parseBlend(s0) {
 parseBlend = memoize(parseBlend);
 
 function compileShader(gl, code, type, program) {
-  code = '#version 300 es\n' + code;
+  code =
+    `#version 300 es
+precision highp float;
+precision highp int;
+precision lowp sampler2DArray;` + code;
   const shader = gl.createShader(type);
   gl.shaderSource(shader, code);
   gl.compileShader(shader);
@@ -267,11 +271,31 @@ function linkShader(gl, uniforms, Inc, VP, FP) {
   return compileProgram(
     gl,
     `
-    #define VERT
-    ${prefix}\n${VP}\n${glsl_main_vert}`,
+#define VERT
+#define varying out
+#define VPos gl_Position
+layout(location = 0) in int VertexID;
+layout(location = 1) in int InstanceID;
+ivec2 VID;
+ivec3 ID;
+${prefix}
+${VP}
+${glsl_main_vert}`,
     `
-    #define FRAG
-    ${prefix}\n${expandFP(FP)}\n${glsl_main_frag}`,
+#define FRAG
+#define varying in
+layout(location = 0) out vec4 FOut;
+layout(location = 1) out vec4 FOut1;
+layout(location = 2) out vec4 FOut2;
+layout(location = 3) out vec4 FOut3;
+layout(location = 4) out vec4 FOut4;
+layout(location = 5) out vec4 FOut5;
+layout(location = 6) out vec4 FOut6;
+layout(location = 7) out vec4 FOut7;
+ivec2 I;
+${prefix}
+${expandFP(FP)}
+${glsl_main_frag}`,
   );
 }
 

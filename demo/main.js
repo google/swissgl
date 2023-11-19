@@ -1,8 +1,6 @@
-import * as lil from 'lil-gui';
+import { GUI } from 'lil-gui';
 import SwissGL from '../src/swissgl.js';
 import demos from './index.js';
-
-window.lil = lil;
 
 export const $ = s => document.querySelector(s);
 const setDisplay = (el, val) => {
@@ -263,10 +261,8 @@ export default class DemoApp {
       this.demo = this.gui = null;
     }
     if (!this.singleMode) location.hash = name;
-    if (window.lil) {
-      this.gui = new lil.GUI({ container: $('#gui') });
-      this.gui.hide();
-    }
+    this.gui = new GUI({ container: $('#gui') });
+    this.gui.hide();
     this.demo = new this.demos[name](this.withCamera, this.gui);
     if (this.gui && this.gui.controllers.length == 0) {
       this.gui.destroy();
@@ -314,7 +310,7 @@ export default class DemoApp {
       glsl({ ...params, Inc: [this.glsl_include].concat(params.Inc || []) }, target);
     this.keys.forEach(name => {
       if (name == 'Spectrogram') return;
-      const dummyGui = new lil.GUI();
+      const dummyGui = new GUI();
       const demo = new this.demos[name](withCamera, dummyGui);
       dummyGui.destroy();
       this.resetCamera();

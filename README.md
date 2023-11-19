@@ -1,10 +1,10 @@
 # SwissGL: Swiss Army knife for WebGL2
 
-**[DEMO](http://google.github.io/swissgl)** | **[API](docs/API.md)** | **[Changelog](docs/CHANGELOG.md)**
+**[DEMO](https://swissgl.vercel.app)** | **[API](docs/API.md)** | **[Changelog](docs/CHANGELOG.md)**
 
 SwissGL is a minimalistic wrapper on top of WebGL2 JS API. It's designed to reduce the amount of boilerplate code required to manage GLSL shaders, textures and framebuffers when making GPGPU-style procedural visualizations or simulations. See the [demos](demo/) for examples of using SwissGL. As of now the library consists of a standalone <1000 loc .js file.
 
-**Disclaimer** This is not an officially supported Google product. SwissGL is an early stage experiment, incomplete and unstable. It's an invitation to discuss compact and expressive graphics library design, which I hope is relevant in light of the upcoming arrival of WebGPU.
+**Disclaimer** SwissGL is an early stage experiment, incomplete and unstable. It's an invitation to discuss compact and expressive graphics library design, which I hope is relevant in light of the upcoming arrival of WebGPU.
 
 ## Quickstart
 
@@ -91,7 +91,7 @@ for (let i = 0; i < 2; ++i) {
 }
 ```
 
-The shader code above uses "multiline" shader `code` format instead of a single expression. The output must be written to a global variable `FOut`. Variable `UV` has type `vec2` and provides `[0,1]`-range normalized coordinates of the current pixel. It is used to assign one of `K` "colors" to each particle. For convenience SwissGL provides a [simple hash](https://github.com/google/swissgl/blob/536c9f43c9f7a7bc59646d6fe1f3cb89bb5862b8/swissgl.js#L157) function `vec3 hash(ivec3)` that can be used as a deterministic random number generator.
+The shader code above uses "multiline" shader `code` format instead of a single expression. The output must be written to a global variable `FOut`. Variable `UV` has type `vec2` and provides `[0,1]`-range normalized coordinates of the current pixel. It is used to assign one of `K` "colors" to each particle. For convenience SwissGL provides a [simple hash](https://github.com/pluvial/swissgl/blob/main/src/swissgl.js#L227-L236) function `vec3 hash(ivec3)` that can be used as a deterministic random number generator.
 
 Note that we are writing the same particle positions two times, which means that particles have zero velocity at initialization. Now `points[0]` and `points[1]` contain the same values, and `points[2]` is uninitialized and is going to be overwritten at the first simulation step.
 

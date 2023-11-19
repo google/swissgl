@@ -54,7 +54,7 @@ In addition to uniforms, SwissGL accepts a number of options in the `params` arg
 
 - _multiline_: a function body that can be substituted into `void vertex() {...}` or `void fragment() {...}` function template. The output must be explictly written into to `VPos`/`FOut`.
 
-[MeshGrid](https://google.github.io/swissgl/#MeshGrid) demo provides a simple example of using the shortcut syntax and `XY`, `UV`, `ID`, `Mesh` and `Grid` input variables to render a few tessellated planes:
+[MeshGrid](https://swissgl.vercel.app/#MeshGrid) demo provides a simple example of using the shortcut syntax and `XY`, `UV`, `ID`, `Mesh` and `Grid` input variables to render a few tessellated planes:
 
 ```glsl
     glsl({time, Grid:[5,5], Mesh:[4,4], Aspect:'fit', VP:`

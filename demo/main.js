@@ -270,7 +270,7 @@ export default class DemoApp {
     }
     setDisplay('#settingButton', this.gui ? 'block' : 'none');
     if ($('#sourceLink')) {
-      $('#sourceLink').href = `https://github.com/google/swissgl/blob/main/demo/${name}.js`;
+      $('#sourceLink').href = `https://github.com/pluvial/swissgl/blob/main/demo/${name}.js`;
     }
     this.updateVRButtons();
     this.resetCamera();

@@ -30,7 +30,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "check": "tsc",
     "preview": "vite preview",
     "lib": "vite build -c vite.lib.config.ts",
     "lint": "prettier --check .",

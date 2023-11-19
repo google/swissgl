@@ -14,9 +14,10 @@ export default class DemoApp {
     const keys = Object.keys(demos);
     this.singleMode = keys.length == 1;
     if (this.singleMode) {
-      defaultDemo = demos[keys[0]].name;
+      defaultDemo = keys[0];
     }
     this.demos = demos;
+    this.keys = keys;
 
     this.canvas = document.getElementById('c');
     const gl = this.canvas.getContext('webgl2', {
@@ -292,7 +293,7 @@ export default class DemoApp {
   populatePreviews() {
     const panel = document.getElementById('cards');
     if (!panel) return;
-    Object.keys(this.demos).forEach(name => {
+    this.keys.forEach(name => {
       const el = document.createElement('div');
       el.classList.add('card');
       el.innerHTML = `<img src="/demo/preview/${name}.jpg">${name}`;
@@ -311,7 +312,7 @@ export default class DemoApp {
     const glsl = SwissGL(canvas);
     const withCamera = (params, target) =>
       glsl({ ...params, Inc: [this.glsl_include].concat(params.Inc || []) }, target);
-    Object.keys(this.demos).forEach(name => {
+    this.keys.forEach(name => {
       if (name == 'Spectrogram') return;
       const dummyGui = new lil.GUI();
       const demo = new this.demos[name](withCamera, dummyGui);

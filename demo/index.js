@@ -21,7 +21,7 @@ import Physarum3d from './Physarum3d.js';
 import TextureSamplers from './TextureSamplers.js';
 import LargeLenia from './LargeLenia.js';
 
-export default [
+export default {
   NeuralCA,
   DotCamera,
   MeshGrid,
@@ -44,4 +44,4 @@ export default [
   DeferredShading,
   Springs,
   ReactionDiffusion,
-];
+};

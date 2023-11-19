@@ -6,6 +6,7 @@ const minify = ESBUILD ? 'esbuild' : TERSER ? 'terser' : false;
 export default defineConfig({
   resolve: { alias: [{ find: '@', replacement: '/dist' }] },
   build: {
+    outDir: 'build',
     target: 'esnext',
     modulePreload: false,
     minify,

@@ -52,8 +52,8 @@ export default class Physarum {
       points,
       Inc: `
 vec2 wld2scr(vec2 p) {
-    vec2 d = follow?points(ivec2(0)).xy : vec2(field_size())*0.5;
-    return 2.0*zoom*(p-d.xy)/vec2(field_size()); //*rot2(d.z-PI/2.)
+  vec2 d = follow?points(ivec2(0)).xy : vec2(field_size())*0.5;
+  return 2.0*zoom*(p-d.xy)/vec2(field_size()); //*rot2(d.z-PI/2.)
 }`,
     };
     glsl({
@@ -108,9 +108,9 @@ FOut.x = pack(clamp(mix(v0, v1, dt),1e-5,1.));`,
 FOut = Src(I);
 vec2 wldSize = vec2(field_size());
 if (FOut.w == 0.0 || FOut.x>=wldSize.x || FOut.y>=wldSize.y) {
-    FOut = vec4(hash(ivec3(I, 123)), 1.0);
-    FOut.xyz *= vec3(wldSize, TAU);
-    return;
+  FOut = vec4(hash(ivec3(I, 123)), 1.0);
+  FOut.xyz *= vec3(wldSize, TAU);
+  return;
 }
 vec2 dir = vec2(cos(FOut.z), sin(FOut.z));
 mat2 R = rot2(radians(senseAng));
@@ -118,11 +118,11 @@ vec2 sense = senseDist*dir;
 #define F(p) field((FOut.xy+(p))/wldSize).x
 float c=F(sense), r=F(R*sense), l=F(sense*R);
 if (l>c && c>r) {
-    FOut.z -= rotAng*dt;
+  FOut.z -= rotAng*dt;
 } else if (r>c && c>l) {
-   FOut.z += rotAng*dt;
+  FOut.z += rotAng*dt;
 } else if (c<=r && c<=l) {
-   FOut.z += sign(hash(ivec3(FOut.xyz*5039.)).x-0.5)*rotAng*sqrt(dt);
+  FOut.z += sign(hash(ivec3(FOut.xyz*5039.)).x-0.5)*rotAng*sqrt(dt);
 }
 FOut.xy += dir*moveDist*dt;
 FOut.xy = mod(FOut.xy, wldSize);`,

@@ -17,15 +17,15 @@ export default class DeferredShading {
         Clear: 0,
         VP: `
 vec3 surface_f(vec2 p) {
-    vec2 c = sin(time+p*vec2(ID)*TAU);
-    vec3 pos = torus(p, 1.0, 0.4 + 0.1*c.x + 0.15*c.y)/8.0;
-    pos.xz *= rot2(float(ID.x+ID.y+ID.z));
-    pos.xyz += (vec3(ID)-vec3(Grid-1)*0.5)*0.4;
-    return pos;
+  vec2 c = sin(time+p*vec2(ID)*TAU);
+  vec3 pos = torus(p, 1.0, 0.4 + 0.1*c.x + 0.15*c.y)/8.0;
+  pos.xz *= rot2(float(ID.x+ID.y+ID.z));
+  pos.xyz += (vec3(ID)-vec3(Grid-1)*0.5)*0.4;
+  return pos;
 }
 void vertex() {
-    varying vec3 normal, wldPos = SURF(surface_f, UV, normal, 1e-3);
-    VPos = wld2proj(wldPos);
+  varying vec3 normal, wldPos = SURF(surface_f, UV, normal, 1e-3);
+  VPos = wld2proj(wldPos);
 }`,
         FP: `
 FOut = vec4(0.7, 0.7, 0.7, 1.0);

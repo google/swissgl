@@ -43,7 +43,7 @@ export default class DotCamera {
         FP: `
 FOut = tex(1.0-UV);
 if (!rgbMode) {
-    FOut.r = dot(FOut.rgb, vec3(0.21,0.72,0.07));
+  FOut.r = dot(FOut.rgb, vec3(0.21,0.72,0.07));
 }`,
       },
       { scale: 1 / 2 / DPR, tag: 'lum' },
@@ -63,7 +63,7 @@ FOut /= 8.0;`,
         FP: `
 vec2 s=T_step();
 vec4 a=T(UV-s), b=T(UV+vec2(s.x,-s.y)), c=T(UV+vec2(-s.x,s.y)), d=T(UV+s);
-FOut  = b+d-a-c; FOut1 = c+d-a-b;`,
+FOut = b+d-a-c; FOut1 = c+d-a-b;`,
       },
       { size: lum.size, layern: 2, format: 'rgba16f', tag: 'grad' },
     );
@@ -85,8 +85,8 @@ FOut  = b+d-a-c; FOut1 = c+d-a-b;`,
 int c = rgbMode ? I.x%3 : 0;
 vec4 p=Src(I), f=field(p.xy, c);
 if (p.w == 0.0) {
-    FOut = vec4(hash(ivec3(I, seed)).xy, 0.0, 1.0);
-    return;
+  FOut = vec4(hash(ivec3(I, seed)).xy, 0.0, 1.0);
+  return;
 }
 if (f.z>3.0) {p.xy = hash(ivec3(I,seed)).xy;}
 vec2 imf = vec2(imgForce(p.xy,0)[c], imgForce(p.xy,1)[c]);

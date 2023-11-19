@@ -94,9 +94,9 @@ FOut = vec4(1000, 1000, -1000, -1000);
 int D = S_size()[0]/ViewSize[0];
 ivec2 base = I * D;
 FOR2(i, 0, ivec2(D)) {
-    vec2 p = S(base+i).xy;
-    FOut.xy = min(FOut.xy, p);
-    FOut.zw = max(FOut.zw, p);
+  vec2 p = S(base+i).xy;
+  FOut.xy = min(FOut.xy, p);
+  FOut.zw = max(FOut.zw, p);
 }`,
       },
       { size: state[0].size, scale: 1 / 4, format: 'rgba32f', tag: 'bbox' },
@@ -111,11 +111,11 @@ float r = mu_k+sigma_k*3.0;
 vec4 query = bbox(I)+vec4(-r,-r,r,r);
 FOut = vec4(I,I);
 FOR2(i, 0, ViewSize) {
-    if (box_intersects(bbox(i), query)) {
-        vec2 fi = vec2(i);
-        FOut.xy = min(FOut.xy, fi);
-        FOut.zw = max(FOut.zw, fi);
-    }
+  if (box_intersects(bbox(i), query)) {
+    vec2 fi = vec2(i);
+    FOut.xy = min(FOut.xy, fi);
+    FOut.zw = max(FOut.zw, fi);
+  }
 }`,
       },
       { size: bbox.size, format: 'rgba32f', tag: 'nhood' },
@@ -140,20 +140,20 @@ vec4 querybox = vec4(pos-rmax, pos+rmax);
 int D = ViewSize[0]/bbox_size()[0];
 ivec4 nhoodBox = ivec4(nhood(I/D));
 FOR2(i0, nhoodBox.xy, nhoodBox.zw+1) {
-    if (!box_intersects(bbox(i0), querybox)) continue;
-    FOR2(i, i0*D, (i0+1)*D) {
-        if (i==I) continue;
-        vec2 pos1 = Src(i).xy;
-        vec2 dp = pos-pos1;
-        float r = length(dp);
-        dp /= max(r,1e-8);
-        if (r<1.0) {
-        R_grad -= dp*(1.0-r);
-        }
-        vec2 K = peak_f(r, mu_k, sigma_k)*w_k;
-        U_grad += K.g*dp;
-        U += K.x;
+  if (!box_intersects(bbox(i0), querybox)) continue;
+  FOR2(i, i0*D, (i0+1)*D) {
+    if (i==I) continue;
+    vec2 pos1 = Src(i).xy;
+    vec2 dp = pos-pos1;
+    float r = length(dp);
+    dp /= max(r,1e-8);
+    if (r<1.0) {
+    R_grad -= dp*(1.0-r);
     }
+    vec2 K = peak_f(r, mu_k, sigma_k)*w_k;
+    U_grad += K.g*dp;
+    U += K.x;
+  }
 }
 vec2 G = peak_f(U, mu_g, sigma_g);
 vel = vel*0.5-(R_grad*c_rep - G.g*U_grad);

@@ -100,20 +100,20 @@ VPos = vec4((v.x*0.5+0.5+float(ID.z))/3.0*2.0-1.0, v.y, 0,1);`,
 vec3 p = cubeVert(XY, ID.x)*0.5+0.5;
 Normal = -cubeVert(vec2(0), ID.x);
 varying vec3 portalPos = vec3(
-    Normal.z!=0. ? p.xy : (Normal.x!=0. ? p.yz : p.zx),
-    abs(Normal.x)+abs(Normal.y)*2.0);
+  Normal.z!=0. ? p.xy : (Normal.x!=0. ? p.yz : p.zx),
+  abs(Normal.x)+abs(Normal.y)*2.0);
 emitVertex((p-0.5)*1.3);`,
         FP: `
 if (!gl_FrontFacing) {
-    vec2 c = XY; c*=c; c*=c;
-    float ao = 1.0-(c.x+c.y)*0.4;
-    if (Normal.z<-0.5) {  // ceiling
-        float spot = smoothstep(0.995, 0.999, -dot(getLightDir(), getEyeDir()));
-        FOut = vec4(clamp(vec3(0.9, 0.8, 0.7)*(0.5+ao*0.5)+spot, 0., 1.), 1);
-    } else {
-        float grid = 1.0-0.2*(isoline(UV.x*4.0)+isoline(UV.y*4.0));
-        emitFragment(vec3(ao*grid));
-    }
+  vec2 c = XY; c*=c; c*=c;
+  float ao = 1.0-(c.x+c.y)*0.4;
+  if (Normal.z<-0.5) {  // ceiling
+    float spot = smoothstep(0.995, 0.999, -dot(getLightDir(), getEyeDir()));
+    FOut = vec4(clamp(vec3(0.9, 0.8, 0.7)*(0.5+ao*0.5)+spot, 0., 1.), 1);
+  } else {
+    float grid = 1.0-0.2*(isoline(UV.x*4.0)+isoline(UV.y*4.0));
+    emitFragment(vec3(ao*grid));
+  }
 }
 vec2 dp=portalmap_step()*0.5, p=clamp(portalPos.xy, dp,1.0-dp);
 p = (p+vec2(portalPos.z,0)) / vec2(3,1);

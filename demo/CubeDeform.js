@@ -16,18 +16,18 @@ export default class CubeDeform {
       DepthTest: 1,
       VP: `
 vec3 surface_f(vec2 xy) {
-    vec3 pos = cubeVert(xy, ID.x);
-    pos += sin(pos*PI+time).zxy*0.2;
-    pos = mix(pos, normalize(pos)*1.5, sin(time)*0.8+0.2);
-    pos.xy *= rot2(PI/4.+time*0.2);
-    pos.yz *= rot2(PI/3.0);
-    return pos*0.4;
+  vec3 pos = cubeVert(xy, ID.x);
+  pos += sin(pos*PI+time).zxy*0.2;
+  pos = mix(pos, normalize(pos)*1.5, sin(time)*0.8+0.2);
+  pos.xy *= rot2(PI/4.+time*0.2);
+  pos.yz *= rot2(PI/3.0);
+  return pos*0.4;
 }
 void vertex() {
-    varying vec3 color = cubeVert(vec2(0), ID.x)*0.5+0.5, normal;
-    vec4 v = vec4(SURF(surface_f, XY, normal, 1e-3), 1.0);
-    varying vec3 eyeDir = cameraPos()-v.xyz;
-    VPos = wld2proj(v);
+  varying vec3 color = cubeVert(vec2(0), ID.x)*0.5+0.5, normal;
+  vec4 v = vec4(SURF(surface_f, XY, normal, 1e-3), 1.0);
+  varying vec3 eyeDir = cameraPos()-v.xyz;
+  VPos = wld2proj(v);
 }`,
       FP: `
 vec3 n = normalize(normal);

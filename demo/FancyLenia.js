@@ -69,11 +69,11 @@ VPos = wld2proj(vec4(XY, z, 1));`,
       FP: `
 float U = fieldU(UV).x;
 if (U>0.1) {
-    vec2 m = 20.0*mat2(1,0.5,0,sin(TAU/6.))*UV;
-    float iso = isoline(m.x)+isoline(m.y)+isoline(m.x-m.y);
-    iso += isoline(fieldU(UV).x*10.0);
-    iso = min(iso/3.0, 0.5)*smoothstep(0.1, 0.5, U);
-    FOut.rgb += iso;
+  vec2 m = 20.0*mat2(1,0.5,0,sin(TAU/6.))*UV;
+  float iso = isoline(m.x)+isoline(m.y)+isoline(m.x-m.y);
+  iso += isoline(fieldU(UV).x*10.0);
+  iso = min(iso/3.0, 0.5)*smoothstep(0.1, 0.5, U);
+  FOut.rgb += iso;
 }
 float G = peak_f(U, mu_g, sigma_g).x;
 FOut.rgb = mix(FOut.rgb, vec3(0.6, 0.8, 0.3), G);
@@ -106,7 +106,7 @@ ivec2 sz = state_size();
 float E = 0.0;
 for (int y=0; y<sz.y; ++y)
 for (int x=0; x<sz.x; ++x) {
-    E += state(ivec2(x,y)).w;
+  E += state(ivec2(x,y)).w;
 }
 FOut.x = E / float(sz.x*sz.y);`,
       },
@@ -170,11 +170,11 @@ ivec2 i, sz = p0_size();
 float acc = 0.0;
 for (i.y=0; i.y<sz.y; ++i.y)
 for (i.x=0; i.x<sz.x; ++i.x) {
-    vec2 d0 = p0(i).xy, d1 = p1(i).xy;
-    float t = TAU*mix(d0.x, d1.x+step(d1.x,d0.x), UV.x);
-    float vel = mix(d0.y,d1.y,UV.x);
-    acc += vel;
-    FOut.xy += vel*(rot2(50.*t)[0]+rot2(300.*t)[0]) * exp(-abs(fract(5.0*t/TAU)-0.5)*20.0);
+  vec2 d0 = p0(i).xy, d1 = p1(i).xy;
+  float t = TAU*mix(d0.x, d1.x+step(d1.x,d0.x), UV.x);
+  float vel = mix(d0.y,d1.y,UV.x);
+  acc += vel;
+  FOut.xy += vel*(rot2(50.*t)[0]+rot2(300.*t)[0]) * exp(-abs(fract(5.0*t/TAU)-0.5)*20.0);
 }
 FOut.xy *= volume/acc;`,
       },

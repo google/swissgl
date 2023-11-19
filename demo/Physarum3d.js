@@ -44,26 +44,26 @@ FOut.r *= 0.99/(6.0+4.0);`,
         seed: Math.random() * 12312567,
         FP: `
 vec3 rndunit(ivec3 seed) {
-    return normalize(tan(hash(seed)*2.-1.));
+  return normalize(tan(hash(seed)*2.-1.));
 }
 void fragment() {
-    FOut = Src(I,0); FOut1 = Src(I,1);
-    if (FOut.w == 0.0) {
-        ivec3 r3 = ivec3(I, seed);
-        FOut = vec4(hash(r3), 1.0);
-        FOut1 = vec4(rndunit(r3.yxz), 0.0);
-        return;
-    }
-    vec3 pos = FOut.xyz, dir = FOut1.xyz;
-    vec3 turn = normalize(cross(rndunit(ivec3(I,seed)), dir));
-    float senseDist = 0.02;
-    float s0 = field(pos2field(pos + dir*senseDist)).r;
-    float s1 = field(pos2field(pos + normalize(dir+turn*0.5)*senseDist)).r;
-    if (s1>s0) {
-        dir = normalize(dir+turn*0.1);
-    }
-    FOut.xyz = fract(pos + dir*0.001);
-    FOut1.xyz = dir;
+  FOut = Src(I,0); FOut1 = Src(I,1);
+  if (FOut.w == 0.0) {
+    ivec3 r3 = ivec3(I, seed);
+    FOut = vec4(hash(r3), 1.0);
+    FOut1 = vec4(rndunit(r3.yxz), 0.0);
+    return;
+  }
+  vec3 pos = FOut.xyz, dir = FOut1.xyz;
+  vec3 turn = normalize(cross(rndunit(ivec3(I,seed)), dir));
+  float senseDist = 0.02;
+  float s0 = field(pos2field(pos + dir*senseDist)).r;
+  float s1 = field(pos2field(pos + normalize(dir+turn*0.5)*senseDist)).r;
+  if (s1>s0) {
+    dir = normalize(dir+turn*0.1);
+  }
+  FOut.xyz = fract(pos + dir*0.001);
+  FOut1.xyz = dir;
 }`,
       },
       { size: [256, 256], story: 2, format: 'rgba32f', layern: 2, tag: 'points' },

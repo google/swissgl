@@ -28,11 +28,11 @@ export default class ReactionDiffusion {
         FP: `
 vec2 v = Src(I).xy;
 {
-    ivec2 D=Src_size();
-    #define S(x,y) Src(ivec2(x,y)).xy
-    int x=I.x, y=I.y, l=(x-1+D.x)%D.x, r=(x+1)%D.x, u=(y-1+D.y)%D.y, d=(y+1)%D.y;
-    vec2 blur = v/4.0 + (S(l,y)+S(r,y)+S(x,u)+S(x,d))/8.0 + (S(l,u)+S(r,u)+S(l,d)+S(r,d))/16.0;
-    v = mix(v, blur, vec2(1.0, 0.5));
+  ivec2 D=Src_size();
+  #define S(x,y) Src(ivec2(x,y)).xy
+  int x=I.x, y=I.y, l=(x-1+D.x)%D.x, r=(x+1)%D.x, u=(y-1+D.y)%D.y, d=(y+1)%D.y;
+  vec2 blur = v/4.0 + (S(l,y)+S(r,y)+S(x,u)+S(x,d))/8.0 + (S(l,u)+S(r,u)+S(l,d)+S(r,d))/16.0;
+  v = mix(v, blur, vec2(1.0, 0.5));
 }
 const float k=0.05684, f=0.02542;
 float r = v.x*v.y*v.y;
@@ -51,7 +51,7 @@ FOut.xy = v + vec2(-r+f*(1.0-v.x), r-(f+k)*v.y);`,
     const touchPos = [x * s, y * s];
     const Inc = `
 vec2 state2screen(vec2 v) {
-    return vec2((1.0-v.x)*2.0,v.y*4.0+0.1)-1.0;
+  return vec2((1.0-v.x)*2.0,v.y*4.0+0.1)-1.0;
 }`;
 
     const hist = glsl(

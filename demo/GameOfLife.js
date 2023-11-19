@@ -12,9 +12,9 @@ export default class GameOfLife {
         FP: `
 FOut = Src(I);
 if (FOut.w == 0.0) {
-    float v = float((I.x^I.y+100)%9==0);
-    FOut = vec4(v,0,0,1);
-    return;
+  float v = float((I.x^I.y+100)%9==0);
+  FOut = vec4(v,0,0,1);
+  return;
 }
 ivec2 sz = Src_size();
 int x=I.x,l=(x-1+sz.x)%sz.x,r=(x+1)%sz.x;

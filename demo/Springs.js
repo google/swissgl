@@ -42,7 +42,7 @@ vec3 vel = FOut.xyz-prev(I).xyz;
 vel.y -= 0.0005;
 FOut += vec4(vel, waveRate/60.0);
 if (FOut.y<-0.8) {
-    FOut.x -= vel.x*0.8;
+  FOut.x -= vel.x*0.8;
 }`,
       },
       { size: points[0].size, format: 'rgba32f', story: 2, tag: 'next' },
@@ -54,30 +54,30 @@ if (FOut.y<-0.8) {
           time,
           FP: `
 vec4 relax(vec3 p, vec3 p0, float dist) {
-    vec3 dp = p-p0;
-    return vec4(p0+dp/(length(dp)+1e-10)*dist, 1.0);
+  vec3 dp = p-p0;
+  return vec4(p0+dp/(length(dp)+1e-10)*dist, 1.0);
 }
 void fragment() {
-    vec4 p = FOut = Src(I);
-    if ((I.x%8 == 0 && I.y==0) || I == ivec2(ViewSize.x-1,0)) return;
-    vec4 acc = vec4(0);
-    ivec2 i, D = ViewSize;
-    float f0 = sin(p.w);
-    const int R = 1;
-    for (i.y=-R; i.y<=R; ++i.y) if (I.y+i.y>=0 && I.y+i.y<D.y)
-    for (i.x=-R; i.x<=R; ++i.x) if (I.x+i.x>=0 && I.x+i.x<D.x) {
-        if (abs(i.x)+abs(i.y)>1) continue;
-        if (i==ivec2(0)) continue;
-        vec4 p1 = Src(I+i);
-        float f1 = sin(p1.w);
-        float f = 1.0;// + 0.5*0.5*(f0+f1);
-        acc += relax(p.xyz, p1.xyz, f*length(vec2(i)/vec2(D)));
-    }
-    FOut.xyz = acc.xyz/acc.w;
-    if (FOut.y<-0.8) {
-        FOut.y = -0.8;
-        FOut.x = mix(FOut.x, p.x, 0.9);
-    }
+  vec4 p = FOut = Src(I);
+  if ((I.x%8 == 0 && I.y==0) || I == ivec2(ViewSize.x-1,0)) return;
+  vec4 acc = vec4(0);
+  ivec2 i, D = ViewSize;
+  float f0 = sin(p.w);
+  const int R = 1;
+  for (i.y=-R; i.y<=R; ++i.y) if (I.y+i.y>=0 && I.y+i.y<D.y)
+  for (i.x=-R; i.x<=R; ++i.x) if (I.x+i.x>=0 && I.x+i.x<D.x) {
+    if (abs(i.x)+abs(i.y)>1) continue;
+    if (i==ivec2(0)) continue;
+    vec4 p1 = Src(I+i);
+    float f1 = sin(p1.w);
+    float f = 1.0;// + 0.5*0.5*(f0+f1);
+    acc += relax(p.xyz, p1.xyz, f*length(vec2(i)/vec2(D)));
+  }
+  FOut.xyz = acc.xyz/acc.w;
+  if (FOut.y<-0.8) {
+    FOut.y = -0.8;
+    FOut.x = mix(FOut.x, p.x, 0.9);
+  }
 }`,
         },
         next,

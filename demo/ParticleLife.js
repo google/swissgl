@@ -63,24 +63,24 @@ vec3 wrap(vec3 p) {
   return (fract(p/worldExtent+0.5)-0.5)*worldExtent;
 }
 void fragment() {
-    FOut = Src(I);
-    vec3 force=vec3(0);
-    for (int y=0; y<ViewSize.y; ++y)
-    for (int x=0; x<ViewSize.x; ++x) {
-      vec4 data1 = Src(ivec2(x,y));
-      vec3 dpos = wrap(data1.xyz-FOut.xyz);
-      float r = length(dpos);
-      if (r>3.0) continue;
-      dpos /= r+1e-8;
-      float rep = max(1.0-r, 0.0)*repulsion;
-      float f = F(ivec2(FOut.w, data1.w)).x;
-      float att = f*max(1.0-abs(r-2.0), 0.0);
-      force += dpos*(att-rep);
-    }
-    vec3 touchVec = (touchPos-FOut.xyz);
-    force += touchVec*exp(-dot(touchVec, touchVec))*50.0;
-    vec3 vel = wrap(FOut.xyz-past(I).xyz)*pow(inertia, dt);
-    FOut.xyz = wrap(FOut.xyz+vel+0.5*force*(dt*dt));
+  FOut = Src(I);
+  vec3 force=vec3(0);
+  for (int y=0; y<ViewSize.y; ++y)
+  for (int x=0; x<ViewSize.x; ++x) {
+    vec4 data1 = Src(ivec2(x,y));
+    vec3 dpos = wrap(data1.xyz-FOut.xyz);
+    float r = length(dpos);
+    if (r>3.0) continue;
+    dpos /= r+1e-8;
+    float rep = max(1.0-r, 0.0)*repulsion;
+    float f = F(ivec2(FOut.w, data1.w)).x;
+    float att = f*max(1.0-abs(r-2.0), 0.0);
+    force += dpos*(att-rep);
+  }
+  vec3 touchVec = (touchPos-FOut.xyz);
+  force += touchVec*exp(-dot(touchVec, touchVec))*50.0;
+  vec3 vel = wrap(FOut.xyz-past(I).xyz)*pow(inertia, dt);
+  FOut.xyz = wrap(FOut.xyz+vel+0.5*force*(dt*dt));
 }`,
         },
         points,

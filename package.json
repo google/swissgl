@@ -25,12 +25,15 @@
   "devDependencies": {
     "lil-gui": "^0.19.1",
     "prettier": "^3.1.0",
+    "terser": "^5.24.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
   },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:esbuild": "ESBUILD=1 vite build",
+    "build:terser": "TERSER=1 vite build",
     "check": "tsc",
     "preview": "vite preview",
     "lib": "vite build -c vite.lib.config.ts",

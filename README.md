@@ -10,26 +10,29 @@ SwissGL is a minimalistic wrapper on top of WebGL2 JS API. It's designed to redu
 
 As of now, the library API consists of a single function object that does everything (like a Swiss Army knife). Here is a tiny example of using it to draw an animated gradient quad:
 
-```HTML
-<script src="swissgl.js"></script>
+```html
 <canvas id="c" width="400" height="300"></canvas>
-<script>
-    const canvas = document.getElementById('c');
-    // create WebGL2 context end SwissGL
-    const glsl = SwissGL(canvas);
-    function render(t) {
-        t /= 1000; // ms to sec
-        glsl({t, // pass uniform 't' to GLSL
-            Mesh:[10, 10],  // draw a 10x10 tessellated plane mesh
-            // Vertex shader expression returns vec4 vertex position in
-            // WebGL clip space. 'XY' and 'UV' are vec2 input vertex
-            // coordinates in [-1,1] and [0,1] ranges.
-            VP:`XY*0.8+sin(t+XY.yx*2.0)*0.2,0,1`,
-            // Fragment shader returns 'RGBA'
-            FP:`UV,0.5,1`});
-        requestAnimationFrame(render);
-    }
+<script type="module">
+  import SwissGL from '@pluvial/swissgl';
+
+  const canvas = document.getElementById('c');
+  // create WebGL2 context end SwissGL
+  const glsl = SwissGL(canvas);
+  function render(t) {
+    t /= 1000; // ms to sec
+    glsl({
+      t, // pass uniform 't' to GLSL
+      Mesh: [10, 10], // draw a 10x10 tessellated plane mesh
+      // Vertex shader expression returns vec4 vertex position in
+      // WebGL clip space. 'XY' and 'UV' are vec2 input vertex
+      // coordinates in [-1,1] and [0,1] ranges.
+      VP: `XY*0.8+sin(t+XY.yx*2.0)*0.2,0,1`,
+      // Fragment shader returns 'RGBA'
+      FP: `UV,0.5,1`,
+    });
     requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
 </script>
 ```
 
@@ -82,9 +85,9 @@ for (let i = 0; i < 2; ++i) {
       K,
       seed: 123,
       FP: `
-        vec2 pos = (hash(ivec3(I, seed)).xy-0.5)*10.0;
-        float color = floor(UV.x*K);
-        FOut = vec4(pos, 0.0, color);`,
+vec2 pos = (hash(ivec3(I, seed)).xy-0.5)*10.0;
+float color = floor(UV.x*K);
+FOut = vec4(pos, 0.0, color);`,
     },
     points,
   );
@@ -113,13 +116,13 @@ glsl({
   // vertex shader that defines where to draw
   // the quad primitives
   VP: `
-    // fetch the current particle data
-    vec4 d = points(ID.xy);
-    // populate color varying to use in fragment shader
-    varying vec3 color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
-    // set the clip-space vertex position, 'vec2 XY' contains
-    // coordinates of the quad vertex in -1..1 range
-    VPos.xy = 2.0*(d.xy+XY/8.0)/worldExtent;`,
+// fetch the current particle data
+vec4 d = points(ID.xy);
+// populate color varying to use in fragment shader
+varying vec3 color = cos((d.w/K+vec3(0,0.33,0.66))*TAU)*0.5+0.5;
+// set the clip-space vertex position, 'vec2 XY' contains
+// coordinates of the quad vertex in -1..1 range
+VPos.xy = 2.0*(d.xy+XY/8.0)/worldExtent;`,
   // Set the the fragment color and transparency
   // depending on the distance from the quad center.
   // Interpolated XY values are also available
@@ -154,32 +157,32 @@ glsl(
 // this function wraps positions and velocities to
 // [-worldExtent/2, worldExtent/2] range
 vec3 wrap(vec3 p) {
-    return (fract(p/worldExtent+0.5)-0.5)*worldExtent;
+  return (fract(p/worldExtent+0.5)-0.5)*worldExtent;
 }
 void fragment() {
-    // read the current particle state
-    FOut = Src(I);
-    vec3 force=vec3(0); // force accumulator
-    // iterate over particles
-    for (int y=0; y<ViewSize.y; ++y)
-    for (int x=0; x<ViewSize.x; ++x) {
-        // reading the state of another particle
-        vec4 data1 = Src(ivec2(x,y));
-        vec3 dpos = wrap(data1.xyz-FOut.xyz);
-        // calculate distance
-        float r = length(dpos);
-        if (r>3.0) continue;
-        dpos /= r+1e-8;
-        // calculate repulsion and interaction forces
-        float rep = max(1.0-r, 0.0)*repulsion;
-        float f = F(ivec2(FOut.w, data1.w)).x;
-        float inter = f*max(1.0-abs(r-2.0), 0.0);
-        force += dpos*(inter-rep);
-    }
-    // fetch the past state to compute velocity
-    vec3 vel = wrap(FOut.xyz-past(I).xyz)*pow(inertia, dt);
-    // update particle position
-    FOut.xyz = wrap(FOut.xyz+vel+0.5*force*(dt*dt));
+  // read the current particle state
+  FOut = Src(I);
+  vec3 force=vec3(0); // force accumulator
+  // iterate over particles
+  for (int y=0; y<ViewSize.y; ++y)
+  for (int x=0; x<ViewSize.x; ++x) {
+    // reading the state of another particle
+    vec4 data1 = Src(ivec2(x,y));
+    vec3 dpos = wrap(data1.xyz-FOut.xyz);
+    // calculate distance
+    float r = length(dpos);
+    if (r>3.0) continue;
+    dpos /= r+1e-8;
+    // calculate repulsion and interaction forces
+    float rep = max(1.0-r, 0.0)*repulsion;
+    float f = F(ivec2(FOut.w, data1.w)).x;
+    float inter = f*max(1.0-abs(r-2.0), 0.0);
+    force += dpos*(inter-rep);
+  }
+  // fetch the past state to compute velocity
+  vec3 vel = wrap(FOut.xyz-past(I).xyz)*pow(inertia, dt);
+  // update particle position
+  FOut.xyz = wrap(FOut.xyz+vel+0.5*force*(dt*dt));
 }
 `,
   },

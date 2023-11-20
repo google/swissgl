@@ -17,6 +17,14 @@
     ".": {
       "import": "./dist/swissgl.js",
       "types": "./dist/swissgl.d.ts"
+    },
+    "./dist/swissgl.min.js": {
+      "import": "./dist/swissgl.min.js",
+      "types": "./dist/swissgl.d.ts"
+    },
+    "./dist/swissgl.terser.js": {
+      "import": "./dist/swissgl.terser.js",
+      "types": "./dist/swissgl.d.ts"
     }
   },
   "files": [
@@ -42,6 +50,8 @@
     "check": "tsc",
     "preview": "vite preview",
     "lib": "vite build -c vite.lib.config.ts",
+    "lib:esbuild": "esbuild --minify --platform=neutral dist/swissgl.js --outfile=dist/swissgl.min.js",
+    "lib:terser": "terser dist/swissgl.js -c -m --module --comments false -o dist/swissgl.terser.js",
     "lib:types": "tsc -p tsconfig.lib.json",
     "lint": "prettier --check '**/*.(css|html|js|json|md|ts|frag|glsl|vert)'",
     "format": "prettier --write '**/*.(css|html|js|json|md|ts|frag|glsl|vert)'"

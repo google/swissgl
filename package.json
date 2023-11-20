@@ -1,23 +1,61 @@
 {
-  "name": "swissgl",
-  "version": "0.0.1",
+  "name": "@pluvial/swissgl",
   "description": "SwissGL is a minimalistic wrapper on top of WebGL2 JS API. It's designed to reduce the amount of boilerplate code required to manage GLSL shaders, textures and framebuffers when making procedural visualizations or simulations.",
-  "main": "swissgl.js",
-  "module": "swissgl.mjs",
-  "directories": {
-    "doc": "docs"
+  "license": "Apache-2.0",
+  "version": "0.0.0",
+  "author": "Alexander Mordvintsev, João Paquim",
+  "bugs": {
+    "url": "https://github.com/pluvial/swissgl/issues"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "homepage": "https://github.com/pluvial/swissgl#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/google/swissgl.git"
+    "url": "https://github.com/pluvial/swissgl"
   },
-  "author": "Alexander Mordvintsev",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/google/swissgl/issues"
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/swissgl.js",
+      "types": "./dist/swissgl.d.ts"
+    },
+    "./dist/swissgl.min.js": {
+      "import": "./dist/swissgl.min.js",
+      "types": "./dist/swissgl.d.ts"
+    },
+    "./dist/swissgl.terser.js": {
+      "import": "./dist/swissgl.terser.js",
+      "types": "./dist/swissgl.d.ts"
+    }
   },
-  "homepage": "https://github.com/google/swissgl#readme"
+  "files": [
+    "dist",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "lil-gui": "^0.19.1",
+    "prettier": "^3.1.0",
+    "prettier-plugin-glsl": "^0.1.3",
+    "terser": "^5.24.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0",
+    "vite-plugin-glsl": "^1.1.2"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:esbuild": "ESBUILD=1 vite build",
+    "build:terser": "TERSER=1 vite build",
+    "check": "tsc",
+    "preview": "vite preview",
+    "lib": "vite build -c vite.lib.config.ts",
+    "lib:all": "pnpm lib && pnpm lib:esbuild && pnpm lib:terser && pnpm lib:types",
+    "lib:esbuild": "esbuild --minify --platform=neutral dist/swissgl.js --outfile=dist/swissgl.min.js",
+    "lib:terser": "terser dist/swissgl.js -c -m --module --comments false -o dist/swissgl.terser.js",
+    "lib:types": "tsc -p tsconfig.lib.json",
+    "lint": "prettier --check '**/*.(css|html|js|json|md|ts|frag|glsl|vert)'",
+    "format": "prettier --write '**/*.(css|html|js|json|md|ts|frag|glsl|vert)'",
+    "prepublishOnly": "pnpm lint && pnpm lib:all"
+  }
 }

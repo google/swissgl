@@ -1,0 +1,8 @@
+{
+  "arrowParens": "avoid",
+  "printWidth": 100,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "plugins": ["prettier-plugin-glsl"],
+  "overrides": [{ "files": ["*.frag"], "options": { "parser": "glsl-parser" } }]
+}

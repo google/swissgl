@@ -50,10 +50,12 @@
     "check": "tsc",
     "preview": "vite preview",
     "lib": "vite build -c vite.lib.config.ts",
+    "lib:all": "pnpm lib && pnpm lib:esbuild && pnpm lib:terser && pnpm lib:types",
     "lib:esbuild": "esbuild --minify --platform=neutral dist/swissgl.js --outfile=dist/swissgl.min.js",
     "lib:terser": "terser dist/swissgl.js -c -m --module --comments false -o dist/swissgl.terser.js",
     "lib:types": "tsc -p tsconfig.lib.json",
     "lint": "prettier --check '**/*.(css|html|js|json|md|ts|frag|glsl|vert)'",
-    "format": "prettier --write '**/*.(css|html|js|json|md|ts|frag|glsl|vert)'"
+    "format": "prettier --write '**/*.(css|html|js|json|md|ts|frag|glsl|vert)'",
+    "prepublishOnly": "pnpm lint && pnpm lib:all"
   }
 }

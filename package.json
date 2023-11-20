@@ -14,7 +14,10 @@
   },
   "type": "module",
   "exports": {
-    ".": "./dist/swissgl.js"
+    ".": {
+      "import": "./dist/swissgl.js",
+      "types": "./dist/swissgl.d.ts"
+    }
   },
   "files": [
     "dist",
@@ -39,6 +42,7 @@
     "check": "tsc",
     "preview": "vite preview",
     "lib": "vite build -c vite.lib.config.ts",
+    "lib:types": "tsc -p tsconfig.lib.json",
     "lint": "prettier --check '**/*.(css|html|js|json|md|ts|frag|glsl|vert)'",
     "format": "prettier --write '**/*.(css|html|js|json|md|ts|frag|glsl|vert)'"
   }

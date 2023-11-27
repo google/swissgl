@@ -648,6 +648,9 @@ function prepareOwnTarget(self, spec) {
         }
         tex.update(spec.size, spec.data);
     }
+    if (Array.isArray(target)) {
+        target.size = spec.size;
+    }
     return buffers[spec.tag];
 }
 
@@ -657,7 +660,12 @@ function bindTarget(gl, target) {
         return [gl.canvas.width, gl.canvas.height];
     }
     if (Array.isArray(target)) {
-        target.unshift(target = target.pop());
+        const next = target.pop();
+        if (target.size[0] != next.size[0] || target.size[1] != next.size[1]) {
+            next.update(target.size, null);
+        }
+        target.unshift(next);
+        target = next;
     }
     return target.bindTarget(gl)
 }
@@ -675,13 +683,13 @@ function drawQuads(self, params, target) {
     let Inc = options.Inc || [];
     if (!Array.isArray(Inc)) { Inc = [Inc]; }
     const [VP, FP] = [options.VP||'', options.FP||''];
-    const noShader = !VP && !FP;
-    const noDraw = (options.Clear === undefined) && noShader;
+    const haveShader = VP || FP;
+    const haveClear = options.Clear || options.Clear==0;
 
     // setup target
     if (target && target.tag) {
         target = prepareOwnTarget(self, target);
-        if (noDraw) return target;
+        if (!haveShader && !haveClear) return target;
     }
     if (Array.isArray(target)) {
         uniforms.Src = uniforms.Src || target[0];
@@ -695,7 +703,7 @@ function drawQuads(self, params, target) {
         view = [0, 0, view[0], view[1]]
     }
     gl.depthMask(!(options.DepthTest == 'keep'));
-    if ((typeof options.Clear === 'number') || Array.isArray(options.Clear)) {
+    if (haveClear) {
         let clear = options.Clear;
         if (typeof clear === 'number') {
             clear = [clear, clear, clear, clear];
@@ -708,7 +716,7 @@ function drawQuads(self, params, target) {
     }
 
     // setup program
-    if (noShader) {
+    if (!haveShader) {
         return target;
     }
     let prog = self.shaders;

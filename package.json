@@ -34,6 +34,8 @@
     "README.md"
   ],
   "devDependencies": {
+    "@types/audioworklet": "^0.0.52",
+    "@types/webxr": "^0.5.10",
     "lil-gui": "^0.19.1",
     "prettier": "^3.1.0",
     "prettier-plugin-glsl": "^0.1.3",

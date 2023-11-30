@@ -5,6 +5,12 @@ settings:
   excludeLinksFromLockfile: false
 
 devDependencies:
+  '@types/audioworklet':
+    specifier: ^0.0.52
+    version: 0.0.52
+  '@types/webxr':
+    specifier: ^0.5.10
+    version: 0.5.10
   lil-gui:
     specifier: ^0.19.1
     version: 0.19.1
@@ -405,8 +411,16 @@ packages:
     dev: true
     optional: true
 
+  /@types/audioworklet@0.0.52:
+    resolution: {integrity: sha512-+C0QA8HJS07NjSdLFUDsSfUGJiLs+FPa6K7Tu/e76dqHEnuTOjAjDyiFOnZTuf9j4x9P8Nmv0OOfcMNYnGzbAQ==}
+    dev: true
+
   /@types/estree@1.0.5:
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
+    dev: true
+
+  /@types/webxr@0.5.10:
+    resolution: {integrity: sha512-n3u5sqXQJhf1CS68mw3Wf16FQ4cRPNBBwdYLFzq3UddiADOim1Pn3Y6PBdDilz1vOJF3ybLxJ8ZEDlLIzrOQZg==}
     dev: true
 
   /acorn@8.11.2:

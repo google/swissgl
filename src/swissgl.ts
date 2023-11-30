@@ -37,10 +37,13 @@ import glsl_main_frag from './main.frag';
 import glsl_main_vert from './main.vert';
 import glsl_template from './template.glsl';
 
-type Canvas = HTMLCanvasElement; // | OffscreenCanvas;
+export type Canvas = HTMLCanvasElement; // | OffscreenCanvas;
 
 const GL = WebGL2RenderingContext;
-type GL = WebGL2RenderingContext;
+export type GL = WebGL2RenderingContext & {
+  _indexVA?: VA;
+  _samplers?: Record<string, WebGLSampler>;
+};
 
 type S =
   | 'BOOL'
@@ -59,16 +62,24 @@ type S =
   | 'FLOAT_MAT3'
   | 'FLOAT_MAT4';
 
-type CpuArray = Uint8Array | Uint16Array | Float32Array | Uint32Array;
-type CpuArrayConstructor =
+export type CpuArray = Uint8Array | Uint16Array | Float32Array | Uint32Array;
+export type CpuArrayConstructor =
   | Uint8ArrayConstructor
   | Uint16ArrayConstructor
   | Float32ArrayConstructor
   | Uint32ArrayConstructor;
 
-type TextureFormat = 'r8' | 'rgba8' | 'r16f' | 'rgba16f' | 'r32f' | 'rg32f' | 'rgba32f' | 'depth';
+export type TextureFormat =
+  | 'r8'
+  | 'rgba8'
+  | 'r16f'
+  | 'rgba16f'
+  | 'r32f'
+  | 'rg32f'
+  | 'rgba32f'
+  | 'depth';
 
-type TextureFormatInfo = {
+export type TextureFormatInfo = {
   internalFormat: GL[
     | 'R8'
     | 'RGBA8'
@@ -124,8 +135,6 @@ function memoize<T>(f: (k: string) => T) {
   return wrap;
 }
 
-// assign<T extends {}, U>(target: T, source: U): T & U;
-
 export function updateObject<T extends {}, U>(o: T, updates: U): T & U {
   for (const s in updates) {
     // @ts-expect-error TODO: fix this
@@ -134,7 +143,7 @@ export function updateObject<T extends {}, U>(o: T, updates: U): T & U {
   return o as T & U;
 }
 
-type Blend = { s: number; d: number; f: number };
+export type Blend = { s: number; d: number; f: number };
 
 // Parse strings like 'min(s,d)', 'max(s,d)', 's*d', 's+d*(1-sa)',
 // 's*d', 'd*(1-sa) + s*sa', s-d', 'd-s' and so on into
@@ -209,7 +218,7 @@ precision lowp sampler2DArray;` + code;
   gl.deleteShader(shader);
 }
 
-type Program = WebGLProgram & { setters: Record<string, (arg: any) => void> };
+export type Program = WebGLProgram & { setters: Record<string, (arg: any) => void> };
 
 function compileProgram(gl: GL, vs: string, fs: string): Program {
   const program = gl.createProgram() as Program;
@@ -362,8 +371,8 @@ ${glsl_main_frag}`,
   );
 }
 
-type Filter = 'linear' | 'nearest' | 'miplinear';
-type Wrap = 'edge' | 'repeat' | 'mirror';
+export type Filter = 'linear' | 'nearest' | 'miplinear';
+export type Wrap = 'edge' | 'repeat' | 'mirror';
 
 type TextureSamplerState = {
   handle?: WebGLTexture & { hasMipmap?: boolean };
@@ -373,19 +382,13 @@ type TextureSamplerState = {
   wrap?: Wrap;
 };
 
-class TextureSampler implements TextureSamplerState {
-  // @ts-expect-error uninit
-  gl: GL & { _samplers?: Record<string, WebGLSampler> };
-  // @ts-expect-error uninit
-  handle: WebGLTexture & { hasMipmap?: boolean };
-  // @ts-expect-error uninit
-  gltarget: number;
-  // @ts-expect-error uninit
-  layern: number | null;
-  // @ts-expect-error uninit
-  filter: Filter;
-  // @ts-expect-error uninit
-  wrap: Wrap;
+export class TextureSampler implements TextureSamplerState {
+  gl!: GL;
+  handle!: WebGLTexture & { hasMipmap?: boolean };
+  gltarget!: number;
+  layern!: number | null;
+  filter!: Filter;
+  wrap!: Wrap;
 
   fork(updates: Partial<TextureSamplerState>) {
     const { gl, handle, gltarget, layern, filter, wrap } = { ...this, ...updates };
@@ -457,9 +460,9 @@ class TextureSampler implements TextureSamplerState {
   }
 }
 
-type GpuBuf = WebGLBuffer & { length?: number };
+export type GpuBuf = WebGLBuffer & { length?: number };
 
-type TargetParams = {
+export type TargetParams = {
   size: [number, number];
   tag: string;
   format?: TextureFormat;
@@ -470,16 +473,12 @@ type TargetParams = {
   depth?: TextureTarget | null;
 };
 
-class TextureTarget extends TextureSampler {
-  // @ts-ignore uninit
-  size: [number, number];
-  // @ts-ignore uninit
-  _tag: string;
-  // @ts-ignore uninit
-  format: string;
+export class TextureTarget extends TextureSampler {
+  size!: [number, number];
+  _tag!: string;
+  format!: string;
   formatInfo: TextureFormatInfo;
-  // @ts-ignore uninit
-  depth: TextureTarget | null;
+  depth!: TextureTarget | null;
   fbo?: WebGLFramebuffer;
   cpu?: CpuArray;
   async?: { all: Set<GpuBuf>; queue: GpuBuf[] };
@@ -579,7 +578,7 @@ class TextureTarget extends TextureSampler {
     }
     return this.size;
   }
-  _getBox(box?: [number, number, number, number]): {
+  _getBox(box?: [number, number, number, number] | []): {
     box: [number, number, number, number];
     n: number;
   } {
@@ -594,12 +593,12 @@ class TextureTarget extends TextureSampler {
     }
     return this.cpu.length == n ? this.cpu : this.cpu.subarray(0, n);
   }
-  _readPixels(box: [number, number, number, number], targetBuf: ArrayBufferView | GLuint) {
+  _readPixels(box: [number, number, number, number], targetBuf: CpuArray | GLuint) {
     const { glformat, type } = this.formatInfo;
     this.bindTarget(this.gl, /*readonly*/ true);
     this.gl.readPixels(...box, glformat, type, targetBuf as GLuint);
   }
-  readSync(...optBox: [number, number, number, number]) {
+  readSync(...optBox: [number, number, number, number] | []): CpuArray {
     const { box, n } = this._getBox(optBox);
     const buf = this._getCPUBuf(n);
     this._readPixels(box, buf);
@@ -636,9 +635,9 @@ class TextureTarget extends TextureSampler {
   }
   // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices#use_non-blocking_async_data_readback
   read(
-    callback: (target: ArrayBufferView) => void,
-    optBox?: [number, number, number, number],
-    optTarget?: ArrayBufferView,
+    callback: (target: CpuArray) => void,
+    optBox?: [number, number, number, number] | [],
+    optTarget?: CpuArray,
   ) {
     const { gl } = this;
     const { box, n } = this._getBox(optBox);
@@ -652,8 +651,8 @@ class TextureTarget extends TextureSampler {
   _asyncFetch(
     gpuBuf: GpuBuf,
     sync: WebGLSync,
-    callback: (target: ArrayBufferView) => void,
-    optTarget?: ArrayBufferView,
+    callback: (target: CpuArray) => void,
+    optTarget?: CpuArray,
   ) {
     const { gl } = this;
     if (!gpuBuf.length) {
@@ -693,7 +692,7 @@ class TextureTarget extends TextureSampler {
   }
 }
 
-type Aspect = 'fit' | 'cover' | 'mean' | 'x' | 'y';
+export type Aspect = 'fit' | 'cover' | 'mean' | 'x' | 'y';
 
 function calcAspect(aspect: Aspect | null | undefined, w: number, h: number): [number, number] {
   if (!aspect) return [1, 1];
@@ -720,9 +719,9 @@ function calcAspect(aspect: Aspect | null | undefined, w: number, h: number): [n
   return [c / w, c / h];
 }
 
-type VA = WebGLVertexArrayObject & { size: number; buf?: WebGLBuffer };
+export type VA = WebGLVertexArrayObject & { size: number; buf?: WebGLBuffer };
 
-function ensureVertexArray(gl: GL & { _indexVA?: VA }, neededSize: number) {
+function ensureVertexArray(gl: GL, neededSize: number) {
   // gl_VertexID / gl_InstanceID seem to be broken in some configurations
   // (e.g. https://crbug.com/1315104), so I had to fallback to using arrays
   if (gl._indexVA && neededSize <= gl._indexVA.size) return;
@@ -782,7 +781,7 @@ function getTargetSize(
   return [Math.ceil(size[0] * scale), Math.ceil(size[1] * scale)];
 }
 
-type TargetResult = TextureTarget | TextureTarget[];
+export type TargetResult = TextureTarget | TextureTarget[];
 
 function createTarget(gl: GL, params: TargetParams & { story?: number }): TargetResult {
   if (!params.story) return new TextureTarget(gl, params);
@@ -791,13 +790,14 @@ function createTarget(gl: GL, params: TargetParams & { story?: number }): Target
     .map(_ => new TextureTarget(gl, params));
 }
 
-type Buffers = Record<string, TextureTarget | TextureTarget[]>;
-type Shaders = Record<string, Program>;
+export type Buffers = Record<string, TargetResult>;
 
-type SwissGL = {
-  (params: Params, target?: Target | null): TargetResult;
-  gl: GL & { _indexVA?: VA };
-  // gl: GL;
+export type Shaders = Record<string, Program>;
+
+export type glsl = (params: Params, target?: Target | null) => TargetResult | undefined;
+
+export type SwissGL = glsl & {
+  gl: GL;
   buffers: Buffers;
   shaders: Shaders;
   reset(): void;
@@ -806,7 +806,7 @@ type SwissGL = {
   stop(): void;
 };
 
-type Spec = {
+export type Spec = {
   size: [number, number];
   scale?: number;
   format?: TextureFormat;
@@ -838,7 +838,7 @@ function prepareOwnTarget(self: SwissGL, spec: Spec): TargetResult {
   return buffers[spec.tag];
 }
 
-function bindTarget(gl: GL, target?: TargetResult | null) {
+function bindTarget(gl: GL, target?: TargetResult | null): [number, number] {
   if (!target) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     return [gl.canvas.width, gl.canvas.height];
@@ -864,7 +864,7 @@ const OptNames = new Set([
   'Face',
 ]);
 
-type Options = {
+export type Options = {
   Inc: string | string[];
   VP: string;
   FP: string;
@@ -880,11 +880,11 @@ type Options = {
 };
 
 // type Params = Partial<Options & Record<string, any>>;
-type Params = Partial<Options> & Record<string, any>;
+export type Params = Partial<Options> & Record<string, any>;
 
-type Target = WebGLTexture | WebGLTexture[] | Spec | HTMLVideoElement;
+export type Target = WebGLTexture | WebGLTexture[] | Spec | HTMLVideoElement;
 
-type Uniforms = {
+export type Uniforms = {
   Src: WebGLTexture;
   View: [number, number, number, number];
   Aspect: [number, number];
@@ -892,7 +892,11 @@ type Uniforms = {
   Mesh: [number, number];
 };
 
-function drawQuads(self: SwissGL, params: Params, target?: Target | null): TargetResult {
+function drawQuads(
+  self: SwissGL,
+  params: Params,
+  target?: Target | null,
+): TargetResult | undefined {
   const options = {} as Options,
     uniforms = {} as Uniforms;
   for (const p in params) {
@@ -908,7 +912,7 @@ function drawQuads(self: SwissGL, params: Params, target?: Target | null): Targe
   const noDraw = options.Clear === undefined && noShader;
 
   // setup target
-  let targetResult = target as unknown as TargetResult;
+  let targetResult = target as unknown as TargetResult | undefined;
   if (target && 'tag' in target) {
     // target = prepareOwnTarget(self, target);
     // if (noDraw) return target;

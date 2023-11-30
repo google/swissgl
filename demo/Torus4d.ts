@@ -3,9 +3,13 @@
  * Copyright 2023 João Paquim
  * SPDX-License-Identifier: Apache-2.0
  */
+
+import type { glsl, Params } from '@/swissgl';
+
 export default class Torus4d {
   static Tags = ['3d'];
-  frame(glsl, params) {
+
+  frame(glsl: glsl, params: Params) {
     glsl({
       ...params,
       Mesh: [100, 100],

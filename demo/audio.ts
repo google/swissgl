@@ -4,8 +4,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-class AudioWorkletProcessor {}
+import { CpuArray } from '@/swissgl';
+
+// class AudioWorkletProcessor {}
+
 export default class AudioStream extends AudioWorkletProcessor {
+  chunkSize: number;
+  queue!: Float32Array[];
+  pos!: number;
+  frame!: number;
+  audioContext!: AudioContext;
+  workletNode!: AudioWorkletNode;
+
   constructor() {
     super();
     this.chunkSize = 1024;
@@ -21,13 +31,19 @@ export default class AudioStream extends AudioWorkletProcessor {
       this._requestChunk();
     }
   }
+
   _requestChunk() {
-    const buf = this.queue.shift();
+    const buf = this.queue.shift()!;
     this.port.postMessage({ frame: this.frame, sampleRate, buf }, [buf.buffer]);
     this.frame += this.chunkSize;
     this.pos = this.queue.length ? 0 : -1;
   }
-  process(inputs, outputs, parameters) {
+
+  process(
+    _inputs: Float32Array[][],
+    outputs: Float32Array[][],
+    _parameters: Record<string, Float32Array>,
+  ) {
     if (!this.queue.length) return true;
     const src = this.queue[0];
     const [c0, c1] = outputs[0],
@@ -51,7 +67,8 @@ export default class AudioStream extends AudioWorkletProcessor {
     }
     return true;
   }
-  async start(callback) {
+
+  async start(callback: (data: any, submit: (buf: CpuArray) => void) => void) {
     this.audioContext = new AudioContext();
     const audioWorkletJS =
       AudioStream.toString() + '\nregisterProcessor("worklet-processor", AudioStream);';
@@ -62,11 +79,12 @@ export default class AudioStream extends AudioWorkletProcessor {
     this.workletNode = new AudioWorkletNode(this.audioContext, 'worklet-processor', {
       outputChannelCount: [2],
     });
-    const submit = buf => this.workletNode.port.postMessage(buf, [buf.buffer]);
+    const submit = (buf: CpuArray) => this.workletNode.port.postMessage(buf, [buf.buffer]);
     this.workletNode.port.onmessage = msg => callback(msg.data, submit);
     this.workletNode.connect(this.audioContext.destination);
     console.log('audio stream started');
   }
+
   stop() {
     this.audioContext.close();
   }

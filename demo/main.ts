@@ -1,31 +1,36 @@
 import { GUI } from 'lil-gui';
-import SwissGL from '@/swissgl.js';
+import SwissGL from '@/swissgl';
+import type { glsl, GL, Params, Target, TargetResult } from '@/swissgl';
 import demos from './index.js';
 import glsl_include from './include.glsl';
 
-export const $ = s => document.querySelector(s);
-const setDisplay = (el, val) => {
-  if ($(el)) $(el).style.display = val;
-};
+export type Demos = typeof demos;
+export type DemoName = keyof Demos;
+export type Demo = Demos[DemoName];
 
-const keys = Object.keys(demos);
+export const $ = (s: string) => document.querySelector(s) as HTMLElement;
+function setDisplay(el: string, val: string) {
+  if ($(el)) $(el).style.display = val;
+}
+
+const keys = Object.keys(demos) as DemoName[];
 const singleMode = keys.length == 1;
 const defaultDemo = singleMode ? keys[0] : 'ParticleLife3d';
 
-const canvas = document.getElementById('c');
+const canvas = document.getElementById('c') as HTMLCanvasElement;
 const gl = canvas.getContext('webgl2', {
   alpha: false,
   antialias: true,
   xrCompatible: true,
-});
+})!;
 const glsl = SwissGL(gl);
-let demo = null;
-let gui = null;
+let demo: InstanceType<Demo> | null = null;
+let gui: GUI | null = null;
 
-let xrDemos = Object.values(demos).filter(f => f.Tags && f.Tags.includes('3d'));
-let xrSession = null;
-let xrRefSpace = null;
-let xrPose = null;
+let xrDemos = Object.values(demos).filter(f => 'Tags' in f && f.Tags.includes('3d'));
+let xrSession: XRSession | null = null;
+let xrRefSpace: XRReferenceSpace | null = null;
+let xrPose: XRViewerPose | null = null;
 let lookUpStartTime = 0;
 let haveAR = false;
 let haveVR = false;
@@ -51,21 +56,21 @@ let viewParams = {
 };
 resetCamera();
 
-function withCamera(params, target) {
+function withCamera(params: Params, target?: Target | null): TargetResult | undefined {
   params = { ...params, Inc: [glsl_include].concat(params.Inc || []) };
   if (target || !params.xrMode) {
     return glsl(params, target);
   }
   delete params.Aspect;
-  let glLayer = xrSession.renderState.baseLayer;
+  let glLayer = xrSession!.renderState.baseLayer!;
   target = {
-    bindTarget: gl => {
+    bindTarget: (gl: GL) => {
       gl.bindFramebuffer(gl.FRAMEBUFFER, glLayer.framebuffer);
       return [glLayer.framebufferWidth, glLayer.framebufferHeight];
     },
   };
-  for (let view of xrPose.views) {
-    const vp = glLayer.getViewport(view);
+  for (let view of xrPose!.views) {
+    const vp = glLayer.getViewport(view)!;
     params.View = [vp.x, vp.y, vp.width, vp.height];
     params.xrProjectionMatrix = view.projectionMatrix;
     params.xrViewMatrix = view.transform.inverse.matrix;
@@ -75,12 +80,12 @@ function withCamera(params, target) {
   }
 }
 
-const setPointer = (e, buttons) => {
+function setPointer(e: PointerEvent, buttons: number) {
   const [w, h] = viewParams.canvasSize;
   const [x, y] = [e.offsetX - w / 2, h / 2 - e.offsetY];
   viewParams.pointer.set([x, y, buttons]);
   return [x, y];
-};
+}
 canvas.addEventListener('pointerdown', e => {
   if (!e.isPrimary) return;
   setPointer(e, e.buttons);
@@ -102,7 +107,7 @@ let name = location.hash.slice(1);
 if (!(name in demos)) {
   name = defaultDemo;
 }
-runDemo(name);
+runDemo(name as DemoName);
 populatePreviews();
 
 requestAnimationFrame(frame);
@@ -111,43 +116,44 @@ function resetCamera() {
   viewParams.cameraYPD.set([(Math.PI * 3) / 4, Math.PI / 4, 1.8]);
 }
 
-function frame(t) {
+function frame(t: number) {
   requestAnimationFrame(frame);
   if (xrSession) return; // skip canvas frames when XR is running
   glsl.adjustCanvas();
   viewParams.canvasSize.set([canvas.clientWidth, canvas.clientHeight]);
   viewParams.DPR = window.devicePixelRatio;
 
-  demo.frame(withCamera, {
+  demo!.frame(withCamera, {
     time: t / 1000.0,
     xrMode: false,
     ...viewParams,
   });
 }
 
-function xrFrameCallback(t, xrFrame) {
-  xrSession.requestAnimationFrame(xrFrameCallback);
-  xrPose = xrFrame.getViewerPose(xrRefSpace);
+function xrFrameCallback(t: number, xrFrame: XRFrame) {
+  xrSession!.requestAnimationFrame(xrFrameCallback);
+  xrPose = xrFrame.getViewerPose(xrRefSpace!)!;
   if (!xrPose) return;
   viewParams.xrRay.fill(0.0);
   viewParams.xrRayInv.fill(0.0);
   viewParams.xrButton.fill(0.0);
   const params = { time: t / 1000.0, xrMode: true, ...viewParams };
   for (let i = 0; i < 2; ++i) {
-    const inputSource = xrSession.inputSources[i];
+    const inputSource = xrSession!.inputSources[i];
     if (inputSource && inputSource.gamepad && inputSource.gamepad.buttons) {
       inputSource.gamepad.buttons.forEach((btn, btnIdx) => {
-        if (btnIdx < 4) viewParams.xrButton[i * 4 + btnIdx] = btn.value || btn.pressed;
+        // if (btnIdx < 4) viewParams.xrButton[i * 4 + btnIdx] = btn.value || btn.pressed;
+        if (btnIdx < 4) viewParams.xrButton[i * 4 + btnIdx] = btn.value || btn.pressed ? 1 : 0;
       });
     }
     if (!inputSource || !inputSource.targetRaySpace) continue;
-    const pose = xrFrame.getPose(inputSource.targetRaySpace, xrRefSpace);
+    const pose = xrFrame.getPose(inputSource.targetRaySpace, xrRefSpace!);
     if (!pose) continue;
     viewParams.xrRay.set(pose.transform.matrix, i * 16);
     viewParams.xrRayInv.set(pose.transform.inverse.matrix, i * 16);
   }
 
-  demo.frame(withCamera, params);
+  demo!.frame(withCamera, params);
   withCamera({
     ...params,
     Mesh: [20, 20],
@@ -169,9 +175,9 @@ if (b<4.0 && buttons[int(b)]>fract(b)) FOut += 0.5;`,
     const dt = (t - lookUpStartTime) / 1000;
     if (dt > 1) {
       lookUpStartTime = t;
-      let i = xrDemos.indexOf(demo.constructor);
+      let i = xrDemos.indexOf(demo!.constructor as Demo);
       i = (i + 1) % xrDemos.length;
-      runDemo(xrDemos[i].name);
+      runDemo(xrDemos[i].name as DemoName);
     } else {
       withCamera({
         ...params,
@@ -189,9 +195,9 @@ VPos = wld2proj(vec4(p,1));`,
   }
 }
 
-function toggleXR(xr) {
+function toggleXR(xr: 'ar' | 'vr') {
   if (!xrSession) {
-    navigator.xr.requestSession(`immersive-${xr}`).then(session => {
+    navigator.xr!.requestSession(`immersive-${xr}`).then(session => {
       xrSession = session;
       session.addEventListener('end', () => {
         xrSession = null;
@@ -212,10 +218,10 @@ function toggleXR(xr) {
   }
 }
 
-function runDemo(name) {
+function runDemo(name: DemoName) {
   if (demo) {
     if (gui) gui.destroy();
-    if (demo.free) demo.free();
+    if ('free' in demo) demo.free();
     glsl.reset();
     demo = gui = null;
   }
@@ -229,7 +235,8 @@ function runDemo(name) {
   }
   setDisplay('#settingButton', gui ? 'block' : 'none');
   if ($('#sourceLink')) {
-    $('#sourceLink').href = `https://github.com/pluvial/swissgl/blob/main/demo/${name}.js`;
+    ($('#sourceLink') as HTMLAnchorElement).href =
+      `https://github.com/pluvial/swissgl/blob/main/demo/${name}.js`;
   }
   updateVRButtons();
   resetCamera();
@@ -238,7 +245,7 @@ function runDemo(name) {
 function updateVRButtons() {
   setDisplay('#vrButton', 'none');
   setDisplay('#arButton', 'none');
-  const tags = demo && demo.constructor.Tags;
+  const tags = demo && (demo.constructor as any).Tags;
   if (tags && tags.includes('3d')) {
     if (haveVR) setDisplay('#vrButton', 'block');
     if (haveAR) setDisplay('#arButton', 'block');
@@ -258,19 +265,19 @@ function populatePreviews() {
 }
 
 // helper function to render demo preview images
-function genPreviews() {
-  const panel = document.getElementById('cards');
+export function genPreviews() {
+  const panel = document.getElementById('cards') as HTMLDivElement;
   panel.innerHTML = '';
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement('canvas') as HTMLCanvasElement;
   canvas.width = 400;
   canvas.height = 300;
   const glsl = SwissGL(canvas);
-  const withCamera = (params, target) =>
+  const withCamera: glsl = (params, target) =>
     glsl({ ...params, Inc: [glsl_include].concat(params.Inc || []) }, target);
   keys.forEach(name => {
     if (name == 'Spectrogram') return;
     const dummyGui = new GUI();
-    const demo = new demos[name](withCamera, dummyGui);
+    const demo = new demos[name](withCamera, dummyGui) as InstanceType<Demo>;
     dummyGui.destroy();
     resetCamera();
     for (let i = 0; i < 60 * 5; ++i) {
@@ -283,7 +290,7 @@ function genPreviews() {
 <a href="${data}" download="${name}.jpg"><img src="${data}"></a>
 ${name}`;
     panel.appendChild(el);
-    if (demo.free) demo.free();
+    if ('free' in demo) demo.free();
     glsl.reset();
   });
 }
@@ -295,7 +302,9 @@ function toggleGui() {
 }
 
 function fullscreen() {
-  const f = canvas.requestFullscreen || canvas.webkitRequestFullscreen;
+  const f =
+    canvas.requestFullscreen ||
+    ((canvas as any).webkitRequestFullscreen as typeof canvas.requestFullscreen);
   if (f) f.apply(canvas);
 }
 

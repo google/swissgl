@@ -4,10 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { glsl, Params, TextureTarget } from '@/swissgl';
+
 // Based on "μNCA: Texture Generation with Ultra-Compact Neural Cellular Automata"
 // https://arxiv.org/abs/2111.13545
 export default class NeuralCA {
   static Tags = ['2d', 'ca'];
+
+  W: Float32Array;
+  b: Float32Array;
+
   constructor() {
     this.W = new Float32Array([
       -67, 1, 2, 44, -13, -59, 4, 30, -1, 16, -57, 9, -10, -4, -2, -41, 19, -18, -1, 8, -4, 35, 8,
@@ -16,7 +22,8 @@ export default class NeuralCA {
     ]);
     this.b = new Float32Array([2, -5, -14, 9]);
   }
-  frame(glsl, { DPR }) {
+
+  frame(glsl: glsl, { DPR }: Params & { DPR: number }) {
     const state = glsl(
       {
         W: this.W,
@@ -47,7 +54,7 @@ void fragment() {
 }`,
       },
       { story: 2, scale: 1 / 4 / DPR, tag: 'state' },
-    );
+    ) as [TextureTarget, TextureTarget];
     glsl({ tex: state[0], FP: `tex(UV)*2.-.5` });
   }
 }

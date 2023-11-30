@@ -4,8 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { GUI } from 'lil-gui';
+import type { glsl, Params, TextureTarget } from '@/swissgl';
+
 export default class DotCamera {
-  constructor(glsl, gui) {
+  video: HTMLVideoElement;
+  dayMode: boolean;
+  rgbMode: boolean;
+
+  constructor(_glsl: glsl, gui: GUI) {
     this.video = document.createElement('video');
     this.dayMode = false;
     gui.add(this, 'dayMode');
@@ -22,15 +29,18 @@ export default class DotCamera {
       });
   }
 
-  frame(glsl, { time, canvasSize, DPR }) {
-    let tex;
+  frame(
+    glsl: glsl,
+    { time, canvasSize, DPR }: Params & { time: number; canvasSize: Float32Array; DPR: number },
+  ) {
+    let tex: TextureTarget;
     if (this.video.videoWidth) {
-      tex = glsl({}, { data: this.video, tag: 'video' });
+      tex = glsl({}, { data: this.video, tag: 'video' }) as TextureTarget;
     } else {
       tex = glsl(
         { time, FP: `step(0.0, sin(length(XY)*20.0-time*3.0+atan(XY.x,XY.y)*3.))*0.25` },
         { size: [512, 512], tag: 'tmp' },
-      );
+      ) as TextureTarget;
     }
     const blendParams = this.dayMode ? { Clear: 1, Blend: 'd-s' } : { Clear: 0, Blend: 'd+s' };
     const rgbMode = this.rgbMode;
@@ -47,7 +57,7 @@ if (!rgbMode) {
 }`,
       },
       { scale: 1 / 2 / DPR, tag: 'lum' },
-    );
+    ) as TextureTarget;
     const merged = glsl(
       {
         T: lum.edge.miplinear,
@@ -56,7 +66,7 @@ for (float lod=0.; lod<8.0; lod+=1.0) {FOut += textureLod(T, UV, lod);}
 FOut /= 8.0;`,
       },
       { size: lum.size, format: 'rgba16f', tag: 'merged' },
-    );
+    ) as TextureTarget;
     const imgForce = glsl(
       {
         T: merged.edge,
@@ -66,14 +76,14 @@ vec4 a=T(UV-s), b=T(UV+vec2(s.x,-s.y)), c=T(UV+vec2(-s.x,s.y)), d=T(UV+s);
 FOut = b+d-a-c; FOut1 = c+d-a-b;`,
       },
       { size: lum.size, layern: 2, format: 'rgba16f', tag: 'grad' },
-    );
+    ) as TextureTarget;
 
     const arg = { canvasSize, rgbMode };
     const field = glsl(
       {},
       { scale: 1 / 4 / DPR, format: 'rgba16f', layern: 3, filter: 'linear', tag: 'field' },
-    );
-    let points;
+    ) as TextureTarget;
+    let points: TextureTarget[] = [];
     for (let i = 0; i < 10; ++i) {
       points = glsl(
         {
@@ -95,7 +105,7 @@ p.xy = clamp(p.xy + force/canvasSize, vec2(0), vec2(1));
 FOut = p;`,
         },
         { scale: (rgbMode ? 1.7 : 1) / 8 / DPR, story: 2, format: 'rgba32f', tag: 'points' },
-      );
+      ) as TextureTarget[];
       glsl(
         {
           ...arg,

@@ -4,13 +4,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { GUI } from 'lil-gui';
+import type { glsl, Params, Target, TextureTarget } from '@/swissgl';
+
 // Model description:
 // https://google-research.github.io/self-organising-systems/particle-lenia/
 // https://observablehq.com/@znah/particle-lenia-from-scratch
 export default class ParticleLenia {
   static Tags = ['2d', 'simulation'];
 
-  constructor(glsl, gui) {
+  glsl: glsl;
+  step_n: number;
+  viewR: number;
+  params: Params;
+  state!: [TextureTarget, TextureTarget];
+
+  constructor(glsl: glsl, gui: GUI) {
     this.glsl = (param, target) =>
       glsl(
         {
@@ -69,7 +78,7 @@ vec2 peak_f(float x, float mu, float sigma) {
     this.state = this.glsl(
       { seed: Math.random() * 1234567, FP: `(hash(ivec3(I, int(seed))).xy-0.5)*12.0,0,0` },
       { size: [20, 10], story: 2, format: 'rgba32f', tag: 'state' },
-    );
+    ) as [TextureTarget, TextureTarget];
   }
 
   step() {
@@ -105,7 +114,7 @@ FOut = vec4(pos, E*c_rep-G.x);`,
     );
   }
 
-  renderSpots(target = null, pointR = 0.4) {
+  renderSpots(target: Target | null = null, pointR = 0.4) {
     const { state, viewR } = this;
     this.glsl(
       {
@@ -122,8 +131,8 @@ FOut = vec4(pos, E*c_rep-G.x);`,
     );
   }
 
-  frame(_, params) {
-    const { state } = this;
+  frame(_: glsl, _params: Params) {
+    // const { state } = this;
     for (let i = 0; i < this.step_n; ++i) {
       this.step();
     }

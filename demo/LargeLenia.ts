@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { GUI } from 'lil-gui';
+import type { glsl, Params, TextureTarget } from '@/swissgl';
 import ParticleLenia from './ParticleLenia.js';
 
 // Model description:
@@ -12,7 +14,13 @@ import ParticleLenia from './ParticleLenia.js';
 export default class LargeLenia extends ParticleLenia {
   static Tags = ['2d', 'simulation'];
 
-  constructor(glsl, gui) {
+  magnify: number;
+  sort_phase!: number;
+  step_i!: number;
+  bbox?: TextureTarget;
+  nhood?: TextureTarget;
+
+  constructor(glsl: glsl, gui: GUI) {
     super(glsl, gui);
     const prevGlsl = this.glsl;
     this.glsl = (param, target) =>
@@ -54,7 +62,7 @@ vec3 r = hash(I.xyx);
 FOut = vec4(r.xy*300.0-150.0,0,0);`,
       },
       { size: [size, size], story: 2, format: 'rgba32f', tag: 'state' },
-    );
+    ) as [TextureTarget, TextureTarget];
     this.sort_phase = 0;
     this.step_i = 0;
     for (let i = 0; i < size * 2; ++i) this.sortIndex();
@@ -100,7 +108,7 @@ FOR2(i, 0, ivec2(D)) {
 }`,
       },
       { size: state[0].size, scale: 1 / 4, format: 'rgba32f', tag: 'bbox' },
-    ));
+    ) as TextureTarget);
 
     this.nhood = this.glsl(
       {
@@ -119,7 +127,7 @@ FOR2(i, 0, ViewSize) {
 }`,
       },
       { size: bbox.size, format: 'rgba32f', tag: 'nhood' },
-    );
+    ) as TextureTarget;
   }
 
   step() {
@@ -164,7 +172,7 @@ FOut = vec4(pos,vel);`,
     );
   }
 
-  frame(glsl, params) {
+  frame(_glsl: glsl, params: Params) {
     const { viewR, state } = this;
     for (let i = 0; i < this.step_n; ++i) this.step();
 

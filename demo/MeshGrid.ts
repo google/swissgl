@@ -4,9 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { glsl, Params } from '@/swissgl';
+
 export default class MeshGrid {
   static Tags = ['2d'];
-  frame(glsl, { time }) {
+
+  frame(glsl: glsl, { time }: Params & { time: number }) {
     glsl({
       time,
       Grid: [5, 5],

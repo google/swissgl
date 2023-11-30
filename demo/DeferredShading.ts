@@ -4,8 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { glsl, Params, TextureTarget } from '@/swissgl';
+
 export default class DeferredShading {
-  frame(glsl, params) {
+  frame(glsl: glsl, params: Params) {
     // draw objects
     const gbuf = glsl(
       {
@@ -41,7 +43,7 @@ FOut2 = vec4(wldPos, 1.0);                   // wldPos`,
     const lightArgs = {
       ...params,
       Face: 'front',
-      Grid: [9, 9, 1],
+      Grid: [9, 9, 1] as [number, number, number],
       Aspect: 'fit',
       Blend: 's+d',
       DepthTest: 'keep',
@@ -51,7 +53,7 @@ lightPos.xy *= rot2(time*0.1+lightPos.z)*(0.5+sin(time*0.7)*0.4);
 lightPos.z = sin((lightPos.x+lightPos.y)*1.5+time*0.25)*0.75;
 varying vec3 lightColor = hash(ID+1)*5.0;
 VPos = wld2proj(lightPos+uv2sphere(UV)*lightR);`,
-    };
+    } as const;
 
     // accumulate surface lights
     const light = glsl(
@@ -73,7 +75,7 @@ float diff = max(dot(normal, lightDir/r), 0.0);
 float att = 1.5*smoothstep(1.0,0.9,r/lightR) / (1.0+r*r*2e4);
 FOut = vec4(color.rgb*lightColor*att*diff, 1.0);`,
       },
-      { format: 'rgba16f', tag: 'light', depth: gbuf.depth },
+      { format: 'rgba16f', tag: 'light', depth: (gbuf as TextureTarget).depth },
     );
 
     // add light source points

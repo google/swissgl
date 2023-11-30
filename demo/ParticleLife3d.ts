@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { GUI } from 'lil-gui';
+import type { glsl, Params, Target } from '@/swissgl';
 import ParticleLife from './ParticleLife.js';
 import Shadowmap from './Shadowmap.js';
 
@@ -11,7 +13,9 @@ import Shadowmap from './Shadowmap.js';
 export default class ParticleLife3d extends ParticleLife {
   static Tags = ['3d', 'simulation', 'shadows'];
 
-  constructor(glsl, gui) {
+  shadowmap: Shadowmap;
+
+  constructor(glsl: glsl, gui: GUI) {
     super(glsl, gui);
     this.inertia = 0.4;
     this.shadowmap = new Shadowmap(glsl, gui);
@@ -33,7 +37,7 @@ FOut = vec4(pos, color);`,
     }
   }
 
-  drawPoints(glsl, params, target) {
+  drawPoints(glsl: glsl, params: Params, target?: Target) {
     const { K, points, worldExtent } = this;
     glsl(
       {
@@ -57,7 +61,7 @@ emitFragment(color);`,
     );
   }
 
-  frame(_, params) {
+  frame(_: glsl, params: Params) {
     this.step();
 
     const glsl = this.shadowmap.glsl;
@@ -87,7 +91,7 @@ VPos = vec4((v.x*0.5+0.5+float(ID.z))/3.0*2.0-1.0, v.y, 0,1);`,
       { size: [256 * 3, 256], filter: 'linear', tag: 'portalmap' },
     );
 
-    for (const face of ['back', 'front'])
+    for (const face of ['back', 'front'] as const)
       glsl({
         ...params,
         portalmap,

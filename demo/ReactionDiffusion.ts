@@ -4,10 +4,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { GUI } from 'lil-gui';
+import type { glsl, Params, TextureTarget } from '@/swissgl';
+
 export default class ReactionDiffusion {
   static Tags = ['2d', 'simulation'];
 
-  constructor(glsl, gui) {
+  glsl: glsl;
+  step_n: number;
+  state!: [TextureTarget, TextureTarget];
+
+  constructor(glsl: glsl, gui: GUI) {
     this.glsl = glsl;
     this.step_n = 1;
     gui.add(this, 'reset');
@@ -19,7 +26,7 @@ export default class ReactionDiffusion {
     this.state = this.glsl(
       { FP: `1.0, exp(-400.0*dot(XY,XY))*hash(I.xyx).x, 0, 0` },
       { size: [256, 256], format: 'rgba16f', filter: 'linear', story: 2, tag: 'state' },
-    );
+    ) as [TextureTarget, TextureTarget];
   }
 
   step() {
@@ -42,7 +49,7 @@ FOut.xy = v + vec2(-r+f*(1.0-v.x), r-(f+k)*v.y);`,
     );
   }
 
-  frame(glsl, params) {
+  frame(glsl: glsl, params: Params) {
     const { state } = this;
     for (let i = 0; i < this.step_n; ++i) this.step();
 

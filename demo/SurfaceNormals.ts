@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { glsl, Params } from '@/swissgl';
+
 export default class SurfaceNormals {
   static Tags = ['3d'];
 
-  frame(glsl, params) {
+  frame(glsl: glsl, params: Params) {
     glsl({
       ...params,
       Mesh: [64, 128],

@@ -4,10 +4,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { GUI } from 'lil-gui';
+import type { glsl, Params, TextureTarget } from '@/swissgl';
+
 // Inspired by the video https://youtu.be/p4YirERTVF0?t=480
 export default class ParticleLife {
   static Tags = ['2d', 'simulation'];
-  constructor(glsl, gui) {
+
+  glsl: glsl;
+  step_n: number;
+  dt: number;
+  worldExtent: number;
+  repulsion: number;
+  inertia: number;
+  K: number;
+  F: TextureTarget;
+  points: [TextureTarget, TextureTarget, TextureTarget];
+
+  constructor(glsl: glsl, gui: GUI) {
     this.glsl = glsl;
     this.step_n = 1;
     this.dt = 0.1;
@@ -24,8 +38,12 @@ export default class ParticleLife {
     this.F = glsl(
       { K, FP: `float(I.x==I.y) + 0.1*float(I.x==(I.y+1)%int(K))` },
       { size: [K, K], format: 'r16f', tag: 'F' },
-    );
-    this.points = glsl({}, { size: [30, 10], story: 3, format: 'rgba32f', tag: 'points' });
+    ) as TextureTarget;
+    this.points = glsl({}, { size: [30, 10], story: 3, format: 'rgba32f', tag: 'points' }) as [
+      TextureTarget,
+      TextureTarget,
+      TextureTarget,
+    ];
     this.reset();
   }
 
@@ -45,9 +63,10 @@ FOut = vec4(pos, 0.0, color);`,
     }
   }
 
-  step(touchPos) {
+  step(touchPos?: [number, number, number]) {
     touchPos = touchPos || [-1000, 0, 0];
-    const { K, F, points, worldExtent, repulsion, inertia, dt } = this;
+    // const { K, F, points, worldExtent, repulsion, inertia, dt } = this;
+    const { F, points, worldExtent, repulsion, inertia, dt } = this;
     for (let i = 0; i < this.step_n; ++i)
       this.glsl(
         {
@@ -87,9 +106,9 @@ void fragment() {
       );
   }
 
-  frame(glsl, params) {
+  frame(glsl: glsl, params: Params) {
     const { K, points, worldExtent } = this;
-    let touchPos;
+    let touchPos: [number, number, number] | undefined;
     if (params.pointer[2]) {
       const [x, y, _] = params.pointer;
       const s = worldExtent / Math.min(...params.canvasSize);

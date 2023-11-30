@@ -4,17 +4,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { GUI } from 'lil-gui';
+import type { glsl, Params, TextureTarget } from '@/swissgl';
+
 export default class Physarum3d {
   static Tags = ['3d'];
 
-  constructor(glsl, gui) {
+  showVolume: boolean;
+  showAgents: boolean;
+
+  constructor(_glsl: glsl, gui: GUI) {
     this.showVolume = true;
     gui.add(this, 'showVolume');
     this.showAgents = true;
     gui.add(this, 'showAgents');
   }
 
-  frame(glsl, params) {
+  frame(glsl: glsl, params: Params) {
     const D = 14,
       Inc = `const int D=${D}, D2=D*D;
 ivec2 pos2field(vec3 p) {
@@ -34,7 +40,7 @@ FOut.r = Src(I).r*4.0+V(a,p,p)+V(b,p,p)+V(p,a,p)+V(p,b,p)+V(p,p,a)+V(p,p,b);
 FOut.r *= 0.99/(6.0+4.0);`,
       },
       { size: [D * D * D, D * D * D], story: 2, format: 'r16f', tag: 'field' },
-    );
+    ) as [TextureTarget, TextureTarget];
 
     // agent motion
     const points = glsl(
@@ -67,7 +73,7 @@ void fragment() {
 }`,
       },
       { size: [256, 256], story: 2, format: 'rgba32f', layern: 2, tag: 'points' },
-    );
+    ) as [TextureTarget, TextureTarget];
 
     // deposit
     glsl(

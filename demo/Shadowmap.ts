@@ -4,10 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { GUI } from 'lil-gui';
+import type { glsl, Params } from '@/swissgl';
+
 export default class Shadowmap {
   static Tags = ['3d', 'shadows'];
 
-  constructor(glsl, gui) {
+  glsl: glsl;
+
+  constructor(glsl: glsl, _gui: GUI) {
     this.glsl = (param, target) =>
       glsl(
         {
@@ -55,7 +60,7 @@ void emitFragment(vec3 color) {
       );
   }
 
-  drawScene(params) {
+  drawScene(params: Params) {
     const { glsl } = this;
     const shadowPass = !params.shadowmap;
     const target = shadowPass
@@ -127,7 +132,7 @@ emitVertex(vec3(XY, -0.8));`,
     return target;
   }
 
-  frame(_, params) {
+  frame(_: glsl, params: Params) {
     const shadowmap = this.drawScene(params);
     this.drawScene({ ...params, Aspect: 'mean', shadowmap });
     //this.glsl({tex:shadowmap, View:[20, 20, 256, 256], FP:`1.0-tex(UV).x`});

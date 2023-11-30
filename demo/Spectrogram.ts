@@ -4,11 +4,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { GUI } from 'lil-gui';
+import type { glsl, Params, TextureTarget } from '@/swissgl';
+
 // Example of streaming spectrogram data from WebAudio to WebGL2
 export default class Spectrogram {
   static Tags = ['3d', 'data'];
 
-  constructor(glsl, gui) {
+  audioCtx!: AudioContext;
+  input!: MediaStreamAudioSourceNode;
+  analyser!: AnalyserNode;
+  frequencyArray!: Uint8Array;
+
+  constructor(_glsl: glsl, _gui: GUI) {
     navigator.mediaDevices
       .getUserMedia({ audio: true })
       .then(stream => {
@@ -23,7 +31,7 @@ export default class Spectrogram {
       .catch(e => console.error('Error getting microphone:', e));
   }
 
-  frame(glsl, params) {
+  frame(glsl: glsl, params: Params) {
     if (!this.analyser) return;
     this.analyser.getByteFrequencyData(this.frequencyArray);
     const n = this.frequencyArray.length;
@@ -35,7 +43,7 @@ export default class Spectrogram {
     const history = glsl(
       { spectro, FP: 'I.y>0 ? Src(I-ivec2(0,1)) : spectro(ivec2(I.x,0))' },
       { size: [n, histLen], story: 2, wrap: 'edge', tag: 'history' },
-    );
+    ) as [TextureTarget, TextureTarget];
     glsl({
       ...params,
       history: history[0].linear,

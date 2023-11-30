@@ -4,16 +4,40 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { updateObject } from '@/swissgl.js';
+import type { Controller, GUI } from 'lil-gui';
+import { updateObject, type glsl, type Params, TextureTarget } from '@/swissgl.js';
+
+type K = 'step_n' | 'dt' | 'density' | 'senseAng' | 'senseDist' | 'moveAng' | 'moveDist' | 'zoom';
+type U = { follow: boolean; senseFlip: boolean } & Record<K, number>;
+// type U = {
+//   follow: boolean;
+//   senseFlip: boolean;
+//   senseAng: number;
+//   senseDist: number;
+//   moveAng: number;
+//   moveDist: number;
+//   step_n: number;
+//   dt: number;
+//   density: number;
+//   zoom: number;
+// };
+// } & Record<K, number>;
+type Preset = 'worms' | 'mesh' | 'flocks' | 'swirl';
 
 // Inspired by https://cargocollective.com/sagejenson/physarum
 export default class Physarum {
   static Tags = ['2d', 'simulation'];
 
-  constructor(glsl, gui) {
-    const U = (this.U = { follow: false });
-    const controllers = [];
-    const par = (s, v, ...arg) => {
+  U: U;
+  preset: Preset;
+  field!: [TextureTarget, TextureTarget];
+  points!: [TextureTarget, TextureTarget];
+
+  constructor(_glsl: glsl, gui: GUI) {
+    const U = (this.U = { follow: false } as U);
+    const controllers: Controller[] = [];
+    const par = (s: keyof U, v: U[keyof U], ...arg: number[]) => {
+      // @ts-expect-error TODO: type this correctly
       U[s] ||= v;
       controllers.push(gui.add(U, s, ...arg));
     };
@@ -24,7 +48,7 @@ export default class Physarum {
       swirl: { senseFlip: true, senseAng: 1.28, senseDist: 19, moveAng: 7, moveDist: 2 },
     };
     this.preset = 'worms';
-    gui.add(this, 'preset', Object.keys(presets)).onChange(name => {
+    gui.add(this, 'preset', Object.keys(presets)).onChange((name: Preset) => {
       updateObject(U, presets[name]);
       controllers.forEach(c => c.updateDisplay());
     });
@@ -41,7 +65,7 @@ export default class Physarum {
     updateObject(U, presets[this.preset]);
   }
 
-  frame(glsl, { DPR }) {
+  frame(glsl: glsl, { DPR }: Params & { DPR: number }) {
     for (let i = 0; i < this.U.step_n; ++i) {
       this.step(glsl, DPR);
     }
@@ -78,7 +102,7 @@ VPos.xy = wld2scr(p.xy+XY*10.0/zoom);`,
     });
   }
 
-  step(glsl, DPR) {
+  step(glsl: glsl, DPR: number) {
     const U = this.U,
       dt = U.dt;
     const field = (this.field = glsl(
@@ -97,13 +121,14 @@ float v1 = 0.95*(v0+S(l,y)+S(r,y)+S(x,u)+S(x,d)+S(l,u)+S(r,u)+S(l,d)+S(r,d))/9.0
 FOut.x = pack(clamp(mix(v0, v1, dt),1e-5,1.));`,
       },
       { story: 2, scale: 1 / DPR, format: 'rgba8', filter: 'linear', tag: 'field' },
-    ));
+    ) as [TextureTarget, TextureTarget]);
 
     const points = (this.points = glsl(
       {
         field: field[0],
         ...this.U,
-        rotAng: (((1 - U.senseFlip * 2) * U.moveAng) / 180.0) * Math.PI,
+        // rotAng: (((1 - U.senseFlip * 2) * U.moveAng) / 180.0) * Math.PI,
+        rotAng: (((1 - (U.senseFlip ? 1 : 0) * 2) * U.moveAng) / 180.0) * Math.PI,
         FP: `
 FOut = Src(I);
 vec2 wldSize = vec2(field_size());
@@ -128,7 +153,7 @@ FOut.xy += dir*moveDist*dt;
 FOut.xy = mod(FOut.xy, wldSize);`,
       },
       { scale: this.U.density / 16 / DPR, story: 2, format: 'rgba32f', tag: 'points' },
-    ));
+    ) as [TextureTarget, TextureTarget]);
 
     glsl(
       {

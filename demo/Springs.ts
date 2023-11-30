@@ -4,10 +4,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { GUI } from 'lil-gui';
+import type { glsl, Params, TextureTarget } from '@/swissgl';
+
 export default class Springs {
   static Tags = ['2d'];
 
-  constructor(glsl, gui) {
+  glsl: glsl;
+  params: { waveRate: number };
+  points!: [TextureTarget, TextureTarget];
+
+  constructor(glsl: glsl, gui: GUI) {
     this.glsl = glsl;
     this.reset();
     this.params = { waveRate: 4.0 };
@@ -23,10 +30,10 @@ export default class Springs {
           FP: `XY*rot2(PI+0.1)*0.6+vec2(0,0.3),0,(UV.x+UV.y)*10.0`,
         },
         { size: [64, 64], format: 'rgba32f', story: 2, tag: 'points' },
-      );
+      ) as [TextureTarget, TextureTarget];
   }
 
-  frame(glsl, { time }) {
+  frame(glsl: glsl, { time }: Params & { time: number }) {
     const { points } = this;
 
     const next = glsl(
@@ -46,7 +53,7 @@ if (FOut.y<-0.8) {
 }`,
       },
       { size: points[0].size, format: 'rgba32f', story: 2, tag: 'next' },
-    );
+    ) as [TextureTarget, TextureTarget];
 
     for (let i = 0; i < 8; ++i)
       glsl(

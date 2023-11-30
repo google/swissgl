@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { GUI } from 'lil-gui';
+import type { glsl, Params, TextureTarget, CpuArray } from '@/swissgl';
 import AudioStream from './audio.js';
 import ParticleLenia from './ParticleLenia.js';
 
@@ -11,7 +13,14 @@ import ParticleLenia from './ParticleLenia.js';
 export default class FancyLenia extends ParticleLenia {
   static Tags = ['3d', 'simulation', 'audio'];
 
-  constructor(glsl, gui) {
+  meanEnergy: number;
+  volume: number;
+  trails!: TextureTarget;
+  audio?: TextureTarget;
+  audioStream?: AudioStream;
+  phase_vol!: [TextureTarget, TextureTarget];
+
+  constructor(glsl: glsl, gui: GUI) {
     super(glsl, gui);
     this.meanEnergy = 0.0;
     gui.add(this, 'meanEnergy', 0.0, 1.0, 0.001).listen();
@@ -19,12 +28,13 @@ export default class FancyLenia extends ParticleLenia {
     gui.add(this, 'volume', 0.0, 1.0);
     gui.add(this, 'toggleAudio');
   }
+
   reset() {
     super.reset();
     this.trails = this.glsl(
       { Clear: 0 },
       { size: [1024, 1024], format: 'r8', filter: 'linear', tag: 'trails' },
-    );
+    ) as TextureTarget;
   }
 
   step() {
@@ -34,7 +44,7 @@ export default class FancyLenia extends ParticleLenia {
     this.renderSpots(trails, 0.2);
   }
 
-  frame(_, cameraParams) {
+  frame(_: glsl, cameraParams: Params) {
     for (let i = 0; i < this.step_n; ++i) {
       this.step();
     }
@@ -56,7 +66,13 @@ VPos.xy = (state(ID.xy).xy + p)/viewR;`,
       { size: [256, 256], format: 'rgba16f', filter: 'linear', tag: 'fieldU' },
     );
 
-    const viewParams = { viewR, ...cameraParams, scaleU: 0.25, DepthTest: 1, Aspect: 'mean' };
+    const viewParams = {
+      viewR,
+      ...cameraParams,
+      scaleU: 0.25,
+      DepthTest: 1,
+      Aspect: 'mean',
+    } as const;
     glsl({
       fieldU,
       trails,
@@ -98,10 +114,11 @@ float a = normal.z*0.7+0.3;
 FOut = vec4(vec3(1.0-a*a*0.75), 1.0);`,
     });
 
-    glsl(
-      {
-        state: state[0],
-        FP: `
+    (
+      glsl(
+        {
+          state: state[0],
+          FP: `
 ivec2 sz = state_size();
 float E = 0.0;
 for (int y=0; y<sz.y; ++y)
@@ -109,8 +126,9 @@ for (int x=0; x<sz.x; ++x) {
   E += state(ivec2(x,y)).w;
 }
 FOut.x = E / float(sz.x*sz.y);`,
-      },
-      { size: [1, 1], format: 'r32f', tag: 'meanE' },
+        },
+        { size: [1, 1], format: 'r32f', tag: 'meanE' },
+      ) as TextureTarget
     ).read(d => (this.meanEnergy = d[0]));
 
     if (this.audio) {
@@ -137,12 +155,17 @@ VPos.xy = p+XY*0.008;`,
       delete this.audio;
     }
   }
+
   free() {
     if (this.audioStream) {
       this.audioStream.stop();
     }
   }
-  audioFrame(e, submit) {
+
+  audioFrame(
+    e: { frame: number; sampleRate: number; buf: Float32Array },
+    submit: (target: CpuArray) => void,
+  ) {
     const n = e.buf.length / 2;
     const dt = n / e.sampleRate;
     const [s1, s0] = this.state;
@@ -157,7 +180,7 @@ FOut.x = fract(Src(I).x + dt*exp2(4.0*d1.w));
 FOut.y = length(d1.xyz-d0.xyz);`,
       },
       { size: s0.size, story: 2, format: 'rg32f', tag: 'phase_vol' },
-    );
+    ) as [TextureTarget, TextureTarget];
     const [p1, p0] = this.phase_vol;
     this.audio = this.glsl(
       {
@@ -179,7 +202,7 @@ for (i.x=0; i.x<sz.x; ++i.x) {
 FOut.xy *= volume/acc;`,
       },
       { size: [n, 1], format: 'rg32f', tag: 'audio' },
-    );
+    ) as TextureTarget;
     this.audio.read(submit, [], e.buf);
   }
 }

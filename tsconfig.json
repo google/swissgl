@@ -19,7 +19,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    "paths": { "@/*": ["./dist/*"] }
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src", "demo"]
 }

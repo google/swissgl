@@ -6,9 +6,14 @@
 
 import { CpuArray } from '@/swissgl';
 
-// class AudioWorkletProcessor {}
+type ProcessorClass = typeof AudioWorkletProcessor;
 
-export default class AudioStream extends AudioWorkletProcessor {
+const Processor: ProcessorClass =
+  typeof AudioWorkletProcessor === 'undefined'
+    ? (class {} as unknown as ProcessorClass)
+    : AudioWorkletProcessor;
+
+export default class AudioStream extends Processor {
   chunkSize: number;
   queue!: Float32Array[];
   pos!: number;

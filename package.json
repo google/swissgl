@@ -39,10 +39,10 @@
     "lil-gui": "^0.19.1",
     "prettier": "^3.1.0",
     "prettier-plugin-glsl": "^0.1.3",
-    "terser": "^5.24.0",
-    "typescript": "^5.2.2",
-    "vite": "^5.0.0",
-    "vite-plugin-glsl": "^1.1.2"
+    "terser": "^5.26.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.7",
+    "vite-plugin-glsl": "^1.2.0"
   },
   "scripts": {
     "dev": "vite",

@@ -6,7 +6,7 @@
 // Model description:
 // https://google-research.github.io/self-organising-systems/particle-lenia/
 // https://observablehq.com/@znah/particle-lenia-from-scratch
-class LargeLenia extends ParticleLenia{
+class LargeLenia extends ParticleLenia {
     static Tags = ['2d', 'simulation'];
 
     constructor(glsl, gui) {
@@ -101,7 +101,7 @@ class LargeLenia extends ParticleLenia{
                     float r = length(dp);
                     dp /= max(r,1e-8);
                     if (r<1.0) {
-                    R_grad -= dp*(1.0-r);
+                        R_grad -= dp*(1.0-r);
                     }
                     vec2 K = peak_f(r, mu_k, sigma_k)*w_k;
                     U_grad += K.g*dp;

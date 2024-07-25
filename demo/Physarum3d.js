@@ -4,7 +4,7 @@
   */
 
 class Physarum3d {
-    static Tags = ['3d'];
+    static Tags = ['3d', 'novr'];
 
     constructor(glsl, gui) {
         this.showVolume = true; gui.add(this, 'showVolume');

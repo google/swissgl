@@ -254,7 +254,7 @@ class DemoApp {
         setDisplay('#vrButton', 'none');
         setDisplay('#arButton', 'none');
         const tags = this.demo && this.demo.constructor.Tags;
-        if (tags && tags.includes('3d')) {
+        if (tags && tags.includes('3d') && !tags.includes('novr')) {
             if (this.haveVR ) setDisplay('#vrButton', 'block');
             if (this.haveAR ) setDisplay('#arButton', 'block');
         }

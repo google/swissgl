@@ -19,7 +19,8 @@ class DemoApp {
         this.demo = null;
         this.gui = null;
 
-        this.xrDemos =  Object.values(this.demos).filter(f=>f.Tags&&f.Tags.includes('3d'));
+        this.xrDemos =  Object.values(this.demos).filter(f=>f.Tags&&f.Tags.includes('3d')
+                                                    &&(!f.Tags.includes('novr')));
         this.xrSession = null;
         this.xrRefSpace = null;
         this.xrPose = null;

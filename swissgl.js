@@ -50,6 +50,7 @@ const TextureFormats = {};
     }
     UniformType2TexTarget[GL.SAMPLER_2D] = GL.TEXTURE_2D;
     UniformType2TexTarget[GL.SAMPLER_2D_ARRAY] = GL.TEXTURE_2D_ARRAY;
+    UniformType2TexTarget[GL.INT_SAMPLER_2D] = GL.TEXTURE_2D;
 
     for (const [name, internalFormat, glformat, type, CpuArray, chn] of [
         ['r8', GL.R8, GL.RED, GL.UNSIGNED_BYTE, Uint8Array, 1],
@@ -57,7 +58,9 @@ const TextureFormats = {};
         ['r16f', GL.R16F, GL.RED, GL.HALF_FLOAT, Uint16Array, 1],
         ['rgba16f', GL.RGBA16F, GL.RGBA, GL.HALF_FLOAT, Uint16Array, 4],
         ['r32f', GL.R32F, GL.RED, GL.FLOAT, Float32Array, 1],
+        ['r32i', GL.R32I, GL.RED_INTEGER, GL.INT, Int32Array, 1],
         ['rg32f', GL.RG32F, GL.RG, GL.FLOAT, Float32Array, 2],
+        ['rg32i', GL.RG32I, GL.RG_INTEGER, GL.INT, Int32Array, 2],
         ['rgba32f', GL.RGBA32F, GL.RGBA, GL.FLOAT, Float32Array, 4],
         ['depth', GL.DEPTH_COMPONENT24, GL.DEPTH_COMPONENT, GL.UNSIGNED_INT, Uint32Array, 1],
     ]) TextureFormats[name] = {internalFormat, glformat, type, CpuArray, chn};
@@ -172,7 +175,8 @@ function compileProgram(gl, vs, fs) {
 const glsl_template = `
 precision highp float;
 precision highp int;
-precision lowp sampler2DArray;
+precision highp sampler2DArray;
+precision highp isampler2D;
 #ifdef VERT
     #define varying out
     #define VPos gl_Position

@@ -183,7 +183,6 @@ precision highp isampler2D;
     layout(location = 0) in int VertexID;
     layout(location = 1) in int InstanceID;
     ivec2 VID;
-    ivec3 ID;
 #else
     #define varying in
     layout(location = 0) out vec4 FOut;
@@ -196,6 +195,7 @@ precision highp isampler2D;
     layout(location = 7) out vec4 FOut7;
     ivec2 I;
 #endif
+flat varying ivec3 ID;
 
 uniform ivec3 Grid;
 uniform ivec2 Mesh;
@@ -332,7 +332,7 @@ const expandVP = memoize(code=>expandCode(code, 'vertex', 'VPos'));
 const expandFP = memoize(code=>expandCode(code, 'fragment', 'FOut'));
 
 function extractVaryings(VP) {
-    return Array.from(stripComments(VP).matchAll(/\bvarying\s+[^;]+;/g))
+    return Array.from(stripComments(VP).matchAll(/(flat)?\s+varying\s+[^;]+;/g))
     .map(m=>m[0]).map(s=>{
         while (s != (s=s.replace(/\([^()]*\)/g, ''))); // remove nested ()
         return s.replace(/=[^,;]*/g,'')  // remove assigned values 
@@ -340,7 +340,7 @@ function extractVaryings(VP) {
 }
 
 function stripVaryings(VP) {
-    return VP.replace(/\bvarying\s+\w+/g,'');
+    return VP.replace(/(flat)?\s+varying\s+\w+/g,'');
 }
 
 function linkShader(gl, uniforms, Inc, VP, FP) {

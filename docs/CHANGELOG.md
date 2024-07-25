@@ -1,5 +1,10 @@
 # Changelog
 
+### 2024-07-25
+* flat varyings
+* inferring data texture size
+* integer textures (require explicit uniform declaration for now)
+
 ### 2023-11-15
 * devicePixelRatio handling in examples
 * (LargeLenia)[https://google.github.io/swissgl/#LargeLenia] demo)

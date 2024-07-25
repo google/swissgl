@@ -621,8 +621,12 @@ function ensureVertexArray(gl, neededSize) {
 }
 
 function getTargetSize(gl, {size, scale=1, data}) {
-    if (!size && (data && data.videoWidth && data.videoHeight)) {
+    if (!size && data) {
+        if (data.videoWidth && data.videoHeight) {
         size = [data.videoWidth, data.videoHeight];
+        } else if (data.width && data.height) {
+            size = [data.width, data.height];
+        }
     }
     size = size || [gl.canvas.width, gl.canvas.height];
     return [Math.ceil(size[0]*scale), Math.ceil(size[1]*scale)];

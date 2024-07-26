@@ -37,11 +37,12 @@ class ParticleLife {
         }
     }
 
-    step(touchPos) {
-        touchPos = touchPos || [-1000, 0, 0];
+    step(touchPos0, touchPos1) {
+        touchPos0 = touchPos0 || [-1000, 0, 0];
+        touchPos1 = touchPos1 || [-1000, 0, 0];
         const {K, F, points, worldExtent, repulsion, inertia, dt} = this;
         for (let i=0; i<this.step_n; ++i)
-        this.glsl({F, touchPos, worldExtent, repulsion, inertia, dt, past:points[1], FP:`
+        this.glsl({F, touchPos0, touchPos1, worldExtent, repulsion, inertia, dt, past:points[1], FP:`
         vec3 wrap(vec3 p) {
           return (fract(p/worldExtent+0.5)-0.5)*worldExtent;
         }
@@ -60,8 +61,10 @@ class ParticleLife {
               float att = f*max(1.0-abs(r-2.0), 0.0);
               force += dpos*(att-rep);
             }
-            vec3 touchVec = (touchPos-FOut.xyz);
-            force += touchVec*exp(-dot(touchVec, touchVec))*50.0;
+            vec3 touchVec0 = (touchPos0-FOut.xyz);
+            vec3 touchVec1 = (touchPos1-FOut.xyz);
+            force += touchVec0*exp(-dot(touchVec0, touchVec0))*50.0;
+            force += touchVec1*exp(-dot(touchVec1, touchVec1))*50.0;
             vec3 vel = wrap(FOut.xyz-past(I).xyz)*pow(inertia, dt);
             FOut.xyz = wrap(FOut.xyz+vel+0.5*force*(dt*dt));
         }`}, points);

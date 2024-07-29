@@ -50,7 +50,7 @@ class Shadowmap {
         const {glsl} = this;
         const shadowPass = !params.shadowmap;
         const target = shadowPass ? 
-            glsl({}, {size:[1024, 1024], format:'depth', tag:'shadowmap'}) : null;
+            glsl({}, {size:[2048, 2048], format:'depth', tag:'shadowmap'}) : null;
         params = {...params, shadowPass, DepthTest:1};
         // sphere
         glsl({...params, Grid:[3], Mesh:[32,32], Clear:[.5,.5,.8,1], VP:`

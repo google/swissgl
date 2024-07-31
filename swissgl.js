@@ -182,6 +182,7 @@ precision highp isampler2D;
     #define VPos gl_Position
     layout(location = 0) in int VertexID;
     layout(location = 1) in int InstanceID;
+    int MeshRow;
     ivec2 VID;
 #else
     #define varying in
@@ -199,6 +200,7 @@ flat varying ivec3 ID;
 
 uniform ivec3 Grid;
 uniform ivec2 Mesh;
+uniform int MeshMode;
 uniform ivec4 View;
 #define ViewSize (View.zw)
 uniform vec2 Aspect;
@@ -266,16 +268,26 @@ vec4 _sample(sampler2D tex, ivec2 xy) {return texelFetch(tex, xy, 0);}
 vec4 _sample(sampler2DArray tex, vec2 uv, int layer) {return texture(tex, vec3(uv, layer));}
 vec4 _sample(sampler2DArray tex, ivec2 xy, int layer) {return texelFetch(tex, ivec3(xy, layer), 0);}
 
-#ifdef FRAG
+#ifdef VERT
+    void _setupMesh() {
+        int odd = MeshMode == 1 ? MeshRow%2 : 0;
+        int i = clamp(VertexID-odd, 0, Mesh.x*2+1);
+        VID = ivec2(i>>1, MeshRow+(i+odd+1)%2);
+        UV = vec2(VID) / vec2(Mesh);
+        VPos = vec4(XY,0,1);
+    }
+#else
     float isoline(float v) {
         float distToInt = abs(v-round(v));
         return smoothstep(max(fwidth(v), 0.0001), 0.0, distToInt);
     }
     float wireframe() {
         vec2 m = UV*vec2(Mesh);
-        float d1 = isoline(m.x-m.y), d2 = isoline(m.x+m.y);
-        float d = mix(d1, d2, float(int(m.y)%2));
-        return isoline(m.x)+isoline(m.y)+d;
+        float diag = isoline(m.x-m.y);
+        if (MeshMode==1 && (int(m.y)%2==1)) {
+            diag = isoline(m.x+m.y);
+        }
+        return isoline(m.x)+isoline(m.y)+diag;
     }
 #endif
 `;
@@ -357,18 +369,12 @@ function linkShader(gl, uniforms, Inc, VP, FP) {
     #define VERT
     ${prefix}\n${VP}
     void main() {
-      int rowVertN = Mesh.x*2+3;
-      int rowI = VertexID/rowVertN;
-      int rowVertI = min(VertexID%rowVertN, rowVertN-2);
-      int odd = rowI%2;
-      if (odd==0) rowVertI = rowVertN-rowVertI-2;
-      VID = ivec2(rowVertI>>1, rowI + (rowVertI+odd+1)%2);
-      int ii = InstanceID;
+            int ii = InstanceID;
+MeshRow = ii % Mesh.y; ii/=Mesh.y;
       ID.x = ii % Grid.x; ii/=Grid.x;
       ID.y = ii % Grid.y; ii/=Grid.y;
       ID.z = ii;
-      UV = vec2(VID) / vec2(Mesh);
-      VPos = vec4(XY,0,1);
+      _setupMesh();
       vertex();
       VPos.xy *= Aspect;
     }`, `
@@ -763,10 +769,11 @@ function drawQuads(self, params, target) {
 
     // Grid, Mesh
     const [gx=1, gy=1, gz=1] = options.Grid || [];
+    const [mx=1, my=1] = options.Mesh || [];
     uniforms.Grid = [gx, gy, gz];
-    uniforms.Mesh = options.Mesh || [1, 1]; // 3d for cube?
-    const vertN = (uniforms.Mesh[0]*2+3)*uniforms.Mesh[1]-1;
-    const instN = gx*gy*gz;
+    uniforms.Mesh = [mx, my]; // 3d for cube?
+    const vertN = (mx+1)*2 + (my>1); // extra vertex to fix row winding in MeshMode==1
+    const instN = my * gx*gy*gz;
     ensureVertexArray(gl, Math.max(vertN, instN));
     gl.bindVertexArray(gl._indexVA);
 

@@ -413,6 +413,9 @@ class TextureSampler {
             setf('MAG_FILTER', filter=='miplinear' ? gl.LINEAR : glfilter);
             setf('WRAP_S', glwrap);
             setf('WRAP_T', glwrap);
+            if (filter == 'miplinear' && gl.TEXTURE_MAX_ANISOTROPY_EXT) {
+                setf('MAX_ANISOTROPY_EXT', 4.0);
+            }
             gl._samplers[id] = sampler;
         }
         return gl._samplers[id];
@@ -796,6 +799,10 @@ function SwissGL(canvas_gl) {
         canvas_gl.getContext('webgl2', {alpha:false, antialias:true}) : canvas_gl;
     gl.getExtension("EXT_color_buffer_float");
     gl.getExtension("OES_texture_float_linear");
+    const ext = gl.getExtension("EXT_texture_filter_anisotropic")
+    for (const k in ext) {
+        gl[k] = ext[k];
+    }
     gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     ensureVertexArray(gl, 1024);
@@ -814,7 +821,8 @@ function SwissGL(canvas_gl) {
     glsl.adjustCanvas = dpr=>{
         dpr = dpr || self.devicePixelRatio;
         const canvas = gl.canvas;
-        const w = canvas.clientWidth*dpr, h=canvas.clientHeight*dpr;
+        const w = Math.max(1, Math.floor(canvas.clientWidth*dpr));
+        const h = Math.max(1, Math.floor(canvas.clientHeight*dpr));
         if (canvas.width != w || canvas.height != h) {
             canvas.width = w; canvas.height = h;
         }

@@ -377,8 +377,8 @@ function linkShader(gl, uniforms, Inc, VP, FP) {
     #define VERT
     ${prefix}\n${VP}
     void main() {
-            int ii = InstanceID;
-MeshRow = ii % Mesh.y; ii/=Mesh.y;
+      int ii = InstanceID;
+      MeshRow = ii % Mesh.y; ii/=Mesh.y;
       ID.x = ii % Grid.x; ii/=Grid.x;
       ID.y = ii % Grid.y; ii/=Grid.y;
       ID.z = ii;

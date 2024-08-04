@@ -215,6 +215,14 @@ varying vec2 UV;
 const float PI  = radians(180.0);
 const float TAU = radians(360.0);
 
+#define ASPECT_F(name, expr) vec2 name() {vec2 s = vec2(ViewSize); return vec2(expr);}
+ASPECT_F(viewFit,   min(s.x,s.y)/s)
+ASPECT_F(viewCover, max(s.x,s.y)/s)
+ASPECT_F(viewFitX,  (1.0, s.x/s.y))
+ASPECT_F(viewFitY,  (s.y/s.x, 1.0))
+ASPECT_F(viewMean,  0.5*(s.x+s.y)/s)
+#undef ASPECT_F
+
 // source: https://www.shadertoy.com/view/XlXcW4
 // TODO more complete hash library
 vec3 hash( ivec3 ix ) {

@@ -100,7 +100,7 @@ glsl({K, worldExtent, // uniforms
     // set the clip-space vertex position, 'vec2 XY' contains
     // coordinates of the quad vertex in -1..1 range
     VPos.xy = 2.0*(d.xy+XY/8.0)/worldExtent;`, 
-    // Set the the fragment color and transparency 
+    // Set the fragment color and transparency 
     // depending on the distance from the quad center.
     // Interpolated XY values are also available 
     // in the fragment shader.

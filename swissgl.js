@@ -836,9 +836,15 @@ function SwissGL(canvas_gl) {
         }
     }
     let frameCount = 0;
+    let baseTime = 0;
+    glsl.restart = () => {
+      baseTime = performance.now();
+      frameCount = 0;
+    };
     glsl.loop = callback=>{
         frameCount = 0;
         const frameFunc = time=>{
+            time = time - baseTime;
             const res = callback({glsl, time:time/1000.0, frameCount});
             frameCount++;
             if (res != 'stop') requestAnimationFrame(frameFunc);

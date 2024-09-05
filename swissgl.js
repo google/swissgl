@@ -352,7 +352,7 @@ const expandVP = memoize(code=>expandCode(code, 'vertex', 'VPos'));
 const expandFP = memoize(code=>expandCode(code, 'fragment', 'FOut'));
 
 function extractVaryings(VP) {
-    return Array.from(stripComments(VP).matchAll(/(flat)?\s+varying\s+[^;]+;/g))
+    return Array.from(stripComments(VP).matchAll(/\b(flat\s+)?varying\s+[^;]+;/g))
     .map(m=>m[0]).map(s=>{
         while (s != (s=s.replace(/\([^()]*\)/g, ''))); // remove nested ()
         return s.replace(/=[^,;]*/g,'')  // remove assigned values 
@@ -360,7 +360,7 @@ function extractVaryings(VP) {
 }
 
 function stripVaryings(VP) {
-    return VP.replace(/(flat)?\s+varying\s+\w+/g,'');
+    return VP.replace(/\b(flat\s+)?varying\s+\w+/g,'');
 }
 
 function linkShader(gl, uniforms, Inc, VP, FP) {

@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>Reaction-Diffusion Torus Tutorial</title>
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reset.min.css" integrity="sha512-Mjxkx+r7O/OLQeKeIBCQ2yspG1P5muhAtv/J+p2/aPnSenciZWm5Wlnt+NOUNA4SHbnBIE/R2ic0ZBiCXdQNUg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css" integrity="sha512-0AUO8B5ll9y1ERV/55xq3HeccBGnvAJQsVGitNac/iQCLyDTGLUBMPqlupIWp/rJg0hV3WWHusXchEIdqFAv1Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/theme/black.min.css" integrity="sha512-B1sAcZ4KSpvbIUUvxaoqy56z88d6fozQyEV54K0gVBUMDMcVu9CAXMwJ5wTWo650j3IQH6yDEETiek6lrk/zCw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+	<!-- Theme used for syntax highlighted code -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/highlight/monokai.min.css" integrity="sha512-z8wQkuDRFwCBfoj7KOiu1MECaRVoXx6rZQWL21x0BsVVH7JkqCp1Otf39qve6CrCycOOL5o9vgfII5Smds23rg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<style>
+		.reveal h2, .reveal h3 {text-transform:none;}
+		.reveal pre code {
+			max-height: 600px;
+		}
+		.splitview {
+			display: flex;
+		}
+		.code {
+			flex: 1.2;
+			overflow: auto;
+			font-size: 80%;
+			align-self: center;
+		}
+		code {
+			background-color: #333;
+		}
+		.demo {
+			background: #222; 
+			flex: 1;
+			align-self: stretch;
+		}
+		canvas {width: 100%; height: 100%;}
+	</style>
+	<script src="../swissgl.js"></script>
+	<script>
+		"use strict";
+		const canvas = document.createElement('canvas');
+		const glsl = SwissGL(canvas);
+		let frameFunc = null;
+		let frameCount = 0;
+		canvas.onclick = ()=>{
+			frameCount = 0;
+		}
+		glsl.loop(args=>{
+			if (frameFunc) {
+				glsl.adjustCanvas();
+				try {
+					frameFunc({...args, frameCount});
+					frameCount++;
+				} catch (error) {
+					console.log(error);
+					frameFunc = ()=>glsl({Clear:0});
+				}
+			}
+		});
+		function AddDemo(f) {
+			const root = document.currentScript.parentNode;
+			let demo = root.querySelector('.demo');
+			if (!demo) {
+				demo = document.createElement('div');
+				demo.classList.add('demo');
+				root.appendChild(demo);
+			}
+			const src = root.querySelector('#src');
+			if (src) {
+				const lines = f.toString().replaceAll('<', '&lt;').split('\n');
+				src.innerHTML = lines.slice(1,lines.length-1).join('\n');
+			}
+			demo.runDemo = f;
+		}
+		const finalDemo = ()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+							const k=.05444, f=.02259; // reaction params
+							for (let i=0; i<5; ++i)
+							glsl({frameCount, k, f, FP:`
+								if (frameCount==0.0) { // reset on the first frame
+									FOut.xy = vec2(1, step(length(XY),0.1)*0.1);
+									return;
+								}
+								vec2 v = Src(I).xy;
+								vec2 ds = Src_step()*0.5;
+								#define S(x,y) Src(UV+ds*vec2(x,y)).xy
+								vec2 blur = (S(-1,-1)+S(1,-1)+S(-1,1)+S(1,1))/4.0;
+								v = mix(v, blur, vec2(1.0, 0.5));
+								float rate = v.x*v.y*v.y;
+								v += vec2(-rate+f*(1.0-v.x), rate-(f+k)*v.y);
+								FOut.xy = v;
+							`}, state);	// draw to state
+							
+							const colors = {fg:[.9,.2,.7], bg:[0.1,0.1,0.1]};
+							glsl({Aspect:'cover', ...colors, FP:`
+								mix(fg*0.4, bg, min(dot(XY,XY),1.0) ),1`});
+							glsl({Aspect:'fit', ...colors, state:state[0], 
+								Mesh:state.size, DepthTest:1, VP:`
+								vec2 v = state(UV).xy;
+								VPos.xyz = torus(UV, 0.5, 0.2+v.y*0.3).yxz;
+								VPos.yz *= rot2(-0.6);
+								varying vec3 color = mix(bg, fg, state(UV).y*2.);
+								`, FP:`color,1`});
+						};
+	</script>
+</head>
+<body>
+	<div class="reveal">
+		<div class="slides">
+
+
+			<section>
+				<h3>SwissGL tutorial: Reaction-Diffusion donut</h3>
+				<div class="demo r-stretch"></div>
+				<script>
+					AddDemo(finalDemo);
+				</script>
+			</section>
+
+			<section>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Starting with a quad</h3>
+						<pre class="js"><code data-trim id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(()=>({time, frameCount})=>{
+							glsl({Aspect:'fit',
+								FP:`UV,0,1`}); // draw quad to screen
+						});
+					</script>
+				</div>
+			</section>	
+
+			<section>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Creating the state buffer</h3>
+						<pre class="js"><code data-trim data-line-numbers="1-2|4-6|8-9" id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+
+							glsl({FP:`
+								FOut.xy = vec2(1, step(length(XY),0.1));
+							`}, state);	// draw to state
+
+							glsl({Aspect:'fit', state:state[0],
+								FP:`state(UV).y`}); // draw state to screen
+						});
+					</script>
+				</div>
+			</section>	
+
+			<section data-auto-animate>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Modifying the state</h3>
+						<pre class="js" data-id="src"><code data-trim data-line-numbers="5-8|9-11" id="src"></code></pre>
+						<p>(click the canvas to reset)</p>
+					</div>
+					<script>
+						AddDemo(()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+
+							glsl({frameCount, FP:`
+								if (frameCount==0.0) { // reset on the first frame
+									FOut.xy = vec2(1, step(length(XY),0.1));
+									return;
+								}
+								// otherwise read and fade the previous state
+								vec2 v = Src(I).xy;
+								v *= 0.98;
+								FOut.xy = v;
+							`}, state);	// draw to state
+
+							glsl({Aspect:'fit', state:state[0],
+								FP:`state(UV).y`}); // draw state to screen
+						});
+					</script>
+				</div>
+			</section>
+
+			<section data-auto-animate>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Blur</h3>
+						<pre class="js" data-id="src"><code data-trim data-line-numbers="11-15|16-17" id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+
+							glsl({frameCount, FP:`
+								if (frameCount==0.0) { // reset on the first frame
+									FOut.xy = vec2(1, step(length(XY),0.1));
+									return;
+								}
+								// otherwise read and fade the previous state
+								vec2 v = Src(I).xy;
+								// use HW-bilinear filtering to compute 
+								// 3x3 filter with 4 fetches
+								vec2 ds = Src_step()*0.5;
+								#define S(x,y) Src(UV+ds*vec2(x,y)).xy
+								vec2 blur = (S(-1,-1)+S(1,-1)+S(-1,1)+S(1,1))/4.0;
+								// different blur rates for "x" and "y" channels
+								v = mix(v, blur, vec2(1.0, 0.5));
+								FOut.xy = v;
+							`}, state);	// draw to state
+
+							glsl({Aspect:'fit', state:state[0],
+								FP:`state(UV).y`}); // draw state to screen
+						});
+					</script>
+				</div>
+			</section>
+
+			<section data-auto-animate>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Adding reaction term</h3>
+						<pre class="js" data-id="src"><code data-trim data-line-numbers="14-15" id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+							const k=.05444, f=.02259; // reaction params
+							glsl({frameCount, k, f, FP:`
+								if (frameCount==0.0) { // reset on the first frame
+									FOut.xy = vec2(1, step(length(XY),0.1));
+									return;
+								}
+								vec2 v = Src(I).xy;
+								vec2 ds = Src_step()*0.5;
+								#define S(x,y) Src(UV+ds*vec2(x,y)).xy
+								vec2 blur = (S(-1,-1)+S(1,-1)+S(-1,1)+S(1,1))/4.0;
+								v = mix(v, blur, vec2(1.0, 0.5));
+								float rate = v.x*v.y*v.y;
+								v += vec2(-rate+f*(1.0-v.x), rate-(f+k)*v.y);
+								FOut.xy = v;
+							`}, state);	// draw to state
+
+							glsl({Aspect:'fit', state:state[0],
+								FP:`state(UV).y`}); // draw state to screen
+						});
+					</script>
+				</div>
+			</section>
+
+			<section data-auto-animate>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>More steps pre frame</h3>
+						<pre class="js" data-id="src"><code data-trim data-line-numbers="4" id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+							const k=.05444, f=.02259; // reaction params
+							for (let i=0; i<5; ++i)
+							glsl({frameCount, k, f, FP:`
+								if (frameCount==0.0) { // reset on the first frame
+									FOut.xy = vec2(1, step(length(XY),0.1));
+									return;
+								}
+								vec2 v = Src(I).xy;
+								vec2 ds = Src_step()*0.5;
+								#define S(x,y) Src(UV+ds*vec2(x,y)).xy
+								vec2 blur = (S(-1,-1)+S(1,-1)+S(-1,1)+S(1,1))/4.0;
+								v = mix(v, blur, vec2(1.0, 0.5));
+								float rate = v.x*v.y*v.y;
+								v += vec2(-rate+f*(1.0-v.x), rate-(f+k)*v.y);
+								FOut.xy = v;
+							`}, state);	// draw to state
+
+							glsl({Aspect:'fit', state:state[0],
+								FP:`state(UV).y`}); // draw state to screen
+						});
+					</script>
+				</div>
+			</section>
+
+			<section data-auto-animate>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Apply colormap</h3>
+						<pre class="js" data-id="src"><code data-trim data-line-numbers="20-22" id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+							const k=.05444, f=.02259; // reaction params
+							for (let i=0; i<5; ++i)
+							glsl({frameCount, k, f, FP:`
+								if (frameCount==0.0) { // reset on the first frame
+									FOut.xy = vec2(1, step(length(XY),0.1));
+									return;
+								}
+								vec2 v = Src(I).xy;
+								vec2 ds = Src_step()*0.5;
+								#define S(x,y) Src(UV+ds*vec2(x,y)).xy
+								vec2 blur = (S(-1,-1)+S(1,-1)+S(-1,1)+S(1,1))/4.0;
+								v = mix(v, blur, vec2(1.0, 0.5));
+								float rate = v.x*v.y*v.y;
+								v += vec2(-rate+f*(1.0-v.x), rate-(f+k)*v.y);
+								FOut.xy = v;
+							`}, state);	// draw to state
+
+							const colors = {fg:[.9,.2,.7], bg:[0.1,0.1,0.1]};
+							glsl({Aspect:'fit', ...colors, state:state[0], FP:`
+								mix(bg, fg, state(UV).y*2.),1`});
+						});
+					</script>
+				</div>
+			</section>
+			
+			<section data-auto-animate>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Tesselate and wrap the quad</h3>
+						<pre class="js" data-id="src"><code data-trim data-line-numbers="22|23" id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+							const k=.05444, f=.02259; // reaction params
+							for (let i=0; i<5; ++i)
+							glsl({frameCount, k, f, FP:`
+								if (frameCount==0.0) { // reset on the first frame
+									FOut.xy = vec2(1, step(length(XY),0.1));
+									return;
+								}
+								vec2 v = Src(I).xy;
+								vec2 ds = Src_step()*0.5;
+								#define S(x,y) Src(UV+ds*vec2(x,y)).xy
+								vec2 blur = (S(-1,-1)+S(1,-1)+S(-1,1)+S(1,1))/4.0;
+								v = mix(v, blur, vec2(1.0, 0.5));
+								float rate = v.x*v.y*v.y;
+								v += vec2(-rate+f*(1.0-v.x), rate-(f+k)*v.y);
+								FOut.xy = v;
+							`}, state);	// draw to state
+
+							const colors = {fg:[.9,.2,.7], bg:[0.1,0.1,0.1]};
+							glsl({Aspect:'fit', ...colors, state:state[0], 
+								Mesh:state.size, DepthTest:1, VP:`
+								VPos.xyz = torus(UV, 0.5, 0.2);
+								`, FP:`
+								mix(bg, fg, state(UV).y*2.),1`});
+						});
+					</script>
+				</div>
+			</section>
+
+			<section data-auto-animate>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Displace vertices</h3>
+						<pre class="js" data-id="src"><code data-trim data-line-numbers="23-24" id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+							const k=.05444, f=.02259; // reaction params
+							for (let i=0; i<5; ++i)
+							glsl({frameCount, k, f, FP:`
+								if (frameCount==0.0) { // reset on the first frame
+									FOut.xy = vec2(1, step(length(XY),0.1)*0.1);
+									return;
+								}
+								vec2 v = Src(I).xy;
+								vec2 ds = Src_step()*0.5;
+								#define S(x,y) Src(UV+ds*vec2(x,y)).xy
+								vec2 blur = (S(-1,-1)+S(1,-1)+S(-1,1)+S(1,1))/4.0;
+								v = mix(v, blur, vec2(1.0, 0.5));
+								float rate = v.x*v.y*v.y;
+								v += vec2(-rate+f*(1.0-v.x), rate-(f+k)*v.y);
+								FOut.xy = v;
+							`}, state);	// draw to state
+
+							const colors = {fg:[.9,.2,.7], bg:[0.1,0.1,0.1]};
+							glsl({Aspect:'fit', ...colors, state:state[0], 
+								Mesh:state.size, DepthTest:1, VP:`
+								vec2 v = state(UV).xy;
+								VPos.xyz = torus(UV, 0.5, 0.2+v.y*0.3);
+								`, FP:`
+								mix(bg, fg, state(UV).y*2.),1`});
+						});
+					</script>
+				</div>
+			</section>
+
+			<section data-auto-animate>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Rotate</h3>
+						<pre class="js" data-id="src"><code data-trim data-line-numbers="24-25" id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+							const k=.05444, f=.02259; // reaction params
+							for (let i=0; i<5; ++i)
+							glsl({frameCount, k, f, FP:`
+								if (frameCount==0.0) { // reset on the first frame
+									FOut.xy = vec2(1, step(length(XY),0.1)*0.1);
+									return;
+								}
+								vec2 v = Src(I).xy;
+								vec2 ds = Src_step()*0.5;
+								#define S(x,y) Src(UV+ds*vec2(x,y)).xy
+								vec2 blur = (S(-1,-1)+S(1,-1)+S(-1,1)+S(1,1))/4.0;
+								v = mix(v, blur, vec2(1.0, 0.5));
+								float rate = v.x*v.y*v.y;
+								v += vec2(-rate+f*(1.0-v.x), rate-(f+k)*v.y);
+								FOut.xy = v;
+							`}, state);	// draw to state
+
+							const colors = {fg:[.9,.2,.7], bg:[0.1,0.1,0.1]};
+							glsl({Aspect:'fit', ...colors, state:state[0], 
+								Mesh:state.size, DepthTest:1, VP:`
+								vec2 v = state(UV).xy;
+								VPos.xyz = torus(UV, 0.5, 0.2+v.y*0.3).yxz;
+								VPos.yz *= rot2(-0.6);
+								`, FP:`
+								mix(bg, fg, state(UV).y*2.),1`});
+						});
+					</script>
+				</div>
+			</section>
+
+			<section data-auto-animate>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Per-vertex colors ("varying")</h3>
+						<pre class="js" data-id="src"><code data-trim data-line-numbers="26-28" id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+							const k=.05444, f=.02259; // reaction params
+							for (let i=0; i<5; ++i)
+							glsl({frameCount, k, f, FP:`
+								if (frameCount==0.0) { // reset on the first frame
+									FOut.xy = vec2(1, step(length(XY),0.1)*0.1);
+									return;
+								}
+								vec2 v = Src(I).xy;
+								vec2 ds = Src_step()*0.5;
+								#define S(x,y) Src(UV+ds*vec2(x,y)).xy
+								vec2 blur = (S(-1,-1)+S(1,-1)+S(-1,1)+S(1,1))/4.0;
+								v = mix(v, blur, vec2(1.0, 0.5));
+								float rate = v.x*v.y*v.y;
+								v += vec2(-rate+f*(1.0-v.x), rate-(f+k)*v.y);
+								FOut.xy = v;
+							`}, state);	// draw to state
+
+							const colors = {fg:[.9,.2,.7], bg:[0.1,0.1,0.1]};
+							glsl({Aspect:'fit', ...colors, state:state[0], 
+								Mesh:state.size, DepthTest:1, VP:`
+								vec2 v = state(UV).xy;
+								VPos.xyz = torus(UV, 0.5, 0.2+v.y*0.3).yxz;
+								VPos.yz *= rot2(-0.6);
+								varying vec3 color = mix(bg, fg, state(UV).y*2.);
+								`, FP:`color,1`});
+						});
+					</script>
+				</div>
+			</section>
+
+			<section data-auto-animate>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Add background</h3>
+						<pre class="js" data-id="src"><code data-trim data-line-numbers="21-22" id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(finalDemo);
+					</script>
+				</div>
+			</section>						
+				
+
+			<section>
+				<div class="splitview r-stretch">
+					<div class="code">
+						<h3>Final code (28 loc)</h3>
+						<pre class="js"><code data-trim data-line-numbers id="src"></code></pre>
+					</div>
+					<script>
+						AddDemo(finalDemo);
+					</script>
+				</div>
+			</section>	
+
+			<section>
+				<h3>Bonus</h3>
+				<div class="demo r-stretch"></div>
+				<script>
+					AddDemo(()=>({time, frameCount})=>{
+							let state = glsl({}, {size:[256,256], story:2, 
+								tag:'state', format:'rgba32f', filter:'linear'});
+							const k=.05444, f=.02259; // reaction params
+							for (let i=0; i<6; ++i)
+							glsl({frameCount, k, f, FP:`
+								if (frameCount==0.0) { // reset on the first frame
+									FOut.xy = vec2(1, step(length(XY),0.1)*0.1);
+									return;
+								}
+								vec2 v = Src(I).xy;
+								vec2 ds = Src_step()*0.5;
+								#define S(x,y) Src(UV+ds*vec2(x,y)).xy
+								vec2 blur = (S(-1,-1)+S(1,-1)+S(-1,1)+S(1,1))/4.0;
+								v = mix(v, blur, vec2(1.0, 0.5));
+								float rate = v.x*v.y*v.y;
+								v += vec2(-rate+f*(1.0-v.x), rate-(f+k)*v.y);
+								FOut.xy = v;
+							`}, state);	// draw to state
+							
+							let t = Math.min(Math.max((frameCount-300)/300, 0.0), 1.0);
+							t = t*t*(3.0-2.0*t);
+							const colors = {fg:[.9,.2,.7], bg:[0.1,0.1,0.1]};
+							glsl({Aspect:'cover', ...colors, t, FP:`
+								mix(fg*0.4, bg, min(dot(XY,XY),1.0))*t,1`});
+							glsl({Aspect:'fit',  ...colors, t, state:state[0], 
+								Mesh:state.size, DepthTest:1, VP:`
+								vec2 v = state(UV).xy;
+								VPos.xyz = torus(UV, 0.5, 0.2+v.y*0.3).yxz;
+								VPos.yz *= rot2(-0.6);
+								VPos.xyz = mix(vec3(XY,0), VPos.xyz, t);
+								varying vec3 color = mix(bg, fg, state(UV).y*2.);
+								color = mix(vec3(v.y), color, t);
+								`, FP:`color,1`});
+						});
+				</script>
+			</section>
+
+
+		</div>
+	</div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.js" integrity="sha512-35L3EFHQcGaTZ6QN9wAg9iK1hTPVCn8RGsscuXjm5JdmDRyOw+/IWJ4wavGkozQ8VDoddD7nV1psHgu/BYNpxQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/highlight/highlight.min.js" integrity="sha512-xkVKkN0o7xECTHSUZ9zdsBYRXiAKH7CZ3aICpW6aQJZsufVVRLhEBTDjTpC1tPzm+gNZiOeW174zXAB2fOLsTg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script>
+
+		function onSlide(slide) {
+			const demo = slide.querySelector('.demo');
+			if (!demo) {
+				frameFunc = null;
+				return;
+			}
+			demo.appendChild(canvas);
+			frameFunc = demo.runDemo();
+			frameCount = 0;
+		}
+
+		Reveal.initialize({
+			slideNumber: 'c/t',
+			transition:'fade',
+			hash: true,
+			width: 1280, height: 800,
+			autoAnimateUnmatched: false,
+			plugins: [ RevealHighlight, /*RevealMarkdown,, RevealNotes*/ ]
+		}).then(()=>onSlide(Reveal.getCurrentSlide()));
+		Reveal.on('slidechanged', e=>{
+			setTimeout(()=>onSlide(e.currentSlide), 200);
+		});
+	</script>
+</body>
+</html>

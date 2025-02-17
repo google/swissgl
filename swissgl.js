@@ -51,19 +51,25 @@ const TextureFormats = {};
     UniformType2TexTarget[GL.SAMPLER_2D] = GL.TEXTURE_2D;
     UniformType2TexTarget[GL.SAMPLER_2D_ARRAY] = GL.TEXTURE_2D_ARRAY;
     UniformType2TexTarget[GL.INT_SAMPLER_2D] = GL.TEXTURE_2D;
+    UniformType2TexTarget[GL.UNSIGNED_INT_SAMPLER_2D] = GL.TEXTURE_2D;
 
-    for (const [name, internalFormat, glformat, type, CpuArray, chn] of [
-        ['r8', GL.R8, GL.RED, GL.UNSIGNED_BYTE, Uint8Array, 1],
-        ['rgba8', GL.RGBA8, GL.RGBA, GL.UNSIGNED_BYTE, Uint8Array, 4],
-        ['r16f', GL.R16F, GL.RED, GL.HALF_FLOAT, Uint16Array, 1],
-        ['rgba16f', GL.RGBA16F, GL.RGBA, GL.HALF_FLOAT, Uint16Array, 4],
-        ['r32f', GL.R32F, GL.RED, GL.FLOAT, Float32Array, 1],
-        ['r32i', GL.R32I, GL.RED_INTEGER, GL.INT, Int32Array, 1],
-        ['rg32f', GL.RG32F, GL.RG, GL.FLOAT, Float32Array, 2],
-        ['rg32i', GL.RG32I, GL.RG_INTEGER, GL.INT, Int32Array, 2],
-        ['rgba32f', GL.RGBA32F, GL.RGBA, GL.FLOAT, Float32Array, 4],
-        ['depth', GL.DEPTH_COMPONENT24, GL.DEPTH_COMPONENT, GL.UNSIGNED_INT, Uint32Array, 1],
-    ]) TextureFormats[name] = {internalFormat, glformat, type, CpuArray, chn};
+    const regfmt = (name, internalFormat, glformat, type, CpuArray, chn)=>{
+        TextureFormats[name] = {internalFormat, glformat, type, CpuArray, chn};
+    }
+    regfmt('depth', GL.DEPTH_COMPONENT24, GL.DEPTH_COMPONENT, GL.UNSIGNED_INT, Uint32Array, 1);
+    for (const c of ['r', 'rg', 'rgba'])
+    {
+        const C = c.toUpperCase(), chn=C.length;
+        const fmt = (C=='R' ? 'RED' : C);
+        const fmtI = fmt + '_INTEGER';
+        regfmt(c+'8', GL[C+'8'], GL[fmt], GL.UNSIGNED_BYTE, Uint8Array, chn);
+        regfmt(c+'16f', GL[C+'16F'], GL[fmt], GL.HALF_FLOAT, Uint16Array, chn);
+        regfmt(c+'32f', GL[C+'32F'], GL[fmt], GL.FLOAT, Float32Array, chn);
+        for (const [bits, type] of [[8, 'BYTE'], [16, 'SHORT'], [32, 'INT']]) {
+            regfmt(`${c}${bits}i`, GL[`${C}${bits}I`],  GL[fmtI], GL[type], self[`Int${bits}Array`], chn);
+            regfmt(`${c}${bits}u`, GL[`${C}${bits}UI`], GL[fmtI], GL['UNSIGNED_'+type], self[`Uint${bits}Array`], chn);
+        }
+    }  
 }
 
 function memoize(f) {
@@ -177,6 +183,9 @@ precision highp float;
 precision highp int;
 precision highp sampler2DArray;
 precision highp isampler2D;
+precision highp usampler2D;
+precision highp isampler2DArray;
+precision highp usampler2DArray;
 #ifdef VERT
     #define varying out
     #define VPos gl_Position
@@ -270,12 +279,13 @@ vec3 _surf_f(vec3 p, vec3 a, vec3 b, out vec3 normal) {
     return p;
 }
 #define SURF(f, uv, out_normal, eps) _surf_f(f(uv), f(uv+vec2(eps,0)), f(uv+vec2(0,eps)), out_normal)
-
-vec4 _sample(sampler2D tex, vec2 uv) {return texture(tex, uv);}
-vec4 _sample(sampler2D tex, ivec2 xy) {return texelFetch(tex, xy, 0);}
-vec4 _sample(sampler2DArray tex, vec2 uv, int layer) {return texture(tex, vec3(uv, layer));}
-vec4 _sample(sampler2DArray tex, ivec2 xy, int layer) {return texelFetch(tex, ivec3(xy, layer), 0);}
-
+${
+['', 'u', 'i'].map(t=>`
+${t}vec4 _sample(${t}sampler2D tex, vec2 uv) {return texture(tex, uv);}
+${t}vec4 _sample(${t}sampler2D tex, ivec2 xy) {return texelFetch(tex, xy, 0);}
+${t}vec4 _sample(${t}sampler2DArray tex, vec2 uv, int layer) {return texture(tex, vec3(uv, layer));}
+${t}vec4 _sample(${t}sampler2DArray tex, ivec2 xy, int layer) {return texelFetch(tex, ivec3(xy, layer), 0);}
+`).join("")}
 #ifdef VERT
     void _setupMesh() {
         int odd = MeshMode == 1 ? MeshRow%2 : 0;
@@ -307,14 +317,7 @@ function guessUniforms(params) {
         const v = params[name];
         let s = null;
         if (v instanceof TextureSampler) {
-            const [type, D] = v.layern?['sampler2DArray', '3']:['sampler2D', '2'];
-            const lookupMacro = v.layern?
-                `#define ${name}(p,l) (_sample(${name}, (p), (l)))` : 
-                `#define ${name}(p) (_sample(${name}, (p)))`;
-            s = `uniform ${type} ${name};
-            ${lookupMacro}
-            ivec${D} ${name}_size() {return textureSize(${name}, 0);}
-            vec${D}  ${name}_step() {return 1.0/vec${D}(${name}_size());}`;
+            s = v.getUniformCode(name);
         } else if (typeof v === 'number') {
             s=`uniform float ${name};`
         } else if (typeof v === 'boolean') {
@@ -396,8 +399,8 @@ function linkShader(gl, uniforms, Inc, VP, FP) {
 
 class TextureSampler {
     fork(updates) {
-        const {gl, handle, gltarget, layern, filter, wrap} = {...this, ...updates};
-        return updateObject(new TextureSampler(), {gl, handle, gltarget, layern, filter, wrap});
+        const {filter, wrap, _texture} = {...this, ...updates};
+        return updateObject(new TextureSampler(), {filter, wrap, _texture});
     }
     get linear()  {return this.fork({filter:'linear'})}
     get nearest() {return this.fork({filter:'nearest'})}
@@ -406,8 +409,13 @@ class TextureSampler {
     get repeat()  {return this.fork({wrap:'repeat'})}
     get mirror()  {return this.fork({wrap:'mirror'})}
 
+    getUniformCode(name) {
+        return this._texture._getUniformCode(name);
+    }
+
     get _sampler() {
-        const {gl, filter, wrap} = this;
+        const gl = this._texture.gl;
+        const {filter, wrap} = this;
         if (!gl._samplers) {gl._samplers = {};}
         const id = `${filter}:${wrap}`;
         if (!(id in gl._samplers)) {
@@ -430,7 +438,7 @@ class TextureSampler {
     }
     bindSampler(unit) {
         // assume unit is already active
-        const {gl, gltarget, handle} = this;
+        const {gl, gltarget, handle} = this._texture;
         gl.bindTexture(gltarget, handle);
         if (this.filter == 'miplinear' && !handle.hasMipmap) {
             gl.generateMipmap(gltarget)
@@ -443,6 +451,7 @@ class TextureSampler {
 class TextureTarget extends TextureSampler {
     constructor(gl, params) {
         super();
+        this._texture = this;
         let {size, tag, format='rgba8', filter='nearest', wrap='repeat',
             layern=null, data=null, depth=null} = params;
         if (!depth && format.includes('+')) {
@@ -457,6 +466,22 @@ class TextureTarget extends TextureSampler {
         this.formatInfo = TextureFormats[format];
         updateObject(this, {gl, _tag:tag, format, layern, wrap, depth});
         this.update(size, data);
+
+        const typePrefix = format.endsWith('u') ? 'u' : 
+            (format.endsWith('i') ? 'i':'');
+        this._uniformTemplate = layern ? `
+            uniform ${typePrefix}sampler2DArray $name;
+            #define $name(p,l) (_sample($name, (p), (l)))
+            ivec3 $name_size() {return textureSize($name, 0);}
+            vec3  $name_step() {return 1.0/vec3($name_size());}
+            `:`
+            uniform ${typePrefix}sampler2D $name;
+            #define $name(p) (_sample($name, (p)))
+            ivec2 $name_size() {return textureSize($name, 0);}
+            vec2  $name_step() {return 1.0/vec2($name_size());}\n`;
+    }
+    _getUniformCode(name) {
+        return this._uniformTemplate.replaceAll('$name', name)
     }
     update(size, data) {
         const {gl, handle, gltarget, layern} = this;
@@ -714,7 +739,14 @@ function drawQuads(self, params, target) {
     // setup target
     if (target && target.tag) {
         target = prepareOwnTarget(self, target);
-        if (!haveShader && !haveClear) return target;
+        if (!haveShader && !haveClear) {
+            // rotate texture story
+            if (Array.isArray(target)) {
+                target.unshift(target.pop());
+                target.size = target[0].size;
+            }
+            return target;
+        }
     }
     if (Array.isArray(target)) {
         uniforms.Src = uniforms.Src || target[0];

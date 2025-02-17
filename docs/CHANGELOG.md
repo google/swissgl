@@ -1,5 +1,9 @@
 # Changelog
 
+### 2025-02-17
+* integer texture fetching
+* history for data textures
+
 ### 2024-07-25
 * flat varyings
 * inferring data texture size

@@ -46,7 +46,7 @@ class ParticleLife3d extends ParticleLife {
             const s = worldExtent/cubeSize;
             return [x*s, y*s, z*s];
         }        
-        this.step(getTouch(0), getTouch(0));
+        this.step(getTouch(0), getTouch(1));
 
         const glsl = this.shadowmap.glsl;
         const shadowmap = glsl({Clear:0}, {size:[2048, 2048], format:'depth', tag:'shadowmap'});

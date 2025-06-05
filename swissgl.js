@@ -195,14 +195,6 @@ precision highp usampler2DArray;
     ivec2 VID;
 #else
     #define varying in
-    layout(location = 0) out vec4 FOut;
-    layout(location = 1) out vec4 FOut1;
-    layout(location = 2) out vec4 FOut2;
-    layout(location = 3) out vec4 FOut3;
-    layout(location = 4) out vec4 FOut4;
-    layout(location = 5) out vec4 FOut5;
-    layout(location = 6) out vec4 FOut6;
-    layout(location = 7) out vec4 FOut7;
     ivec2 I;
 #endif
 flat varying ivec3 ID;
@@ -366,19 +358,24 @@ function stripVaryings(VP) {
     return VP.replace(/\b(flat\s+)?varying\s+\w+/g,'');
 }
 
-function linkShader(gl, uniforms, Inc, VP, FP) {
+function linkShader(gl, uniforms, Inc, VP, FP, layern) {
     Inc = Inc.join('\n');
     const defined = definedUniforms([glsl_template, Inc, VP, FP].join('\n'));
     const undefined = Object.entries(uniforms)
         .filter(kv=>kv[0].match(/^\w+$/))
         .filter(kv=>!(defined.has(kv[0])));
-    const guessed = guessUniforms(Object.fromEntries(undefined));
+    const autoUniforms = guessUniforms(Object.fromEntries(undefined));
     const varyings = extractVaryings(VP);
-    VP = expandVP(stripVaryings(VP));
-    const prefix = `${glsl_template}\n${guessed}\n${varyings}\n${Inc}\n`;
+    const prefix = `${glsl_template}\n${autoUniforms}\n${varyings}\n`;
+    let fragOutputs = ['layout(location = 0) out vec4 FOut;'];
+    for (let i=1; i < layern; ++i) {
+        fragOutputs.push(`layout(location = ${i}) out vec4 FOut${i};`);
+    }
     return compileProgram(gl, `
     #define VERT
-    ${prefix}\n${VP}
+    ${prefix}
+    ${Inc}
+    ${expandVP(stripVaryings(VP))}
     void main() {
       int ii = InstanceID;
       MeshRow = ii % Mesh.y; ii/=Mesh.y;
@@ -390,7 +387,10 @@ function linkShader(gl, uniforms, Inc, VP, FP) {
       VPos.xy *= Aspect;
     }`, `
     #define FRAG
-    ${prefix}\n${expandFP(FP)}
+    ${prefix}
+    ${fragOutputs.join('\n')}
+    ${Inc}
+    ${expandFP(FP)}
     void main() {
       I = ivec2(gl_FragCoord.xy);
       fragment();
@@ -781,7 +781,8 @@ function drawQuads(self, params, target) {
         prog = prog[chunk] || (prog[chunk] = {});    
     }
     prog = prog[VP] || (prog[VP] = {});
-    prog = prog[FP] || (prog[FP] = linkShader(gl, uniforms, Inc, VP, FP));
+    const layern = (target && (Array.isArray(target) ? target[0] : target).layern) || 1;
+    prog = prog[FP] || (prog[FP] = linkShader(gl, uniforms, Inc, VP, FP, layern));
     gl.useProgram(prog);
     
     // process options

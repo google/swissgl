@@ -40,7 +40,7 @@ const TextureFormats = {};
     const GL = WebGL2RenderingContext;
     for (const t of ['FLOAT', 'INT', 'BOOL']) {
         const suf = t=='FLOAT' ? 'f':'i';
-        Type2Setter[GL[t]] = 'uniform1'+suf;
+        Type2Setter[GL[t]] = `uniform1${suf}v`;
         for (const i of [2, 3, 4]) {
             Type2Setter[GL[`${t}_VEC${i}`]] = `uniform${i}${suf}v`;
             if (suf=='f') {
@@ -153,6 +153,7 @@ function compileProgram(gl, vs, fs) {
     gl.useProgram(program);
     program.setters = {};
     let unitCount = 0;
+    const isArray = v => Array.isArray(v) || ArrayBuffer.isView(v);
     const numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
     for (let i = 0; i < numUniforms; ++i) {
         const info = gl.getActiveUniform(program, i);
@@ -169,7 +170,7 @@ function compileProgram(gl, vs, fs) {
         } else {
             const fname = Type2Setter[info.type];
             const setter = fname.startsWith('uniformMatrix') ?
-                v=>gl[fname](loc, false, v) : v=>gl[fname](loc, v);
+                v=>gl[fname](loc, false, v) : v=>gl[fname](loc, isArray(v) ? v : [v]);
             program.setters[name] = v=>v!=undefined?setter(v):null;
         }
     }

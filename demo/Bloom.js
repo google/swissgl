@@ -3,7 +3,7 @@
   * SPDX-License-Identifier: Apache-2.0 
   */
 class Bloom {
-    static Tags = ['3d'];
+    static Tags = ['3d', 'novr'];
     constructor(glsl, gui) {
         this.bloom = 2.0;
         this.gamma = 2.2;

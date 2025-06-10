@@ -57,6 +57,7 @@ const TextureFormats = {};
         TextureFormats[name] = {internalFormat, glformat, type, CpuArray, chn};
     }
     regfmt('depth', GL.DEPTH_COMPONENT24, GL.DEPTH_COMPONENT, GL.UNSIGNED_INT, Uint32Array, 1);
+    regfmt('rgb11f', GL.R11F_G11F_B10F, GL.RGB, GL.FLOAT, Float32Array, 3);
     for (const c of ['r', 'rg', 'rgba'])
     {
         const C = c.toUpperCase(), chn=C.length;

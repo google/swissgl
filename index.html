@@ -32,6 +32,7 @@
 <script src='demo/LargeLenia.js'></script>
 <script src='demo/FireflySync.js'></script>
 <script src='demo/Wave2D.js'></script>
+<script src='demo/Bloom.js'></script>
 <script src='demo/main.js'></script>
 
 <details id="panel" open>
@@ -66,7 +67,7 @@
 <script>
     'use strict';
     const app = new DemoApp([
-        NeuralCA, DotCamera, MeshGrid, Wave2D, ReactionDiffusion, ParticleLife, ParticleLife3d, FireflySync,
+        NeuralCA, DotCamera, MeshGrid, Bloom, Wave2D, ParticleLife3d, ParticleLife, ReactionDiffusion, FireflySync,
         BitField, TextureSamplers, GameOfLife, ParticleLenia, FancyLenia, LargeLenia, Spectrogram, Physarum,
         Physarum3d, SurfaceNormals, CubeDeform, ColorCube, Shadowmap, Torus4d, DeferredShading, Springs
     ]);
@@ -84,7 +85,7 @@
     }
     const showAbout = ()=>{$('#about').style.display = 'block';}
     const hideAbout = ()=>{$('#about').style.display = 'none';}
-    //hideAbout();
+    hideAbout();
     $('#demo').addEventListener('pointerdown', ()=>{
         hideAbout();
         if (window.innerWidth < 500) {

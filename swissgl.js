@@ -441,7 +441,7 @@ class TextureSampler {
     bindSampler(unit) {
         // assume unit is already active
         const {gl, gltarget, handle} = this._root;
-        gl.bindTexture(gltarget, handle);
+        this._root.bindTexture();
         if (this.filter == 'miplinear' && !handle.hasMipmap) {
             gl.generateMipmap(gltarget)
             handle.hasMipmap = true;
@@ -450,24 +450,88 @@ class TextureSampler {
     }
 }
 
+class MultisampleTarget {
+    constructor(gl, formatInfo, sampleN, depth) {
+        this.gl = gl;
+        this.formatInfo = formatInfo;
+        this.sampleN = sampleN;
+        this.fbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+        this.colorRB = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.colorRB);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this.colorRB);
+        if (depth) {
+            this.depthRB = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthRB);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.depthRB);
+        }
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    update(size) {
+        const {gl} = this;
+        const [w, h] = this.size = size;
+        const {internalFormat} = this.formatInfo;
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.colorRB);
+        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this.sampleN, internalFormat, w, h);
+        if (this.depthRB) {
+            gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthRB);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this.sampleN, gl.DEPTH_COMPONENT24, w, h);
+        }
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+        this.dirty = true;
+    }
+
+    bind() {
+        this.dirty = true;
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fbo);
+    }
+
+    blit(targetFBO) {
+        if (!this.dirty) {
+            return;
+        }
+        const {gl} = this;
+        const saveRead = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
+        const saveDraw = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.fbo);
+	    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, targetFBO);
+        const [w, h] = this.size;
+        const bufferBits = gl.COLOR_BUFFER_BIT | (this.depthRB ? gl.DEPTH_BUFFER_BIT : 0);
+    	gl.blitFramebuffer(0,0,w,h,  0,0,w,h, bufferBits, gl.NEAREST);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, saveRead);
+	    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, saveDraw);
+        this.dirty = false;
+    }
+}
+
 class TextureTarget extends TextureSampler {
     constructor(gl, params) {
         super();
         this._root = this;
         let {size, tag, format='rgba8', filter='nearest', wrap='repeat',
-            layern=null, data=null, depth=null} = params;
+            layern=null, data=null, depth=null, msaa=null} = params;
         if (!depth && format.includes('+')) {
             const [mainFormat, depthFormat] = format.split('+');
             format = mainFormat;
             depth = new TextureTarget(gl, {...params,
-                tag:tag+'_depth',format:depthFormat, layern:null, depth:null});
+                tag:tag+'_depth',format:depthFormat, layern:null, depth:null, msaa:null});
         }
         this.handle = gl.createTexture();
         this.filter = format=='depth' ? 'nearest' : filter;
         this.gltarget = layern ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D;
         this.formatInfo = TextureFormats[format];
         updateObject(this, {gl, _tag:tag, format, layern, wrap, depth});
+        if (msaa > 1) {
+            this._msaa = new MultisampleTarget(gl, this.formatInfo, msaa, depth)
+        }
         this.update(size, data);
+
+        this.fbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+        this.attach(gl)
+        if (this.depth) this.depth.attach(gl);
 
         const typePrefix = format.endsWith('u') ? 'u' : 
             (format.endsWith('i') ? 'i':'');
@@ -502,6 +566,7 @@ class TextureTarget extends TextureSampler {
         gl.bindTexture(gltarget, null);
         this.size = size;
         if (this.depth) {this.depth.update(size, data);}
+        if (this._msaa) {this._msaa.update(size);}
     }
     attach(gl) {
         if (!this.layern) {
@@ -520,16 +585,19 @@ class TextureTarget extends TextureSampler {
         }
     }
     bindTarget(gl, readonly=false) {
-        if (this.fbo) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
-        } else {
-            this.fbo = gl.createFramebuffer();
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
-            this.attach(gl)
-            if (this.depth) this.depth.attach(gl);
+        if (!readonly && this._msaa) {
+            this._msaa.bind();
+            return this.size;    
         }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
         if (!readonly) {this.handle.hasMipmap = false;}
         return this.size;
+    }
+    bindTexture() {
+        // assume unit is already active
+        const {gl, gltarget, handle} = this;
+        if (this._msaa) { this._msaa.blit(this.fbo); }
+        gl.bindTexture(gltarget, handle);
     }
     _getBox(box) {
         box = (box && box.length) ? box : [0, 0, ...this.size];

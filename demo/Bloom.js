@@ -38,7 +38,7 @@ class Bloom {
             varying vec4 color = vec4(c*(e*0.75+0.25), e);
 
             `, FP:`color`},
-            {tag:'frame', format:'rgba8+depth'});
+            {tag:'frame', format:'rgba8+depth', msaa:4});
    
         
         let [w, h] = frame.size;

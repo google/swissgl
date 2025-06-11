@@ -401,8 +401,8 @@ function linkShader(gl, uniforms, Inc, VP, FP, layern) {
 
 class TextureSampler {
     fork(updates) {
-        const {filter, wrap, _texture} = {...this, ...updates};
-        return updateObject(new TextureSampler(), {filter, wrap, _texture});
+        const {filter, wrap, _root} = {...this, ...updates};
+        return updateObject(new TextureSampler(), {filter, wrap, _root});
     }
     get linear()  {return this.fork({filter:'linear'})}
     get nearest() {return this.fork({filter:'nearest'})}
@@ -412,11 +412,11 @@ class TextureSampler {
     get mirror()  {return this.fork({wrap:'mirror'})}
 
     getUniformCode(name) {
-        return this._texture._getUniformCode(name);
+        return this._root._getUniformCode(name);
     }
 
     get _sampler() {
-        const gl = this._texture.gl;
+        const gl = this._root.gl;
         const {filter, wrap} = this;
         if (!gl._samplers) {gl._samplers = {};}
         const id = `${filter}:${wrap}`;
@@ -440,7 +440,7 @@ class TextureSampler {
     }
     bindSampler(unit) {
         // assume unit is already active
-        const {gl, gltarget, handle} = this._texture;
+        const {gl, gltarget, handle} = this._root;
         gl.bindTexture(gltarget, handle);
         if (this.filter == 'miplinear' && !handle.hasMipmap) {
             gl.generateMipmap(gltarget)
@@ -453,7 +453,7 @@ class TextureSampler {
 class TextureTarget extends TextureSampler {
     constructor(gl, params) {
         super();
-        this._texture = this;
+        this._root = this;
         let {size, tag, format='rgba8', filter='nearest', wrap='repeat',
             layern=null, data=null, depth=null} = params;
         if (!depth && format.includes('+')) {
@@ -462,7 +462,7 @@ class TextureTarget extends TextureSampler {
             depth = new TextureTarget(gl, {...params,
                 tag:tag+'_depth',format:depthFormat, layern:null, depth:null});
         }
-        this.handle = gl.createTexture(),
+        this.handle = gl.createTexture();
         this.filter = format=='depth' ? 'nearest' : filter;
         this.gltarget = layern ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D;
         this.formatInfo = TextureFormats[format];

@@ -80,11 +80,6 @@ function memoize(f) {
     return wrap;
 }
 
-function updateObject(o, updates) {
-    for (const s in updates) { o[s] = updates[s];}
-    return o;
-}
-
 // Parse strings like 'min(s,d)', 'max(s,d)', 's*d', 's+d*(1-sa)',
 // 's*d', 'd*(1-sa) + s*sa', s-d', 'd-s' and so on into
 // gl.blendFunc/gl.blendEquation arguments.
@@ -402,7 +397,7 @@ function linkShader(gl, uniforms, Inc, VP, FP, layern) {
 class TextureSampler {
     fork(updates) {
         const {filter, wrap, _root} = {...this, ...updates};
-        return updateObject(new TextureSampler(), {filter, wrap, _root});
+        return Object.assign(new TextureSampler(), {filter, wrap, _root});
     }
     get linear()  {return this.fork({filter:'linear'})}
     get nearest() {return this.fork({filter:'nearest'})}
@@ -522,7 +517,7 @@ class TextureTarget extends TextureSampler {
         this.filter = format=='depth' ? 'nearest' : filter;
         this.gltarget = layern ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D;
         this.formatInfo = TextureFormats[format];
-        updateObject(this, {gl, _tag:tag, format, layern, wrap, depth});
+        Object.assign(this, {gl, _tag:tag, format, layern, wrap, depth});
         if (msaa > 1) {
             this._msaa = new MultisampleTarget(gl, this.formatInfo, msaa, depth)
         }

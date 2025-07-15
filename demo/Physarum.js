@@ -19,7 +19,7 @@ class Physarum {
         };
         this.preset = 'worms';
         gui.add(this, 'preset', Object.keys(presets)).onChange(name=>{
-            updateObject(U, presets[name]);
+            Object.assign(U, presets[name]);
             controllers.forEach(c=>c.updateDisplay());
         });
         par('step_n',      1,    0, 20, 1);
@@ -32,7 +32,7 @@ class Physarum {
         par('moveDist',    1,    0, 10   );
         par('zoom',        1,    1, 8);
         gui.add(U,'follow');
-        updateObject(U, presets[this.preset]);
+        Object.assign(U, presets[this.preset]);
     }
 
     frame(glsl, {DPR}) {
